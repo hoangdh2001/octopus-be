@@ -4,15 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8b56906f-46d9-4b1f-80a8-4c8f86869555" name="Changes" comment="add file OpenApiConfig">
+    <list default="true" id="8b56906f-46d9-4b1f-80a8-4c8f86869555" name="Changes" comment="update auth, login, register">
+      <change afterPath="$PROJECT_DIR$/eureka-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/exception/ResourceNotFoundException.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/exception/ResourceNotFoundException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/model/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/repository/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/security/WebSecurityConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/service/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/octopus/authservice/service/UserServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -143,7 +139,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676698045643</updated>
-      <workItem from="1676702039246" duration="17838000" />
+      <workItem from="1676702039246" duration="18640000" />
     </task>
     <task id="LOCAL-00001" summary="+ Task OC-53: Auth service - Setup auth service">
       <created>1676704481363</created>
@@ -173,7 +169,21 @@
       <option name="project" value="LOCAL" />
       <updated>1676715855752</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="update user">
+      <created>1676720986877</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1676720986877</updated>
+    </task>
+    <task id="LOCAL-00006" summary="update auth, login, register">
+      <created>1676721347179</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1676721347179</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -196,6 +206,8 @@
     <MESSAGE value="+ Task OC-54: Auth service - copy source in old repo" />
     <MESSAGE value="fix err login" />
     <MESSAGE value="add file OpenApiConfig" />
-    <option name="LAST_COMMIT_MESSAGE" value="add file OpenApiConfig" />
+    <MESSAGE value="update user" />
+    <MESSAGE value="update auth, login, register" />
+    <option name="LAST_COMMIT_MESSAGE" value="update auth, login, register" />
   </component>
 </project>
