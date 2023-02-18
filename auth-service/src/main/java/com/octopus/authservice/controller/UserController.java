@@ -4,6 +4,7 @@ import com.octopus.authservice.email.Utility;
 import com.octopus.authservice.exception.UserNotFoundException;
 import com.octopus.authservice.model.Role;
 import com.octopus.authservice.model.User;
+import com.octopus.authservice.repository.RoleRepository;
 import com.octopus.authservice.service.UserService;
 import com.octopus.authservice.upload.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +39,19 @@ public class UserController {
 
     private TemplateEngine templateEngine;
 
-    @GetMapping("/")
+    /*@GetMapping("/")
     public String loadLoginPage() {
         return "login";
+    }*/
+
+    @PostMapping("/")
+    public User addUser(@RequestBody User user){
+        User newUser = new User();
+        userService.save(newUser);
+        if(newUser != null){
+            return newUser;
+        }
+        return null;
     }
 
     @PostMapping("/login")
@@ -53,10 +64,10 @@ public class UserController {
         return null;
     }
 
-    @GetMapping("/login")
+    /*@GetMapping("/login")
     public String viewsLoginPage() {
         return "login";
-    }
+    }*/
 
     @GetMapping("/users")
     public String listFirstPage(

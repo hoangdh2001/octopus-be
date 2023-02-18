@@ -1,8 +1,8 @@
 spring:
   application:
-    name: authService
+    name: auth-service
   datasource:
-    url: jdbc:mysql://localhost:3306/nhom40db
+    url: jdbc:mysql://localhost:3306/nhom40authdb
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -15,12 +15,47 @@ spring:
         id:
           new_generator_mappings: true
       ddl-auto: true
-eureka:
-  client:
-    service-url:
-      defaultZone: http://eureka:password@localhost:8761/eureka
+
 server:
   port: 8080
   servlet:
     context-path: /Nhom40KLTN
 
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      service-java:
+        register-health-indicator: true
+        event-consumer-buffer-size: 10
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 4
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+  retry:
+    instances:
+      service-java:
+        wait-duration: 2s
+        max-attempts: 3
+  ratelimiter:
+    instances:
+      service-java:
+        register-health-indicator: false
+        limit-for-period: 3
+        limit-refresh-period: 10s
+        timeout-duration: 5s

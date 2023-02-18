@@ -42,7 +42,7 @@ public class User {
     private Date birthDay;
 
     @Column(name = "sex")
-    private String sex;
+    private boolean sex;
 
     @Column(name = "enable")
     private boolean enable;
