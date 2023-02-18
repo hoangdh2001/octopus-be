@@ -21,8 +21,8 @@ export type MessageDocument = HydratedDocument<Message>;
 
 @Schema({ timestamps: true })
 export class Message {
-  @Prop({ type: Types.ObjectId })
-  message_id: Types.ObjectId;
+  @Prop({ type: String })
+  _id: string;
 
   @Prop({ type: Boolean, default: false })
   updated: boolean;
@@ -47,6 +47,9 @@ export class Message {
 
   @Prop({ type: [MessageReactionSchema], default: [] })
   reactions: MessageReaction[];
+
+  @Prop({ type: String, required: true })
+  channel_id: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);
