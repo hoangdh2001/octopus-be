@@ -1,15 +1,30 @@
 package com.octopus.authservice.controller;
 
+import com.octopus.authservice.dto.LoginRequestDTO;
+import com.octopus.authservice.dto.LoginResponseDTO;
+import com.octopus.authservice.dto.request.LoginRequest;
+import com.octopus.authservice.dto.request.UserRequest;
+import com.octopus.authservice.dto.response.LoginResponse;
+import com.octopus.authservice.dto.response.UserResponse;
 import com.octopus.authservice.email.Utility;
 import com.octopus.authservice.exception.UserNotFoundException;
 import com.octopus.authservice.model.Role;
 import com.octopus.authservice.model.User;
+import com.octopus.authservice.repository.RoleRepository;
 import com.octopus.authservice.service.UserService;
 import com.octopus.authservice.upload.FileUploadUtil;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Controller;
@@ -24,6 +39,8 @@ import org.thymeleaf.context.Context;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -32,175 +49,106 @@ import java.util.Locale;
 
 
 @Controller
+@RequestMapping("/api/users")
+@CrossOrigin
+@Retry(name = "service-java")
+@CircuitBreaker(name = "service-java")
+@RateLimiter(name = "service-java")
 public class UserController {
     @Autowired
     private UserService userService;
 
     private TemplateEngine templateEngine;
 
-    @GetMapping("/")
-    public String loadLoginPage() {
-        return "login";
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @PostMapping("/login")
-    public User Login(@RequestBody User user) throws MessagingException, UnsupportedEncodingException {
-        User oldUSer = userService.findByEmail(user.getEmail());
-        if(oldUSer != null){
-            sendVerificationEmail(oldUSer);
-            return oldUSer;
-        }
-        return null;
+    @PostMapping(value = "/login")
+    @Retry(name = "service-java")
+    @Operation(summary = "login for user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "202", description = "login successfully!"),
+            @ApiResponse(responseCode = "403", description = "incorrect username or password")
+    })
+    public ResponseEntity<String> login(@RequestBody @Valid LoginRequest loginRequest) {
+        String password = loginRequest.getPassword();
+        LoginResponse loginResponse = this.userService.login(loginRequest.getEmail(), password);
+        return ResponseEntity.accepted().body(loginResponse.getToken());
     }
 
-    @GetMapping("/login")
-    public String viewsLoginPage() {
-        return "login";
-    }
-
-    @GetMapping("/users")
-    public String listFirstPage(
-            HttpServletRequest request,
-            Model model) {
-        return listByPage(request,1, "id", "asc", null ,model);
-    }
-    @GetMapping("/users/page/{pageNum}")
-    public String listByPage(
-            HttpServletRequest request,
-            @PathVariable(name = "pageNum") int pageNum,
-            @Param("sortField") String sortField,
-            @Param("sortDir") String sortDir,
-            @Param("keyword") String keyword,
-            Model model) {
-        String email = userService.getEmailOfAuthenticatedUser(request);
-        User user = userService.getUserByEmail(email);
-
-        Page<User> page = userService.listByPage(pageNum, sortField, sortDir, keyword);
-        List<User> listUsers = page.getContent();
-
-        long startCount = (pageNum - 1) * UserService.USER_PER_PAGE + 1;
-        long endCount = startCount + UserService.USER_PER_PAGE - 1;
-        if (endCount > page.getTotalElements()) {
-            endCount = page.getTotalElements();
-        }
-
-        String sortOrther = sortDir.equals("asc") ? "desc" : "asc";
-
-        model.addAttribute("user", user);
-        model.addAttribute("currentPage", pageNum);
-        model.addAttribute("totalPage", page.getTotalPages());
-        model.addAttribute("startCount", startCount);
-        model.addAttribute("endCount", endCount);
-        model.addAttribute("totalItem", page.getTotalElements());
-        model.addAttribute("listUsers", listUsers);
-        model.addAttribute("sortDir", sortDir);
-        model.addAttribute("sortField", sortField);
-        model.addAttribute("sortOrther", sortOrther);
-        model.addAttribute("keyword", keyword);
-
-        return "users/users";
-    }
-
-    @GetMapping("/users/new")
-    public String newUser(
-            Model model) {
-        List<Role> listRoles = userService.listRoles();
-        User user = new User();
-        user.setEnable(true);
-        model.addAttribute("user", user);
-        model.addAttribute("listRoles", listRoles);
-        model.addAttribute("pageTitle", " Created New User");
-        return "users/user_form";
-    }
-
-    @PostMapping("/users/save")
-    public String saveUser(
-            User user,
-            RedirectAttributes redirectAttributes,
-            @RequestParam("image") MultipartFile multipartFile) throws IOException {
-        if (!multipartFile.isEmpty()) {
-            String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename()).replace(" ", "");
-            user.setPhotos(fileName.trim());
-            User savadUser = userService.save(user);
-            String uploadDir = "user-photos/" + savadUser.getId();
-            FileUploadUtil.clearDir(uploadDir);
-            FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
-        } else {
-            if (user.getPhotos().isEmpty())
-                user.setPhotos(null);
-            userService.save(user);
-        }
-        redirectAttributes.addFlashAttribute("message", "The user has been saved successfully.");
-
-        return getRedirectURLtoUser(user);
-    }
-
-    private String getRedirectURLtoUser(User user) {
-        String firstParOfEmail = user.getEmail().split("@")[0];
-        return "redirect:/users/page/1?sortField=id&sortDir=asc&keyword=" + firstParOfEmail;
-    }
-
-    @GetMapping("/users/edit/{id}")
-    public String editUser(
-            @PathVariable(name = "id") Integer id,
-            RedirectAttributes redirectAttributes,
-            Model model) {
-
-        try {
-            User user = userService.getUserById(id);
-            List<Role> listRoles = userService.listRoles();
-
-            model.addAttribute("user", user);
-            model.addAttribute("pageTitle", " Edit User (ID: " + id + ")");
-            model.addAttribute("listRoles", listRoles);
-            return "users/user_form";
-        } catch (UserNotFoundException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
-            return "redirect:/users";
-        }
-    }
-
-    @GetMapping("/user/delete/{id}")
-    public String deleteUser(
-            @PathVariable(name = "id") Integer id,
-            RedirectAttributes redirectAttributes,
-            Model model) {
-        try {
-            userService.deleteUserById(id);
-            redirectAttributes.addFlashAttribute("message", "The User ID" + id + " has been deleted successfully");
-        } catch (UserNotFoundException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
-        }
-        return "redirect:/users";
-    }
-
-    @GetMapping("/user/{id}/enabled/{status}")
-    public String updateEnabledStatus(
-            @PathVariable(name = "id") Integer id,
-            @PathVariable(name = "status") boolean status,
-            RedirectAttributes redirectAttributes) {
-        userService.updateUserEnabledStatus(id, status);
-        String enabled = status ? "enabled" : "disabled";
-        redirectAttributes.addFlashAttribute("message", "The User ID" + id + " has been " + enabled + "");
-        return "redirect:/users";
-    }
-
-    @GetMapping("/signup")
-    public String viewsSignUpPage(Model model ) {
-        User user  = new User();
-        model.addAttribute("user", user);
-        model.addAttribute("pageTitle", "Sign Up");
-        return "signup";
-    }
-
+    @Operation(summary = "register for new user")
     @PostMapping("/register")
-    public User signUp(@RequestBody User user, RedirectAttributes redirectAttributes) throws UnsupportedEncodingException, MessagingException {
-        User userSave = userService.save(user);
-        if(userSave != null) {
-            sendVerificationEmail(user);
-            return userSave;
-        }
-        return null;
+    @Retry(name = "service-java", fallbackMethod = "registerFallback")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Create New User successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad request!")
+    })
+    public ResponseEntity<Object> register(@Valid @RequestBody UserRequest accountRequest) {
+        UserResponse accountResponse = this.userService.register(accountRequest);
+        return ResponseEntity.ok().body(accountResponse);
+    }
+
+    @Operation(summary = "logout for user")
+    @PostMapping("/logout")
+    public ResponseEntity<String> logoutUser(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        this.userService.logout(httpServletRequest, httpServletResponse);
+        return ResponseEntity.ok("Logout.user.successfully!");
+    }
+
+    public ResponseEntity<String> fallBackLogin(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Fallback method called !Cannot login now");
+    }
+
+    public ResponseEntity<String> registerFallback(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Fallback method called !Cannot register now");
+    }
+
+    @GetMapping("{id}")
+    @Operation(summary = "find user by id")
+    public ResponseEntity<Object> findUser(@PathVariable int id) {
+        return ResponseEntity.ok().body(userService.findUserById(id));
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "get all user")
+    public ResponseEntity<Object> findAll() {
+        System.err.println("get all user");
+        return ResponseEntity.ok().body(userService.listAll());
+    }
+
+    @PostMapping("/create")
+    @Operation(summary = " create new user")
+    public ResponseEntity<Boolean> save(@RequestBody UserRequest user) {
+        return ResponseEntity.ok().body(userService.createUser(user) != null);
+    }
+
+    @PutMapping("{id}")
+    @Operation(summary = "update user")
+    public ResponseEntity<Boolean> update(@RequestBody UserRequest user, @PathVariable int id) {
+        return ResponseEntity.ok().body(userService.updateUser(user, id) != null);
+    }
+
+    @DeleteMapping("{id}")
+    @Operation(summary = "delete user by id")
+    public ResponseEntity<Boolean> delete(@PathVariable int id) {
+        userService.delete(id);
+        return ResponseEntity.ok().body(true);
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "get current user")
+    public ResponseEntity<Object> ownProfile() {
+        return ResponseEntity.ok().body(userService.ownProfile());
+    }
+
+    @PutMapping("/me")
+    @Operation(summary = "update current user")
+    public ResponseEntity<Boolean> updateOwnProfile(@RequestBody UserRequest user) {
+        System.err.println(user.getLastName());
+        return ResponseEntity.ok().body(userService.updateOwnProfile(user) != null);
     }
 
     @GetMapping("/verify/{code}")

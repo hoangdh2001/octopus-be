@@ -1,23 +1,40 @@
 package com.octopus.authservice.service;
 
+import com.octopus.authservice.dto.request.UserRequest;
+import com.octopus.authservice.dto.response.LoginResponse;
+import com.octopus.authservice.dto.response.UserResponse;
+import com.octopus.authservice.exception.ForbiddenException;
+import com.octopus.authservice.exception.ResourceNotFoundException;
 import com.octopus.authservice.exception.UserNotFoundException;
+import com.octopus.authservice.mapping.MapData;
 import com.octopus.authservice.model.Role;
 import com.octopus.authservice.model.User;
 import com.octopus.authservice.repository.RoleRepository;
 import com.octopus.authservice.repository.UserRepository;
+import com.octopus.authservice.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.RememberMeAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,12 +48,9 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
     @Autowired
     public PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-
-    @Override
-    public Optional<User> findUserById(int id) {
-        return userRepository.findById(id);
-    }
+    private final JwtProvider jwtProvider;
 
     public User getUserByEmail(String email) {
         return userRepository.getUserByEmail(email);
@@ -52,7 +66,7 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(pageNum - 1, USER_PER_PAGE, sort);
 
         if(keyword != null) {
-            return userRepository.findAll(keyword, pageable);
+            return userRepository.findByKeyword(keyword, pageable);
         }
         return userRepository.findAll(pageable);
     }
@@ -198,7 +212,118 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByEmail(String email) {
-        return null;
+        return userRepository.getUserByEmail(email);
+    }
+
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository, AuthenticationManager userManager, JwtProvider jwtProvider, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.authenticationManager = userManager;
+        this.jwtProvider = jwtProvider;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public LoginResponse login(String username, String password) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            String role = authentication.getAuthorities().iterator().next().getAuthority();
+            String token = jwtProvider.createToken(username, String.valueOf(role));
+            return new LoginResponse(role, token);
+        } catch (AuthenticationException e) {
+            e.printStackTrace();
+            throw new ForbiddenException("username or password is incorrect!");
+        }
+    }
+
+
+    @Override
+    public UserResponse register(UserRequest userRequest) {
+        User user = MapData.mapOne(userRequest, User.class);
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setCreateTime(new Date());
+        //user.setRole(Role.valueOf(userRequest.getRole()));
+        User accountSaved = this.userRepository.save(user);
+        //User user = new User();
+        //user.setAccount(accountSaved);
+        this.userRepository.save(user);
+        UserResponse userResponse = MapData.mapOne(accountSaved, UserResponse.class);
+        //userResponse.setUser(MapData.mapOne(user, UserResponse.class));
+        return userResponse;
+    }
+
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+        logoutHandler.logout(request, response, null);
+    }
+
+    @Override
+    @Cacheable(value = "user", key = "#id")
+    public UserResponse findUserById(int id) {
+        // TODO Auto-generated method stub
+        User user = this.userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("not found user"));
+        return MapData.mapOne(user, UserResponse.class);
+    }
+
+    @Override
+    @Cacheable(value = "users")
+    public List<UserResponse> findAllUser() {
+        // TODO Auto-generated method stub
+        return MapData.mapList(this.userRepository.findAllUser(), UserResponse.class);
+    }
+
+    @Override
+    @Cacheable(value = "user")
+    public UserResponse createUser(UserRequest user) {
+        // TODO Auto-generated method stub
+        User newUser = MapData.mapOne(user, User.class);
+        User userSaved = this.userRepository.save(newUser);
+        return MapData.mapOne(userSaved, UserResponse.class);
+    }
+
+    @Override
+    @CachePut(value = "user", key = "#id")
+    public UserResponse updateUser(UserRequest userRequest, int id) {
+        // TODO Auto-generated method stub
+        User user = this.userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("not found user"));
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
+        user.setEmail(userRequest.getEmail());
+        user.setPhoneNumber(userRequest.getPhoneNumber());
+        return MapData.mapOne(this.userRepository.save(user), UserResponse.class);
+    }
+
+    @Override
+    @CacheEvict(value = "user", key = "#id")
+    public void delete(int id) {
+        // TODO Auto-generated method stub
+        this.userRepository.delete(this.userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("not found user")));
+    }
+
+    @Override
+    @Cacheable(value = "user")
+    public UserResponse ownProfile() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = this.userRepository.findByEmail(username);
+        return MapData.mapOne(user, UserResponse.class);
+    }
+
+    @Override
+    @CachePut(value = "user")
+    public UserResponse updateOwnProfile(UserRequest userRequest) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = this.userRepository.getUserByEmail(username);
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
+        user.setEmail(userRequest.getEmail());
+        user.setPhoneNumber(userRequest.getPhoneNumber());
+        System.out.println(userRequest.getEmail());
+        System.out.println(userRequest.getFirstName()+" "+userRequest.getLastName());
+        return MapData.mapOne(this.userRepository.save(user), UserResponse.class);
     }
 
 
