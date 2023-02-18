@@ -87,15 +87,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <![CDATA[{
-      "keyToString": {
-        "RunOnceActivity.OpenProjectViewOnStart": "true",
-        "RunOnceActivity.ShowReadmeOnStart": "true",
-        "WebServerToolWindowFactoryState": "false",
-        "node.js.selected.package.tslint": "(autodetect)",
-        "settings.editor.selected.configurable": "MavenSettings"
-      }
-    }]]>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
