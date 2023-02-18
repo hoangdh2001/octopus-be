@@ -4,11 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8b56906f-46d9-4b1f-80a8-4c8f86869555" name="Changes" comment="setup eureka">
-      <change afterPath="$PROJECT_DIR$/gateway/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+    <list default="true" id="8b56906f-46d9-4b1f-80a8-4c8f86869555" name="Changes" comment="update file UserController">
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/GatewayApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/config/GatewayConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/exceptions/ErrorResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/exceptions/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/exceptions/JwtAuthenticationException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/security/JwtUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway/security/RouteValidator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gateway/src/main/resources/application.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,7 +77,7 @@
     <property name="RequestMappingsPanelWidth1" value="75" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/eureka-service/src/main/resources" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/gateway/src/main/java/com/octopus/gateway" />
     <property name="settings.editor.selected.configurable" value="reactor" />
   </component>
   <component name="ReactorSettings">
@@ -79,11 +85,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\OneDrive - Industrial University of HoChiMinh City\Documents\Nhom40_KLTN\octopus-be\gateway\src\main\java\com\octopus\gateway" />
+      <recent name="D:\OneDrive - Industrial University of HoChiMinh City\Documents\Nhom40_KLTN\octopus-be\gateway\src\main\resources" />
       <recent name="D:\OneDrive - Industrial University of HoChiMinh City\Documents\Nhom40_KLTN\octopus-be\eureka-service\src\main\resources" />
       <recent name="D:\OneDrive - Industrial University of HoChiMinh City\Documents\Nhom40_KLTN\octopus-be\auth-service\src\main\java\com\octopus\authservice\exception" />
       <recent name="D:\OneDrive - Industrial University of HoChiMinh City\Documents\Nhom40_KLTN\octopus-be\auth-service\src\main\java\com\octopus\authservice\security" />
-      <recent name="D:\OneDrive - Industrial University of HoChiMinh City\Documents\Nhom40_KLTN\octopus-be\auth-service\src\main\java\com\octopus\authservice" />
-      <recent name="D:\OneDrive - Industrial University of HoChiMinh City\Documents\Nhom40_KLTN\octopus-be\auth-service\src\main\java\com\octopus\authservice\dto" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.octopus.eurekaService" />
@@ -96,7 +102,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.EurekaServerApplication">
+  <component name="RunManager" selected="Spring Boot.GatewayApplication">
     <configuration name="Test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.octopus.authservice.Test" />
       <module name="auth-service" />
@@ -148,8 +154,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="GatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="gateway" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.octopus.gateway.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.octopus.gateway.GatewayApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Spring Boot.GatewayApplication" />
         <item itemvalue="Spring Boot.EurekaServerApplication" />
         <item itemvalue="Application.Test" />
       </list>
@@ -163,7 +183,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676698045643</updated>
-      <workItem from="1676702039246" duration="19558000" />
+      <workItem from="1676702039246" duration="21586000" />
     </task>
     <task id="LOCAL-00001" summary="+ Task OC-53: Auth service - Setup auth service">
       <created>1676704481363</created>
@@ -221,7 +241,21 @@
       <option name="project" value="LOCAL" />
       <updated>1676722298531</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="setup gateway flie pom">
+      <created>1676722663093</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1676722663093</updated>
+    </task>
+    <task id="LOCAL-00010" summary="update file UserController">
+      <created>1676723472042</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1676723472042</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -249,7 +283,9 @@
     <MESSAGE value="update auth, login, register" />
     <MESSAGE value="setup eureka service" />
     <MESSAGE value="setup eureka" />
-    <option name="LAST_COMMIT_MESSAGE" value="setup eureka" />
+    <MESSAGE value="setup gateway flie pom" />
+    <MESSAGE value="update file UserController" />
+    <option name="LAST_COMMIT_MESSAGE" value="update file UserController" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
