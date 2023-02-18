@@ -9,15 +9,17 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface UserRepository extends PagingAndSortingRepository<User, Integer> {
     @Query("SELECT u FROM User u WHERE u.email = :email")
     public User getUserByEmail(@Param("email") String email);
-
+    public User findUserById(Integer id);
     public Long countById(Integer id);
 
     @Query("SELECT u FROM User u WHERE CONCAT(u.id,' ',u.email, ' ',u.firstName,' ',u.lastName)  LIKE %?1%")
-    public Page<User> findAll(String keyword, Pageable pageable);
+    public Page<User> findByKeyword(String keyword, Pageable pageable);
 
     @Query("UPDATE User u SET u.enable = ?2 WHERE u.id = ?1")
     @Modifying
@@ -34,5 +36,7 @@ public interface UserRepository extends PagingAndSortingRepository<User, Integer
     User findByEmailAndPassword(String email,String password);
     User findByEmail(String email);
 
+    @Query("Select * from user")
+    public List<User> findAllUser();
 }
 
