@@ -13,6 +13,8 @@ import com.octopus.authservice.model.User;
 import com.octopus.authservice.repository.RoleRepository;
 import com.octopus.authservice.service.UserService;
 import com.octopus.authservice.upload.FileUploadUtil;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -47,6 +49,11 @@ import java.util.Locale;
 
 
 @Controller
+@RequestMapping("/api/users")
+@CrossOrigin
+@Retry(name = "service-java")
+@CircuitBreaker(name = "service-java")
+@RateLimiter(name = "service-java")
 public class UserController {
     @Autowired
     private UserService userService;
