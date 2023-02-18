@@ -1,9 +1,16 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ChannelModule } from './modules/channel.module';
+import { MessageModule } from './modules/message.module';
 
 @Module({
-  imports: [],
+  imports: [
+    MongooseModule.forRoot('mongodb://localhost:27017/messagedb'),
+    ChannelModule,
+    MessageModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
