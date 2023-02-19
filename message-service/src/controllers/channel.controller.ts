@@ -18,6 +18,9 @@ import {
 import { ChannelExceptionFilter } from 'src/exceptions/channel.exception';
 import { v4 } from 'uuid';
 import { Channel, ChannelMember } from 'src/models/channel.model';
+import { Pagination } from 'src/dtos/pagination.dto';
+import { convertChannelDTO } from 'src/utils/channel.utils';
+import { MessageServive } from 'src/services/message.service';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
@@ -25,18 +28,31 @@ export class ChannelController {
   constructor(
     private readonly channelService: ChannelService,
     private readonly jwtService: JwtService,
+    private readonly messageService: MessageServive,
   ) {}
 
   @Get('/search')
   async findAllByUser(
-    @Query() { userID, skip, limit }: ChannelPaginationParams,
-  ) {
-    const channelPagination = await this.channelService.findAllByUser(
+    @Query() { userID, skip = 0, limit = 5 }: ChannelPaginationParams,
+  ): Promise<Pagination> {
+    const totalItem = await this.channelService.countByUserID(userID);
+    const totalPage = Math.floor(totalItem / limit) + 1;
+    const channels = await this.channelService.findAllByUser(
       userID,
       skip,
       limit,
     );
-    return channelPagination;
+
+    const data = await Promise.all(
+      channels.map(async (channel) => {
+        const messages = await this.messageService.findAllByChannel(
+          channel._id,
+        );
+        return await convertChannelDTO({ channel, userID, messages });
+      }),
+    );
+
+    return { skip, limit, totalItem, totalPage, data };
   }
 
   @Post()
@@ -67,7 +83,8 @@ export class ChannelController {
       members: channelMember,
     };
     channelMember;
-    const newChannel = await this.channelService.createChannel(channel);
+
+    const newChannel = await convertChannelDTO({ channel, userID });
     return newChannel;
   }
 }

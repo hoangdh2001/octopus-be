@@ -1,8 +1,8 @@
 import { IsNumber, IsOptional, Min, IsString, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Message } from 'src/models/message.model';
 import { Channel } from 'src/models/channel.model';
 import { UserDTO } from './user.dto';
+import { MessageDTO } from './message.dto';
 
 export class CreateChannelDTO {
   @IsArray()
@@ -20,21 +20,22 @@ export class CreateChannelDTO {
 }
 
 export type ChannelMemberDTO = {
-  user: UserDTO;
+  user?: UserDTO;
+  userID?: string;
 };
 
-export type ChannelResponse = Pick<
+export type ChannelInfo = Pick<
   Channel,
-  '_id' | 'avatar' | 'lastMessageAt' | 'name'
+  '_id' | 'avatar' | 'lastMessageAt' | 'name' | 'createdAt' | 'updatedAt'
 > & {
-  hiddenChannel: boolean;
-  activeNotify: boolean;
+  hiddenChannel?: boolean;
+  activeNotify?: boolean;
 };
 
 export type ChannelDTO = {
-  channel: ChannelResponse;
-  message: Message;
-  members: ChannelMemberDTO;
+  channel: ChannelInfo;
+  messages: MessageDTO[];
+  members: ChannelMemberDTO[];
 };
 
 export class ChannelPaginationParams {
