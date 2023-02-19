@@ -6,23 +6,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
+@RequestMapping("/api/users")
 public class UserRestController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/users/check_email")
+    @PostMapping("/check_email")
     public String checkDuplicateEmail(
             @Param("id") Integer id,
             @Param("email") String email) {
         return userService.isEmailUnique(id, email) ? "OK" :  "Duplicate";
     }
 
-    @GetMapping("/user/get_email_authen")
+    @GetMapping("/get_email_authen")
     public Integer getEmailCustomerAuthentication(
             HttpServletRequest request) {
         String email = userService.getEmailOfAuthenticatedUser(request);

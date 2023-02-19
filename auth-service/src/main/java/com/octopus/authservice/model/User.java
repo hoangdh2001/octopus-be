@@ -3,6 +3,7 @@ package com.octopus.authservice.model;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,19 +15,18 @@ import java.util.Set;
 @Data
 @Getter
 @Setter
-public class User {
+public class User implements Serializable {
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "firstName", length = 64, nullable = false)
+    @Column(name = "first_name", length = 64, nullable = false)
     private String firstName;
 
-    @Column(name = "lastName", length = 64, nullable = false)
+    @Column(name = "last_name", length = 64, nullable = false)
     private String lastName;
 
-    @Column(name = "userName", length = 64)
+    @Column(name = "user_name", length = 64)
     private String userName;
 
     @Column(name = "email", length = 128, nullable = false, unique = true)
@@ -35,34 +35,31 @@ public class User {
     @Column(name = "password", length = 64, nullable = false)
     private String password;
 
-    @Column(name = "phoneNumber")
+    @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "birthDay")
+    @Column(name = "birth_day")
     private Date birthDay;
 
-    @Column(name = "sex")
-    private String sex;
+    @Column(name = "gender")
+    private boolean gender;
 
-    @Column(name = "enable")
-    private boolean enable;
+    @Column(name = "active")
+    private boolean active;
 
-    @Column(name = "photos")
-    private String photos;
+    @Column(name = "avatar")
+    private String avatar;
 
-    @Column(name = "createTime")
-    private String createTime;
-
-    @Column(name = "refreshToken")
+    @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Column(name = "verificationCode", length = 64)
+    @Column(name = "verification_code", length = 64)
     private String verificationCode;
 
-    @Column(name="resetPasswordToken")
-    private String resetPasswordToken;
+    @Column(name = "create_time")
+    private Date createTime;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
+    @Column(name = "update_time")
+    private Date updateTime;
+
 }

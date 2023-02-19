@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
+import { AppInterceptor } from './app.interceptor';
 import { AppService } from './app.service';
 import { ChannelModule } from './modules/channel.module';
 import { EventModule } from './modules/events.module';
