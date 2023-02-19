@@ -1,8 +1,23 @@
-import { IsNumber, IsOptional, Min, IsString } from 'class-validator';
+import { IsNumber, IsOptional, Min, IsString, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Message } from 'src/models/message.model';
-import { Channel, ChannelMember } from 'src/models/channel.model';
+import { Channel } from 'src/models/channel.model';
 import { UserDTO } from './user.dto';
+
+export class CreateChannelDTO {
+  @IsArray()
+  newMembers: string[];
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  userID?: string;
+}
 
 export type ChannelMemberDTO = {
   user: UserDTO;
