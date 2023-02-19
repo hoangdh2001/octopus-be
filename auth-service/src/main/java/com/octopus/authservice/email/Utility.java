@@ -18,6 +18,7 @@ public class Utility {
         mailSender.setPort(587);
         mailSender.setUsername("Nhom40KLTN@gmail.com");
         mailSender.setPassword("hlrhcpofyoimwpaq");
+        //mailSender.setPassword("@Nhom40KLTN123");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.mime.charset", "utf-8");

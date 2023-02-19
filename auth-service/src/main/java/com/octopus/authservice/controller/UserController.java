@@ -1,5 +1,6 @@
 package com.octopus.authservice.controller;
 
+import ch.qos.logback.classic.pattern.EnsureExceptionHandling;
 import com.octopus.authservice.dto.request.LoginRequest;
 import com.octopus.authservice.dto.request.UserRequest;
 import com.octopus.authservice.dto.response.LoginResponse;
@@ -46,6 +47,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
     private TemplateEngine templateEngine;
 
     @Autowired
@@ -78,13 +80,13 @@ public class UserController {
         userRequest.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
         UserResponse userResponse = this.userService.register(userRequest);
 
-        /*try {
+        try {
             sendVerificationEmail(userRequest);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MessagingException e) {
             e.printStackTrace();
-        }*/
+        }
         return ResponseEntity.ok().body(userResponse);
     }
 
@@ -150,12 +152,12 @@ public class UserController {
     }
 
     @GetMapping("/verify/{code}")
-    public String verifyAccount(
+    public boolean verifyAccount(
             @PathVariable("code") String verificationCode,
             RedirectAttributes redirectAttributes, Model model) {
         boolean verified = userService.verify(verificationCode);
         redirectAttributes.addFlashAttribute("message", "verificationCode");
-        return "redirect:/" + (verified ? "login" : "login?verify=flase");
+        return verified;
     }
 
     private void sendVerificationEmail(@RequestBody UserRequest user) throws UnsupportedEncodingException, MessagingException {
@@ -172,7 +174,9 @@ public class UserController {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8");
 
+        userService.findByEmail(user.getEmail());
         String toAddress = user.getEmail();
+        System.out.println(toAddress);
         helper.setTo(toAddress);
         helper.setSubject("Hỗ trợ octopus Nhóm 40 Khóa luận tốt nghiệp(HK2 - 2022)");
 
