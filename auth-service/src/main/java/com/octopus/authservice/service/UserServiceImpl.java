@@ -7,9 +7,7 @@ import com.octopus.authservice.exception.ForbiddenException;
 import com.octopus.authservice.exception.ResourceNotFoundException;
 import com.octopus.authservice.exception.UserNotFoundException;
 import com.octopus.authservice.mapping.MapData;
-import com.octopus.authservice.model.Role;
 import com.octopus.authservice.model.User;
-import com.octopus.authservice.repository.RoleRepository;
 import com.octopus.authservice.repository.UserRepository;
 import com.octopus.authservice.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +32,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,8 +40,7 @@ public class UserServiceImpl implements UserService {
     public static final int USER_PER_PAGE = 4;
     @Autowired
     private final UserRepository userRepository;
-    @Autowired
-    private RoleRepository roleRepository;
+
     @Autowired
     public PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -71,10 +66,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll(pageable);
     }
 
-    public List<Role> listRoles() {
-        return (List<Role>) roleRepository.findAll();
-    }
-
     public User save(User user) {
         boolean isUpdatingUser = (user.getId() > 0);
 
@@ -98,8 +89,8 @@ public class UserServiceImpl implements UserService {
             encodePassword(userInDB);
         }
 
-        if(userInDB.getPhotos() != null) {
-            userInDB.setPhotos(userInForm.getPhotos());
+        if(userInDB.getAvatar() != null) {
+            userInDB.setAvatar(userInForm.getAvatar());
         }
 
         userInDB.setFirstName(userInForm.getFirstName());
@@ -167,7 +158,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean verify(String verificationCode) {
         User user = userRepository.findByVerificationCode(verificationCode);
-        if(user != null && !user.isEnable()) {
+        if(user != null && !user.isActive()) {
             userRepository.enabled(user.getId());
             return true;
         }else {
@@ -177,37 +168,6 @@ public class UserServiceImpl implements UserService {
 
     public long getCount() {
         return userRepository.count();
-    }
-
-    @Override
-    public void updatePassword(String token, String newPassword) throws UserNotFoundException {
-        User user = userRepository.findByResetPasswordToken(token);
-        if (user == null) {
-            throw new UserNotFoundException("Invalid Token");
-        }
-        user.setPassword(newPassword);
-        encodePassword(user);
-        userRepository.save(user);
-    }
-
-    @Override
-    public User getByRestPasswordToken(String token) {
-        System.out.println(userRepository.findByResetPasswordToken(token));
-        return userRepository.findByResetPasswordToken(token);
-    }
-
-    @Override
-    public String updateResetPasswordToken(String email) throws UserNotFoundException {
-        User user = userRepository.getUserByEmail(email);
-        if(user != null) {
-            String token = RandomString.make(30);
-            user.setResetPasswordToken(token);
-            userRepository.save(user);
-
-            return token;
-        }else {
-            throw new UserNotFoundException("cound not find customer with email "+ email);
-        }
     }
 
     @Override
@@ -241,15 +201,19 @@ public class UserServiceImpl implements UserService {
     public UserResponse register(UserRequest userRequest) {
         User user = MapData.mapOne(userRequest, User.class);
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        user.setCreateTime(new Date());
+        //user.setCreateTime(SimpleDateFormat.getDateInstance().format(new Date()));
         //user.setRole(Role.valueOf(userRequest.getRole()));
-        User accountSaved = this.userRepository.save(user);
+        if(userRepository.getUserByEmail(user.getEmail()) == null){
+            User accountSaved = this.userRepository.save(user);
+            UserResponse userResponse = MapData.mapOne(accountSaved, UserResponse.class);
+            return userResponse;
+        }
         //User user = new User();
         //user.setAccount(accountSaved);
-        this.userRepository.save(user);
-        UserResponse userResponse = MapData.mapOne(accountSaved, UserResponse.class);
+        //this.userRepository.save(user);
+
         //userResponse.setUser(MapData.mapOne(user, UserResponse.class));
-        return userResponse;
+        return null;
     }
 
     @Override

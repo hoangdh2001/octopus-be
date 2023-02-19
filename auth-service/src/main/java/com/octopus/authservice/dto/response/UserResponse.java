@@ -21,6 +21,10 @@ public class UserResponse implements Serializable {
 
     private String email;
 
+    private String password;
+
     private String phoneNumber;
+
+    private String verificationCode;
 
 }

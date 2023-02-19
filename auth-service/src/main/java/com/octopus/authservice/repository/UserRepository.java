@@ -21,22 +21,22 @@ public interface UserRepository extends PagingAndSortingRepository<User, Integer
     @Query("SELECT u FROM User u WHERE CONCAT(u.id,' ',u.email, ' ',u.firstName,' ',u.lastName)  LIKE %?1%")
     public Page<User> findByKeyword(String keyword, Pageable pageable);
 
-    @Query("UPDATE User u SET u.enable = ?2 WHERE u.id = ?1")
+    @Query("UPDATE User u SET u.active = ?2 WHERE u.id = ?1")
     @Modifying
     public void updateEnableStatus(Integer id, boolean enable);
-    @Query("SELECT u FROM User u WHERE u.resetPasswordToken = :token")
-    public User findByResetPasswordToken(@Param("token") String token);
+    //@Query("SELECT u FROM User u WHERE u.resetPasswordToken = :token")
+    //public User findByResetPasswordToken(@Param("token") String token);
 
     @Query("SELECT u FROM User u WHERE u.verificationCode = ?1")
     public User findByVerificationCode(String verificationCode);
 
-    @Query("UPDATE User u SET u.enable = true, u.verificationCode = null WHERE u.id = ?1")
+    @Query("UPDATE User u SET u.active = true, u.verificationCode = null WHERE u.id = ?1")
     @Modifying
     public void enabled(Integer id);
     User findByEmailAndPassword(String email,String password);
     User findByEmail(String email);
 
-    @Query("Select * from user")
+    @Query("Select u from User u")
     public List<User> findAllUser();
 }
 

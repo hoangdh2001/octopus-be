@@ -1,26 +1,22 @@
 package com.octopus.authservice.service;
 
 
-import com.octopus.authservice.dto.LoginResponseDTO;
 import com.octopus.authservice.dto.request.UserRequest;
 import com.octopus.authservice.dto.response.LoginResponse;
 import com.octopus.authservice.dto.response.UserResponse;
 import com.octopus.authservice.exception.UserNotFoundException;
-import com.octopus.authservice.model.Role;
 import com.octopus.authservice.model.User;
 import org.springframework.data.domain.Page;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
     public static final int USER_PER_PAGE = 4;
     public User getUserByEmail(String email);
     List<User> listAll();
     public Page<User> listByPage(int pageNum, String sortField, String sortDir , String keyword);
-    public List<Role> listRoles();
     public User save(User user);
     public User updateAccount(User userInForm);
 
@@ -35,9 +31,9 @@ public interface UserService {
     public String getEmailOfAuthenticatedUser(HttpServletRequest request);
     public boolean verify(String verificationCode);
     public long getCount();
-    public void updatePassword(String token, String newPassword) throws UserNotFoundException;
-    public User getByRestPasswordToken(String token);
-    public String updateResetPasswordToken(String email) throws UserNotFoundException;
+    //public void updatePassword(String token, String newPassword) throws UserNotFoundException;
+    //public User getByRestPasswordToken(String token);
+    //public String updateResetPasswordToken(String email) throws UserNotFoundException;
     public User findByEmail(String email);
     LoginResponse login(String username, String password);
 

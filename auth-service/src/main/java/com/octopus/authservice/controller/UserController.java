@@ -1,37 +1,28 @@
 package com.octopus.authservice.controller;
 
-import com.octopus.authservice.dto.LoginRequestDTO;
-import com.octopus.authservice.dto.LoginResponseDTO;
 import com.octopus.authservice.dto.request.LoginRequest;
 import com.octopus.authservice.dto.request.UserRequest;
 import com.octopus.authservice.dto.response.LoginResponse;
 import com.octopus.authservice.dto.response.UserResponse;
 import com.octopus.authservice.email.Utility;
-import com.octopus.authservice.exception.UserNotFoundException;
-import com.octopus.authservice.model.Role;
 import com.octopus.authservice.model.User;
-import com.octopus.authservice.repository.RoleRepository;
 import com.octopus.authservice.service.UserService;
-import com.octopus.authservice.upload.FileUploadUtil;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.data.domain.Page;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -41,14 +32,11 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.websocket.server.PathParam;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Locale;
 
 
-@Controller
+@RestController
 @RequestMapping("/api/users")
 @CrossOrigin
 @Retry(name = "service-java")
@@ -80,15 +68,24 @@ public class UserController {
 
     @Operation(summary = "register for new user")
     @PostMapping("/register")
-    @Retry(name = "service-java", fallbackMethod = "registerFallback")
+    @Retry(name = "service-java")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Create New User successfully"),
             @ApiResponse(responseCode = "400", description = "Bad request!")
     })
-    public ResponseEntity<Object> register(@Valid @RequestBody UserRequest accountRequest) {
-        UserResponse accountResponse = this.userService.register(accountRequest);
-        return ResponseEntity.ok().body(accountResponse);
+    public ResponseEntity<Object> register(@Valid @RequestBody UserRequest userRequest) {
+        userRequest.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
+        UserResponse userResponse = this.userService.register(userRequest);
+
+        /*try {
+            sendVerificationEmail(userRequest);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }*/
+        return ResponseEntity.ok().body(userResponse);
     }
 
     @Operation(summary = "logout for user")
@@ -122,6 +119,7 @@ public class UserController {
     @PostMapping("/create")
     @Operation(summary = " create new user")
     public ResponseEntity<Boolean> save(@RequestBody UserRequest user) {
+        user.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
         return ResponseEntity.ok().body(userService.createUser(user) != null);
     }
 
@@ -160,14 +158,14 @@ public class UserController {
         return "redirect:/" + (verified ? "login" : "login?verify=flase");
     }
 
-    private void sendVerificationEmail(@RequestBody User user) throws UnsupportedEncodingException, MessagingException {
+    private void sendVerificationEmail(@RequestBody UserRequest user) throws UnsupportedEncodingException, MessagingException {
         JavaMailSenderImpl mailSender = Utility.prepareMailSender();
 
         Locale locale = LocaleContextHolder.getLocale();
 
         Context ctx = new Context(locale);
 
-        String verifyURL = "http://localhost/Nhom40KLTN/verify/" + user.getVerificationCode();
+        String verifyURL = "http://localhost/Nhom40KLTN/api/users/verify/" + user.getVerificationCode();
         ctx.setVariable("url", verifyURL);
 
 
@@ -184,7 +182,7 @@ public class UserController {
         mailSender.send(message);
     }
 
-    @PostMapping("/user/info")
+    @PostMapping("/info")
     public String editInfoUser(HttpServletRequest request, Model model, @Param("id") Integer id, User user) {
 
         return null;

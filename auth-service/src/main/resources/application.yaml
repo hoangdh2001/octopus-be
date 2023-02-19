@@ -32,7 +32,7 @@ springdoc:
     path: /auth/swagger-ui.html
 
 server:
-  port: 8080
+  port: 8088
   servlet:
     context-path: /Nhom40KLTN
 
