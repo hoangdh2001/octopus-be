@@ -28,7 +28,7 @@ export class Message {
   updated: boolean;
 
   @Prop({ type: String, required: true })
-  sender_id: string;
+  senderID: string;
 
   @Prop({
     type: String,
@@ -49,7 +49,7 @@ export class Message {
   reactions: MessageReaction[];
 
   @Prop({ type: String, required: true })
-  channel_id: string;
+  channelID: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);
