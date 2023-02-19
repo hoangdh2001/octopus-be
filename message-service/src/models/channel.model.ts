@@ -4,10 +4,10 @@ import { HydratedDocument } from 'mongoose';
 @Schema({ _id: false, timestamps: true })
 export class ChannelMember {
   @Prop({ type: String, required: true })
-  user_id: string;
+  userID: string;
 
   @Prop({ type: Boolean, default: false })
-  active_notify?: boolean;
+  activeNotify?: boolean;
 
   @Prop({ type: Boolean, default: false })
   hidden?: boolean;
@@ -32,6 +32,9 @@ export class Channel {
     type: [ChannelMemberSchema],
   })
   members: ChannelMember[];
+
+  @Prop({ type: Number, default: Date.now() })
+  lastMessageAt?: number;
 }
 
 export const ChannelSchema = SchemaFactory.createForClass(Channel);
