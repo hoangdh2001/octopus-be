@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -51,6 +52,9 @@ public class UserController {
     private TemplateEngine templateEngine;
 
     @Autowired
+    public PasswordEncoder passwordEncoder;
+
+    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -68,6 +72,35 @@ public class UserController {
         return ResponseEntity.accepted().body(loginResponse.getToken());
     }
 
+    @PostMapping(value = "/login_not_password")
+    @Retry(name = "service-java")
+    @Operation(summary = "login for user but don't use password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "login successfully!"),
+            @ApiResponse(responseCode = "405", description = "incorrect username")
+    })
+    public ResponseEntity<String> loginNotPassword(@RequestBody String email) {
+        System.out.println(email);
+        User user = userService.getUserByEmail(email);
+        System.out.println(user);
+        String password = userService.getUserByEmail(email).getPassword();
+        System.out.println(password);
+
+        try {
+            sendVerificationEmail(email);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+        if(!userService.verify(userService.getUserByEmail(email).getVerificationCode())) {
+            LoginResponse loginResponse = this.userService.login(email, passwordEncoder.encode(password));
+            System.out.println(passwordEncoder.encode(password));
+            return ResponseEntity.accepted().body(loginResponse.getToken());
+        }
+        return ResponseEntity.badRequest().body("error");
+    }
+
     @Operation(summary = "register for new user")
     @PostMapping("/register")
     @Retry(name = "service-java")
@@ -81,7 +114,7 @@ public class UserController {
         UserResponse userResponse = this.userService.register(userRequest);
 
         try {
-            sendVerificationEmail(userRequest);
+            sendVerificationEmail(userRequest.getEmail());
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MessagingException e) {
@@ -160,22 +193,23 @@ public class UserController {
         return verified;
     }
 
-    private void sendVerificationEmail(@RequestBody UserRequest user) throws UnsupportedEncodingException, MessagingException {
+    private void sendVerificationEmail(@RequestBody String email) throws UnsupportedEncodingException, MessagingException {
         JavaMailSenderImpl mailSender = Utility.prepareMailSender();
 
         Locale locale = LocaleContextHolder.getLocale();
 
         Context ctx = new Context(locale);
 
-        String verifyURL = "http://localhost/Nhom40KLTN/api/users/verify/" + user.getVerificationCode();
+        String verifyURL = "http://localhost/Nhom40KLTN/api/users/verify/" + userService.findByEmail(email).getVerificationCode();
         ctx.setVariable("url", verifyURL);
 
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8");
 
-        userService.findByEmail(user.getEmail());
-        String toAddress = user.getEmail();
+        //userService.findByEmail(user.getEmail());
+        //String toAddress = user.getEmail();
+        String toAddress = email;
         System.out.println(toAddress);
         helper.setTo(toAddress);
         helper.setSubject("Hỗ trợ octopus Nhóm 40 Khóa luận tốt nghiệp(HK2 - 2022)");

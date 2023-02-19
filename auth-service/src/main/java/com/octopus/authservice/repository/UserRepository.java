@@ -13,8 +13,8 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends PagingAndSortingRepository<User, Integer> {
-    @Query("SELECT u FROM User u WHERE u.email = :email")
-    public User getUserByEmail(@Param("email") String email);
+    @Query("SELECT u.id, u.email, u.password FROM User u WHERE u.email like %?1%")
+    public User getUserByEmail(String email);
     public User findUserById(Integer id);
     public Long countById(Integer id);
 
@@ -38,5 +38,6 @@ public interface UserRepository extends PagingAndSortingRepository<User, Integer
 
     @Query("Select u from User u")
     public List<User> findAllUser();
+
 }
 
