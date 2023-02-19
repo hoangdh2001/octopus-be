@@ -15,5 +15,6 @@ import { MessageServive } from '../services/message.service';
   ],
   controllers: [MessageController],
   providers: [MessageServive],
+  exports: [MessageServive],
 })
 export class MessageModule {}

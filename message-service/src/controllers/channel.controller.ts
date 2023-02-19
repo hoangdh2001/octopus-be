@@ -1,64 +1,90 @@
-import { Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
-import { Request, Response } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Headers,
+  UseFilters,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
-import { v4 } from 'uuid';
 import { JwtService } from '@nestjs/jwt';
+import {
+  ChannelPaginationParams,
+  CreateChannelDTO,
+} from 'src/dtos/channel.dto';
+import { ChannelExceptionFilter } from 'src/exceptions/channel.exception';
+import { v4 } from 'uuid';
 import { Channel, ChannelMember } from 'src/models/channel.model';
-import { ChannelPaginationParams } from 'src/dtos/channel.dto';
+import { Pagination } from 'src/dtos/pagination.dto';
+import { convertChannelDTO } from 'src/utils/channel.utils';
+import { MessageServive } from 'src/services/message.service';
 
 @Controller('/channels')
+@UseFilters(new ChannelExceptionFilter())
 export class ChannelController {
   constructor(
     private readonly channelService: ChannelService,
     private readonly jwtService: JwtService,
+    private readonly messageService: MessageServive,
   ) {}
 
   @Get('/search')
   async findAllByUser(
-    @Query() { userID, skip, limit }: ChannelPaginationParams,
-  ) {
-    const channelPagination = await this.channelService.findAllByUser(
+    @Query() { userID, skip = 0, limit = 5 }: ChannelPaginationParams,
+  ): Promise<Pagination> {
+    const totalItem = await this.channelService.countByUserID(userID);
+    const totalPage = Math.floor(totalItem / limit) + 1;
+    const channels = await this.channelService.findAllByUser(
       userID,
       skip,
       limit,
     );
-    return channelPagination;
+
+    const data = await Promise.all(
+      channels.map(async (channel) => {
+        const messages = await this.messageService.findAllByChannel(
+          channel._id,
+        );
+        return await convertChannelDTO({ channel, userID, messages });
+      }),
+    );
+
+    return { skip, limit, totalItem, totalPage, data };
   }
 
   @Post()
-  async createChannel(@Req() req: Request, @Res() res: Response) {
-    try {
-      let { userIDs, name }: { userIDs: string[]; name: string } = req.body;
-      const token = req.header('Authorization')?.split(' ')[1] as any;
-      const { userID } = this.jwtService.decode(token || '') as any;
-      userIDs.push(userID);
-      userIDs = [...new Set(userIDs)];
-
-      if (userIDs.length < 2) {
-        return res.status(400).json({
-          status: 400,
-          message: 'Số thành viên của 1 nhóm phải từ 2 trở lên.',
-        });
-      }
-      const channel: Channel = {
-        _id: v4(),
-        name: name,
-        members: [],
-      };
-
-      const channelMember: ChannelMember[] = userIDs.map((userId) => {
-        return {
-          userID: userId,
-        };
-      });
-
-      channel.members = channelMember;
-      const newChannel = await this.channelService.createChannel(channel);
-      return res.status(201).json(newChannel);
-    } catch (error) {
-      return res
-        .status(400)
-        .send({ status: 400, message: 'Vui lòng kiểm tra dữ liệu đầu vào!' });
+  async createChannel(
+    @Body() createChannelDTO: CreateChannelDTO,
+    @Headers('Authorization') token?: string,
+  ) {
+    let { newMembers, name, userID } = createChannelDTO;
+    if (!userID || userID.trim() === '') {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
     }
+    if (newMembers.length < 2) {
+      throw new HttpException(
+        { message: 'Members must is equal 2 or longer than' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    newMembers = [userID, ...newMembers];
+    const channelMember: ChannelMember[] = newMembers.map((userId) => {
+      return {
+        userID: userId,
+      };
+    });
+    const channel: Channel = {
+      _id: v4(),
+      name: name,
+      members: channelMember,
+    };
+    channelMember;
+
+    const newChannel = await convertChannelDTO({ channel, userID });
+    return newChannel;
   }
 }

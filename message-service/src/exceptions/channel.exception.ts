@@ -1,5 +1,6 @@
 import {
   ArgumentsHost,
+  BadRequestException,
   Catch,
   ExceptionFilter,
   HttpException,
@@ -13,11 +14,12 @@ export class ChannelExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
+    const message: any = exception.getResponse();
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      message: 'Vui lòng kiểm tra dữ liệu đầu vào!',
+      message: message instanceof String ? message : message.message,
     });
   }
 }

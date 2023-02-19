@@ -35,6 +35,9 @@ export class Channel {
 
   @Prop({ type: Number, default: Date.now() })
   lastMessageAt?: number;
+
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export const ChannelSchema = SchemaFactory.createForClass(Channel);
