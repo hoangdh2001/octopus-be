@@ -34,7 +34,7 @@ export class Channel {
   members: ChannelMember[];
 
   @Prop({ type: Number, default: Date.now() })
-  receivedMessageAt?: number;
+  lastMessageAt?: number;
 }
 
 export const ChannelSchema = SchemaFactory.createForClass(Channel);

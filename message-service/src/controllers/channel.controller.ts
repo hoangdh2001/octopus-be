@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  Res,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ChannelService } from '../services/channel.service';
 import { v4 } from 'uuid';
@@ -66,8 +56,6 @@ export class ChannelController {
       const newChannel = await this.channelService.createChannel(channel);
       return res.status(201).json(newChannel);
     } catch (error) {
-      console.log(error);
-
       return res
         .status(400)
         .send({ status: 400, message: 'Vui lòng kiểm tra dữ liệu đầu vào!' });
