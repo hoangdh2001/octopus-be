@@ -50,6 +50,9 @@ export class Message {
 
   @Prop({ type: String, required: true })
   channelID: string;
+
+  createdAt: number;
+  updatedAt: number;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

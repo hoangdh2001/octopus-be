@@ -20,7 +20,7 @@ export class ChannelService {
   async findAllByUser(
     userID: string,
     documentToSkip: number = 0,
-    limitOfDocuments: number = 5,
+    limitOfDocuments: number = 10,
   ) {
     const channels: Channel[] = await this.channelModel.aggregate([
       { $match: { members: { $elemMatch: { userID: userID } } } },

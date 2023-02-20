@@ -9,12 +9,27 @@ export class MessageServive {
     @InjectModel(Message.name) private messageModel: Model<MessageDocument>,
   ) {}
 
-  async findAllByChannel(channelID: string) {
-    const messages = await this.messageModel.aggregate([
+  async findAllByChannel(
+    channelID: string,
+    skip: number = 0,
+    limit: number = 30,
+  ) {
+    const messages: Message[] = await this.messageModel.aggregate([
       { $match: { channelID: channelID } },
       { $sort: { createdAt: -1 } },
-      { $limit: 30 },
+      { $skip: skip * limit },
+      { $limit: limit },
     ]);
     return messages;
+  }
+
+  async countByChannel(channelID: string) {
+    const count = await this.messageModel
+      .find({
+        members: { $elemMatch: { channelID: channelID } },
+      })
+      .count()
+      .exec();
+    return count;
   }
 }
