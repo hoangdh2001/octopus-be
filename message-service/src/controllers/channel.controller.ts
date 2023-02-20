@@ -28,6 +28,7 @@ import {
 } from 'src/dtos/message.dto';
 import { convertMessageDTO } from 'src/utils/message.util';
 import { Message } from 'src/models/message.model';
+import { EventsGateway } from 'src/listeners/events.gateway';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
@@ -36,6 +37,7 @@ export class ChannelController {
     private readonly channelService: ChannelService,
     private readonly jwtService: JwtService,
     private readonly messageService: MessageServive,
+    private readonly eventsGateway: EventsGateway,
   ) {}
 
   @Get('/search')

@@ -6,15 +6,25 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsResponse,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import {
+  EmitEvents,
+  ListenEvents,
+  ServerSideEvents,
+  SocketData,
+} from './event.map';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  maxHttpBufferSize: 1e8,
+  cors: { origin: '*', methods: ['GET', 'POST'], credentials: true },
+})
 export class EventsGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   @WebSocketServer()
-  server: Server;
+  server: Server<ListenEvents, EmitEvents, ServerSideEvents, SocketData>;
 
   afterInit(server: any) {
     console.log('Init');
@@ -29,8 +39,9 @@ export class EventsGateway
   }
 
   @SubscribeMessage('events')
-  handleEvent(@MessageBody() data: string): string {
-    console.log('Received');
-    return 'Hello';
+  handleEvent(@MessageBody() data: unknown): WsResponse<unknown> {
+    return { event: 'events', data: data };
   }
+
+  sendMessage() {}
 }
