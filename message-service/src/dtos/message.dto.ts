@@ -1,6 +1,6 @@
 import { Message, MessageReaction } from 'src/models/message.model';
 import { UserDTO } from './user.dto';
-import { IsNumber, IsOptional, Min, IsString } from 'class-validator';
+import { IsNumber, IsOptional, Min, IsString, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export type Reaction = Pick<MessageReaction, 'reaction'> & {
@@ -36,4 +36,19 @@ export class MessagePaginationParams {
   @IsNumber()
   @Min(1)
   limit?: number;
+}
+
+export class SendMessageParams {
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @Matches(/^[a-zA-Z0-9-]+$/)
+  messageID?: string;
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  senderID?: string;
+  @IsOptional()
+  @IsString()
+  text?: string;
 }
