@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -53,6 +54,8 @@ public class UserController {
 
     @Autowired
     public PasswordEncoder passwordEncoder;
+
+
 
     @Autowired
     public UserController(UserService userService) {
@@ -79,22 +82,22 @@ public class UserController {
             @ApiResponse(responseCode = "204", description = "login successfully!"),
             @ApiResponse(responseCode = "405", description = "incorrect username")
     })
-    public ResponseEntity<String> loginNotPassword(@RequestBody String email) {
-        System.out.println(email);
-        User user = userService.getUserByEmail(email);
+    public ResponseEntity<String> loginNotPassword(@RequestBody LoginRequest userRequest) {
+        System.out.println(userRequest.getEmail());
+        User user = this.userService.findByEmail(userRequest.getEmail());
         System.out.println(user);
-        String password = userService.getUserByEmail(email).getPassword();
+        String password = userService.getUserByEmail(userRequest.getEmail()).getPassword();
         System.out.println(password);
 
         try {
-            sendVerificationEmail(email);
+            sendVerificationEmail(userRequest.getEmail(), "login");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-        if(!userService.verify(userService.getUserByEmail(email).getVerificationCode())) {
-            LoginResponse loginResponse = this.userService.login(email, passwordEncoder.encode(password));
+        if(!userService.verify(userService.getUserByEmail(userRequest.getEmail()).getVerificationCode())) {
+            LoginResponse loginResponse = this.userService.loginNotPassword(userRequest.getEmail());
             System.out.println(passwordEncoder.encode(password));
             return ResponseEntity.accepted().body(loginResponse.getToken());
         }
@@ -114,7 +117,7 @@ public class UserController {
         UserResponse userResponse = this.userService.register(userRequest);
 
         try {
-            sendVerificationEmail(userRequest.getEmail());
+            sendVerificationEmail(userRequest.getEmail(), "register");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MessagingException e) {
@@ -193,14 +196,14 @@ public class UserController {
         return verified;
     }
 
-    private void sendVerificationEmail(@RequestBody String email) throws UnsupportedEncodingException, MessagingException {
+    private void sendVerificationEmail(@RequestBody String email, String func) throws UnsupportedEncodingException, MessagingException {
         JavaMailSenderImpl mailSender = Utility.prepareMailSender();
 
         Locale locale = LocaleContextHolder.getLocale();
 
         Context ctx = new Context(locale);
 
-        String verifyURL = "http://localhost/Nhom40KLTN/api/users/verify/" + userService.findByEmail(email).getVerificationCode();
+        String verifyURL = "http://localhost/Nhom40KLTN/api/users/verify/" + userService.getUserByEmail(email).getVerificationCode();
         ctx.setVariable("url", verifyURL);
 
 
@@ -215,7 +218,13 @@ public class UserController {
         helper.setSubject("Hỗ trợ octopus Nhóm 40 Khóa luận tốt nghiệp(HK2 - 2022)");
 
         String htmlContent = "";
-        htmlContent = templateEngine.process("mails/email_registered.html", ctx);
+        String s="";
+        if(func.equalsIgnoreCase("login")){
+            s = "mails/email_loginwithpassword.html";
+        } else if(func.equalsIgnoreCase("register")){
+            s = "mails/email_registered.html";
+        }
+        htmlContent = templateEngine.process(s, ctx);
         helper.setText(htmlContent, true);
         mailSender.send(message);
     }

@@ -11,7 +11,6 @@ import com.octopus.authservice.model.User;
 import com.octopus.authservice.repository.UserRepository;
 import com.octopus.authservice.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -172,7 +171,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByEmail(String email) {
-        return userRepository.getUserByEmail(email);
+        return userRepository.findByEmail(email);
     }
 
     @Autowired
@@ -188,6 +187,20 @@ public class UserServiceImpl implements UserService {
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
             String role = authentication.getAuthorities().iterator().next().getAuthority();
+            String token = jwtProvider.createToken(username, String.valueOf(role));
+            return new LoginResponse(role, token);
+        } catch (AuthenticationException e) {
+            e.printStackTrace();
+            throw new ForbiddenException("username or password is incorrect!");
+        }
+    }
+
+    @Override
+    public LoginResponse loginNotPassword(String username) {
+        try {
+            //Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, null));
+            String role = "user";//authentication.getAuthorities().iterator().next().getAuthority();
+            System.out.println(role);
             String token = jwtProvider.createToken(username, String.valueOf(role));
             return new LoginResponse(role, token);
         } catch (AuthenticationException e) {

@@ -36,7 +36,7 @@ public interface UserService {
     //public String updateResetPasswordToken(String email) throws UserNotFoundException;
     public User findByEmail(String email);
     LoginResponse login(String username, String password);
-
+    LoginResponse loginNotPassword(String username);
     UserResponse register(UserRequest accountRequest);
 
     void logout(HttpServletRequest request, HttpServletResponse response);

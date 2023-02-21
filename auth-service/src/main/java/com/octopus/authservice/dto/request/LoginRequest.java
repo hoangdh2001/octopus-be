@@ -16,7 +16,7 @@ public class LoginRequest {
 	@NotNull(message = "required")
 	private String email;
 	
-	@NotNull(message = "required")
+	//@NotNull(message = "required")
 	@Length(min = 4,max = 50)
 	private String password;
 }
