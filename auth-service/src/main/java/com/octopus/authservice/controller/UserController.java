@@ -88,7 +88,7 @@ public class UserController {
         System.out.println(user);
         String password = userService.getUserByEmail(userRequest.getEmail()).getPassword();
         System.out.println(password);
-
+        user.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
         try {
             sendVerificationEmail(userRequest.getEmail(), "login");
         } catch (UnsupportedEncodingException e) {

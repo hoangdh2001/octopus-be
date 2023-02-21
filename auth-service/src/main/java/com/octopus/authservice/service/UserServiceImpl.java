@@ -28,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +36,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     public static final int USER_PER_PAGE = 4;
     @Autowired
@@ -157,6 +159,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean verify(String verificationCode) {
         User user = userRepository.findByVerificationCode(verificationCode);
+        System.out.println(user.isActive() +"......." + user.getId());
         if(user != null && !user.isActive()) {
             userRepository.enabled(user.getId());
             return true;

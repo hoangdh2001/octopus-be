@@ -31,7 +31,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT u FROM User u WHERE u.verificationCode = ?1")
     public User findByVerificationCode(String verificationCode);
 
-    @Query("UPDATE User u SET u.active = true, u.verificationCode = null WHERE u.id = ?1")
+    @Query("UPDATE User u SET u.active = true, u.verificationCode = '' WHERE u.id = ?1")
     @Modifying
     public void enabled(Integer id);
     User findByEmailAndPassword(String email,String password);
