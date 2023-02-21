@@ -13,7 +13,7 @@ export class ChannelService {
   ) {}
 
   async createChannel(channel: Channel) {
-    const newChannel = await this.channelModel.create(channel);
+    const newChannel: Channel = await this.channelModel.create(channel);
     return newChannel;
   }
 

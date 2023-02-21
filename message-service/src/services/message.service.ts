@@ -23,6 +23,11 @@ export class MessageServive {
     return messages;
   }
 
+  async createMessage(channelID: string, message: Message) {
+    const newMessage: Message = await this.messageModel.create(message);
+    return newMessage;
+  }
+
   async countByChannel(channelID: string) {
     const count = await this.messageModel
       .find({

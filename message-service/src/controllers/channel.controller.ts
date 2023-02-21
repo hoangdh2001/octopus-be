@@ -22,8 +22,13 @@ import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Pagination } from 'src/dtos/pagination.dto';
 import { convertChannelDTO } from 'src/utils/channel.utils';
 import { MessageServive } from 'src/services/message.service';
-import { MessagePaginationParams } from 'src/dtos/message.dto';
+import {
+  MessagePaginationParams,
+  SendMessageParams,
+} from 'src/dtos/message.dto';
 import { convertMessageDTO } from 'src/utils/message.util';
+import { Message } from 'src/models/message.model';
+import { EventsGateway } from 'src/listeners/events.gateway';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
@@ -32,6 +37,7 @@ export class ChannelController {
     private readonly channelService: ChannelService,
     private readonly jwtService: JwtService,
     private readonly messageService: MessageServive,
+    private readonly eventsGateway: EventsGateway,
   ) {}
 
   @Get('/search')
@@ -85,16 +91,15 @@ export class ChannelController {
       name: name,
       members: channelMember,
     };
-    channelMember;
 
-    const newChannel = await convertChannelDTO({ channel, userID });
-    return newChannel;
+    const newChannel = await this.channelService.createChannel(channel);
+    return await convertChannelDTO({ channel: newChannel, userID });
   }
 
   @Get('/:channelID/messages')
   async findAllMessageByChannel(
     @Query() { skip = 0, limit = 30 }: MessagePaginationParams,
-    @Param() channelID: string,
+    @Param('channelID') channelID: string,
   ) {
     const totalItem = await this.messageService.countByChannel(channelID);
     const totalPage = Math.floor(totalItem / limit) + 1;
@@ -113,6 +118,34 @@ export class ChannelController {
     return { skip, limit, totalItem, totalPage, data };
   }
 
-  @Post('/messages')
-  async sendMessage() {}
+  @Post('/:channelID/messages')
+  async sendMessage(
+    @Param('channelID') channelID: string,
+    @Body() { senderID, messageID, text }: SendMessageParams,
+    @Headers('Authorization') token?: string,
+  ) {
+    const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+    const message: Message = {
+      _id: messageID || v4(),
+      senderID: senderID || id,
+      status: 'READY',
+      type: 'NORMAL',
+      channelID: channelID,
+      text: text,
+    };
+
+    const newMessage = await this.messageService.createMessage(
+      channelID,
+      message,
+    );
+
+    const messageDTO = convertMessageDTO(newMessage);
+
+    this.eventsGateway.sendMessage({
+      type: 'message.created',
+      message: messageDTO,
+    });
+
+    return messageDTO;
+  }
 }
