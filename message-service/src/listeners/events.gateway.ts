@@ -9,6 +9,7 @@ import {
   WsResponse,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { MessageEvent } from 'src/dtos/message.dto';
 import {
   EmitEvents,
   ListenEvents,
@@ -43,5 +44,7 @@ export class EventsGateway
     return { event: 'events', data: data };
   }
 
-  sendMessage() {}
+  sendMessage(message: MessageEvent) {
+    this.server.emit('sendMessage', message);
+  }
 }

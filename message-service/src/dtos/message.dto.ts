@@ -1,8 +1,8 @@
-import { Message, MessageReaction } from 'src/models/message.model';
 import { UserDTO } from './user.dto';
 import { IsNumber, IsOptional, Min, IsString, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChannelDTO } from './channel.dto';
+import { Message, MessageReaction } from '../models/message.model';
 
 export type Reaction = Pick<MessageReaction, 'reaction'> & {
   reacter?: UserDTO;

@@ -139,6 +139,13 @@ export class ChannelController {
       message,
     );
 
-    return await convertMessageDTO(newMessage);
+    const messageDTO = convertMessageDTO(newMessage);
+
+    this.eventsGateway.sendMessage({
+      type: 'message.created',
+      message: messageDTO,
+    });
+
+    return messageDTO;
   }
 }
