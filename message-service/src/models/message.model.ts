@@ -25,7 +25,7 @@ export class Message {
   _id: string;
 
   @Prop({ type: Boolean, default: false })
-  updated: boolean;
+  updated?: boolean;
 
   @Prop({ type: String, required: true })
   senderID: string;
@@ -34,22 +34,25 @@ export class Message {
     type: String,
     enum: ['DELETED', 'ERROR', 'READY'],
   })
-  status: string;
+  status: 'DELETED' | 'ERROR' | 'READY';
 
   @Prop({ type: String })
-  text: string;
+  text?: string;
 
   @Prop({ type: String, enum: ['SYSTEM_NOTIFICATION', 'NORMAL'] })
-  type: string;
+  type: 'SYSTEM_NOTIFICATION' | 'NORMAL';
 
   @Prop({ type: [String], default: [] })
-  viewers: string[];
+  viewers?: string[];
 
   @Prop({ type: [MessageReactionSchema], default: [] })
-  reactions: MessageReaction[];
+  reactions?: MessageReaction[];
 
   @Prop({ type: String, required: true })
   channelID: string;
+
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);
