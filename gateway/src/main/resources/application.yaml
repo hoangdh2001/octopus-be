@@ -1,12 +1,12 @@
 server:
   port: 80
-  eureka:
-    client:
+eureka:
+  client:
     service-url:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
-    instance:
-      prefer-ip-address: true
-      hostname: ${EUREKA_HOST:localhost}
+  instance:
+    prefer-ip-address: true
+    hostname: ${EUREKA_HOST:localhost}
 spring:
   application:
     name: gateway

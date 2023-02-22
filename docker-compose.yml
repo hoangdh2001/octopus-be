@@ -77,10 +77,10 @@ services:
       - eureka-service
       - mongo-kl
       - mysql
-    networks:
-      - service-network
     environment:
       - EUREKA_HOST=eureka-service
+    networks:
+      - service-network
   auth-service:
     container_name: auth-service
     image: auth-service
