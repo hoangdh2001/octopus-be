@@ -6,6 +6,7 @@ import com.octopus.authservice.dto.request.UserRequest;
 import com.octopus.authservice.dto.response.LoginResponse;
 import com.octopus.authservice.dto.response.UserResponse;
 import com.octopus.authservice.email.Utility;
+import com.octopus.authservice.kafka.AuthProducer;
 import com.octopus.authservice.model.User;
 import com.octopus.authservice.service.UserService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -55,12 +56,14 @@ public class UserController {
     @Autowired
     public PasswordEncoder passwordEncoder;
 
-
+    @Autowired
+    public AuthProducer authProducer;
 
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
 
     @PostMapping(value = "/login")
     @Retry(name = "service-java")
@@ -89,13 +92,14 @@ public class UserController {
         String password = userService.getUserByEmail(userRequest.getEmail()).getPassword();
         System.out.println(password);
         user.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
-        try {
+        authProducer.sendMessage(userRequest);
+        /*try {
             sendVerificationEmail(userRequest.getEmail(), "login");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MessagingException e) {
             e.printStackTrace();
-        }
+        }*/
         if(!userService.verify(userService.getUserByEmail(userRequest.getEmail()).getVerificationCode())) {
             LoginResponse loginResponse = this.userService.loginNotPassword(userRequest.getEmail());
             System.out.println(passwordEncoder.encode(password));
