@@ -1,0 +1,97 @@
+version: '3.7'
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8.0.32
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - "./docker/mysql:/var/lib/mysql"
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=userdb
+    ports:
+      - "3306:3306"
+    networks:
+      - mysql-network
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - "8086:8080"
+    networks:
+      - mysql-network
+    environment:
+      ADMINER_DESIGN: "hydra"
+  mongo-kl:
+    container_name: mongo-kl
+    image: mongo
+    restart: unless-stopped
+    volumes:
+      - "./docker/mongodb/data:/data/db"
+      - "./docker/mongodb/config:/data/configdb"
+      - "./docker/mongodb/db-entrypoint.sh:/docker-entrypoint-initdb.d/db-entrypoint.sh"
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+      - DB_PORT=27017
+      - DB_DATABASE=messagedb
+      - DB_USERNAME=admin
+      - DB_PASSWORD=admin
+    networks:
+      - mongo-network
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./docker/redis/data:/data
+    restart: unless-stopped
+    networks:
+      - cache-network
+  eureka-service:
+    container_name: eureka-service
+    build:
+      context: ./eureka-service
+    ports:
+      - "8761:8761"
+    depends_on:
+      - mongo-kl
+      - mysql
+    networks:
+      - service-network
+  message-service:
+    container_name: message-service
+    build:
+      context: ./message-service
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo-kl
+      - mysql
+      - eureka-service
+    environment:
+      - EUREKA_HOST=eureka-service
+      - DB_HOST=mongo-kl
+      - DB_PORT=27017
+      - DB_DATABASE=messagedb
+      - DB_USERNAME=admin
+      - DB_PASSWORD=admin
+    networks:
+      - mongo-network
+      - service-network
+
+networks:
+  mysql-network:
+    driver: bridge
+  mongo-network:
+    driver: bridge
+  cache-network:
+    driver: bridge
+  service-network:
+    driver: bridge

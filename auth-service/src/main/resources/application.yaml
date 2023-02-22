@@ -2,7 +2,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:mysql://localhost:3306/nhom40authdb
+    url: jdbc:mysql://localhost:3306/userdb
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -53,7 +53,6 @@ app:
     secret: khoa_luan_tot_nghiep_nhom40_octopus
     milliseconds: 604800
     header: Authorization
-
 
 resilience4j:
   circuitbreaker:
