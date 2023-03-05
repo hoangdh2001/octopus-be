@@ -6,6 +6,7 @@ import com.octopus.authservice.dto.request.UserRequest;
 import com.octopus.authservice.dto.response.LoginResponse;
 import com.octopus.authservice.dto.response.UserResponse;
 import com.octopus.authservice.email.Utility;
+import com.octopus.authservice.kafka.AuthProducer;
 import com.octopus.authservice.model.User;
 import com.octopus.authservice.service.UserService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -42,9 +43,9 @@ import java.util.Locale;
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin
-@Retry(name = "service-java")
-@CircuitBreaker(name = "service-java")
-@RateLimiter(name = "service-java")
+//@Retry(name = "service-java")
+//@CircuitBreaker(name = "service-java")
+//@RateLimiter(name = "service-java")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -55,15 +56,17 @@ public class UserController {
     @Autowired
     public PasswordEncoder passwordEncoder;
 
-
+    @Autowired
+    public AuthProducer authProducer;
 
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
+
     @PostMapping(value = "/login")
-    @Retry(name = "service-java")
+    //@Retry(name = "service-java")
     @Operation(summary = "login for user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "202", description = "login successfully!"),
@@ -72,11 +75,12 @@ public class UserController {
     public ResponseEntity<String> login(@RequestBody @Valid LoginRequest loginRequest) {
         String password = loginRequest.getPassword();
         LoginResponse loginResponse = this.userService.login(loginRequest.getEmail(), password);
+        authProducer.sendMessage(loginRequest);
         return ResponseEntity.accepted().body(loginResponse.getToken());
     }
 
     @PostMapping(value = "/login_not_password")
-    @Retry(name = "service-java")
+    //@Retry(name = "service-java")
     @Operation(summary = "login for user but don't use password")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "login successfully!"),
@@ -89,16 +93,18 @@ public class UserController {
         String password = userService.getUserByEmail(userRequest.getEmail()).getPassword();
         System.out.println(password);
         user.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
-        try {
+
+        /*try {
             sendVerificationEmail(userRequest.getEmail(), "login");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MessagingException e) {
             e.printStackTrace();
-        }
+        }*/
         if(!userService.verify(userService.getUserByEmail(userRequest.getEmail()).getVerificationCode())) {
             LoginResponse loginResponse = this.userService.loginNotPassword(userRequest.getEmail());
             System.out.println(passwordEncoder.encode(password));
+            authProducer.sendMessage(userRequest);
             return ResponseEntity.accepted().body(loginResponse.getToken());
         }
         return ResponseEntity.badRequest().body("error");
@@ -106,7 +112,7 @@ public class UserController {
 
     @Operation(summary = "register for new user")
     @PostMapping("/register")
-    @Retry(name = "service-java")
+    //@Retry(name = "service-java")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Create New User successfully"),

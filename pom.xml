@@ -12,6 +12,7 @@
         <module>auth-service</module>
         <module>eureka-service</module>
         <module>gateway</module>
+        <module>mail-service</module>
     </modules>
 
     <properties>
