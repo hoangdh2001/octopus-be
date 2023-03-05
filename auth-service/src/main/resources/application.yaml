@@ -20,7 +20,7 @@ spring:
   cache:
     type: redis
     redis:
-      time-to-live: 600000
+      time-to-live: 6000000
   redis:
     host: localhost
     port: 6379
@@ -90,7 +90,7 @@ resilience4j:
         register-health-indicator: false
         limit-for-period: 3
         limit-refresh-period: 10s
-        timeout-duration: 5s
+        timeout-duration: 90s
 
 eureka:
   client:

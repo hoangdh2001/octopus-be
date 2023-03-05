@@ -1,19 +1,23 @@
 package com.octopus.mailservice.service;
 
-import com.octopus.authservice.service.UserService;
 import com.octopus.mailservice.email.Utility;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import com.octopus.authservice.*;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.util.Locale;
 
+@Service
+@RequiredArgsConstructor
+@Transactional
 public class SendMailServiceImpl implements SendMailService{
     @Autowired
     private TemplateEngine templateEngine;
@@ -33,7 +37,7 @@ public class SendMailServiceImpl implements SendMailService{
 
 
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8");
+        MimeMessageHelper helper = new  MimeMessageHelper(message, false, "utf-8");
 
         //userService.findByEmail(user.getEmail());
         //String toAddress = user.getEmail();

@@ -13,6 +13,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+
 @Service
 @Component
 @EnableAutoConfiguration
@@ -28,8 +30,10 @@ public class AuthProducer {
     }
 
     public void sendMessage(LoginRequest event){
-        LOGGER.info(String.format("Auth event => %s", event.toString()));
+        LOGGER.info(String.format("Auth event => %s %s", event.toString(), event.getEmail()));
 
+        //HashMap<LoginRequest, String> h = new HashMap<LoginRequest, String>();
+        //h.put(event, status);
         // create Message
         Message<LoginRequest> message = MessageBuilder
                 .withPayload(event)
