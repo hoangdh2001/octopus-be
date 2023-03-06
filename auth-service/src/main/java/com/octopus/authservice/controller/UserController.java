@@ -98,8 +98,8 @@ public class UserController {
         System.out.println(password);
         user.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
         String radomOTP = RandomStringUtils.randomNumeric(4);
-        user.setRefreshToken(radomOTP);
-        userRequest.setOtp(radomOTP);
+        user.setRefreshToken(radomOTP+user.getId());
+        userRequest.setOtp(radomOTP+user.getId());
         userRequest.setUserID(user.getId());
         /*try {
             sendVerificationEmail(userRequest.getEmail(), "login");
