@@ -13,6 +13,7 @@
         <module>eureka-service</module>
         <module>gateway</module>
         <module>mail-service</module>
+        <module>workspace-service</module>
     </modules>
 
     <properties>
