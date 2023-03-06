@@ -1,4 +1,4 @@
-package com.octopus.workspaceservice.module;
+package com.octopus.workspaceservice.model;
 
 import lombok.*;
 
@@ -6,13 +6,13 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "role_work_space")
+@Table(name = "role_project")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Getter
 @Setter
-public class RoleWorkSpace implements Serializable {
+public class RoleProject implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -25,4 +25,5 @@ public class RoleWorkSpace implements Serializable {
 
     @Column(name="user_id")
     private int userId;
+
 }

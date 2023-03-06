@@ -1,20 +1,18 @@
-package com.octopus.workspaceservice.module;
+package com.octopus.workspaceservice.model;
 
 import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
-@Table(name = "space")
+@Table(name = "task_status")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Getter
 @Setter
-public class Space implements Serializable {
+public class TaskStatus implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -23,7 +21,13 @@ public class Space implements Serializable {
     private String name;
 
     @Column(name="status")
-    private boolean status;
+    private int status;
+
+    @Column(name="color")
+    private String color;
+
+    @Column(name="is_default")
+    private boolean isDefault;
 
     @Column(name="create_time")
     private String createTime;
@@ -32,9 +36,6 @@ public class Space implements Serializable {
     private String updateTime;
 
     @ManyToOne
-    @JoinColumn(name = "project_id")
-    private Project project;
-
-    @OneToMany(mappedBy = "space", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Columns> columns = new HashSet<>();
+    @JoinColumn(name = "task_id")
+    private Task task;
 }

@@ -1,18 +1,19 @@
-package com.octopus.workspaceservice.module;
+package com.octopus.workspaceservice.model;
 
 import lombok.*;
 
 import javax.persistence.*;
+import javax.persistence.Column;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "task_status")
+@Table(name = "column")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Getter
 @Setter
-public class TaskStatus implements Serializable {
+public class Columns implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -21,13 +22,7 @@ public class TaskStatus implements Serializable {
     private String name;
 
     @Column(name="status")
-    private int status;
-
-    @Column(name="color")
-    private String color;
-
-    @Column(name="is_default")
-    private boolean isDefault;
+    private boolean status;
 
     @Column(name="create_time")
     private String createTime;
@@ -36,6 +31,6 @@ public class TaskStatus implements Serializable {
     private String updateTime;
 
     @ManyToOne
-    @JoinColumn(name = "task_id")
-    private Task task;
+    @JoinColumn(name = "space_id")
+    private Space space;
 }

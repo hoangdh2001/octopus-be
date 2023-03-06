@@ -1,4 +1,4 @@
-package com.octopus.workspaceservice.module;
+package com.octopus.workspaceservice.model;
 
 import lombok.*;
 
