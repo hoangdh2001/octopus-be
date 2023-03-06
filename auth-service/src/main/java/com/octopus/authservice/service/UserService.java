@@ -29,7 +29,7 @@ public interface UserService {
     public void deleteUserById(Integer id) throws UserNotFoundException;
     public void updateUserEnabledStatus(Integer id, boolean endabled);
     public String getEmailOfAuthenticatedUser(HttpServletRequest request);
-    public boolean verify(String verificationCode);
+    public User verify(String verificationCode);
     public long getCount();
     //public void updatePassword(String token, String newPassword) throws UserNotFoundException;
     //public User getByRestPasswordToken(String token);
@@ -53,6 +53,8 @@ public interface UserService {
     UserResponse ownProfile();
 
     UserResponse updateOwnProfile(UserRequest userRequest);
+
+    User checkOTP(String otp);
 
 
 

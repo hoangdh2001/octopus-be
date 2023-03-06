@@ -4,5 +4,5 @@ import javax.mail.MessagingException;
 
 
 public interface SendMailService {
-    void sendActivationEmail(String email, String func) throws MessagingException;
+    void sendActivationEmail(String email, String func, String otp) throws MessagingException;
 }

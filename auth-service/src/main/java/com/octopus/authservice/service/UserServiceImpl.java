@@ -157,15 +157,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean verify(String verificationCode) {
+    public User verify(String verificationCode) {
         User user = userRepository.findByVerificationCode(verificationCode);
         System.out.println(user.isActive() +"......." + user.getId());
-        if(user != null && !user.isActive()) {
+        /*if(user != null && !user.isActive()) {
             userRepository.enabled(user.getId());
             return true;
         }else {
             return false;
-        }
+        }*/
+        return user;
     }
 
     public long getCount() {
@@ -304,6 +305,12 @@ public class UserServiceImpl implements UserService {
         System.out.println(userRequest.getEmail());
         System.out.println(userRequest.getFirstName()+" "+userRequest.getLastName());
         return MapData.mapOne(this.userRepository.save(user), UserResponse.class);
+    }
+
+    @Override
+    public User checkOTP(String otp) {
+        User user = userRepository.findByOTP(otp);
+        return user;
     }
 
 
