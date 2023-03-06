@@ -21,7 +21,7 @@ public class GatewayConfig {
                 .route("auth-service",r -> r.path("/api/auth/**","/api/users/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter))
                         .uri("lb://auth-service"))
-                .route("message-service",r -> r.path("/api/message/**")
+                .route("message-service",r -> r.path("/api/channels/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter))
                         .uri("lb://message-service"))
                 .build();

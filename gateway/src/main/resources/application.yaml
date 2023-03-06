@@ -1,11 +1,12 @@
 server:
   port: 80
-  eureka:
-    instance:
-      hostname: localhost
-    client:
-      serviceUrl:
-        defaultZone: http://localhost:8761/eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    hostname: ${EUREKA_HOST:localhost}
 spring:
   application:
     name: gateway
@@ -19,7 +20,7 @@ spring:
         - id: message-service
           uri: lb://message-service
           predicates:
-            - Path=/api/message/**, /message/**
+            - Path=/api/channels/**, /channels/**
     discovery:
       enabled: true
 logging:
