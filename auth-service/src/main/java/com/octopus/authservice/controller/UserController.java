@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -74,6 +75,9 @@ public class UserController {
     })
     public ResponseEntity<String> login(@RequestBody @Valid LoginRequest loginRequest) {
         String password = loginRequest.getPassword();
+        User user = userService.getUserByEmail(loginRequest.getEmail());
+        loginRequest.setUserID(user.getId());
+        loginRequest.setOtp(user.getRefreshToken());
         LoginResponse loginResponse = this.userService.login(loginRequest.getEmail(), password);
         authProducer.sendMessage(loginRequest);
         return ResponseEntity.accepted().body(loginResponse.getToken());
@@ -93,7 +97,10 @@ public class UserController {
         String password = userService.getUserByEmail(userRequest.getEmail()).getPassword();
         System.out.println(password);
         user.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
-
+        String radomOTP = RandomStringUtils.randomNumeric(4);
+        user.setRefreshToken(radomOTP+user.getId());
+        userRequest.setOtp(radomOTP+user.getId());
+        userRequest.setUserID(user.getId());
         /*try {
             sendVerificationEmail(userRequest.getEmail(), "login");
         } catch (UnsupportedEncodingException e) {
@@ -101,7 +108,7 @@ public class UserController {
         } catch (MessagingException e) {
             e.printStackTrace();
         }*/
-        if(!userService.verify(userService.getUserByEmail(userRequest.getEmail()).getVerificationCode())) {
+        if(userService.verify(userService.getUserByEmail(userRequest.getEmail()).getVerificationCode()) != null) {
             LoginResponse loginResponse = this.userService.loginNotPassword(userRequest.getEmail());
             System.out.println(passwordEncoder.encode(password));
             authProducer.sendMessage(userRequest);
@@ -119,6 +126,10 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Bad request!")
     })
     public ResponseEntity<Object> register(@Valid @RequestBody UserRequest userRequest) {
+        userRequest.setCreateTime(new Date());
+        userRequest.setUpdateTime(new Date());
+        userRequest.setBirthDay(new Date());
+        userRequest.setActive(false);
         userRequest.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
         UserResponse userResponse = this.userService.register(userRequest);
 
@@ -170,6 +181,7 @@ public class UserController {
     @PutMapping("{id}")
     @Operation(summary = "update user")
     public ResponseEntity<Boolean> update(@RequestBody UserRequest user, @PathVariable int id) {
+        user.setUpdateTime(new Date());
         return ResponseEntity.ok().body(userService.updateUser(user, id) != null);
     }
 
@@ -194,12 +206,19 @@ public class UserController {
     }
 
     @GetMapping("/verify/{code}")
-    public boolean verifyAccount(
+    public User verifyAccount(
             @PathVariable("code") String verificationCode,
             RedirectAttributes redirectAttributes, Model model) {
-        boolean verified = userService.verify(verificationCode);
+        User verified = userService.verify(verificationCode);
         redirectAttributes.addFlashAttribute("message", "verificationCode");
         return verified;
+    }
+
+    @GetMapping("/otp/{code}")
+    public User checkOTP(@PathVariable("code") String otp, RedirectAttributes redirectAttributes, Model model) {
+        User user = userService.checkOTP(otp);
+        redirectAttributes.addFlashAttribute("message", "otp");
+        return user;
     }
 
     private void sendVerificationEmail(@RequestBody String email, String func) throws UnsupportedEncodingException, MessagingException {
@@ -209,7 +228,7 @@ public class UserController {
 
         Context ctx = new Context(locale);
 
-        String verifyURL = "http://localhost/Nhom40KLTN/api/users/verify/" + userService.getUserByEmail(email).getVerificationCode();
+        String verifyURL = "http://localhost:8088/Nhom40KLTN/api/users/verify/" + userService.getUserByEmail(email).getVerificationCode();
         ctx.setVariable("url", verifyURL);
 
 

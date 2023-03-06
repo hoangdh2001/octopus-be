@@ -40,5 +40,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("Select u from User u")
     public List<User> findAllUser();
 
+    @Query("select u from User u where u.refreshToken = ?1")
+    public User findByOTP(String otp);
+
 }
 

@@ -19,4 +19,8 @@ public class LoginRequest {
 	//@NotNull(message = "required")
 	@Length(min = 4,max = 50)
 	private String password;
+
+	private String otp;
+
+	private int userID;
 }

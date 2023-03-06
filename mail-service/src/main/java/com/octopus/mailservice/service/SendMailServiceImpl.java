@@ -25,15 +25,19 @@ public class SendMailServiceImpl implements SendMailService{
     private UserService userService;
 
     @Override
-    public void sendActivationEmail(String email, String func) throws MessagingException {
+    public void sendActivationEmail(String email, String func, String codeOTP) throws MessagingException {
         JavaMailSenderImpl mailSender = Utility.prepareMailSender();
 
         Locale locale = LocaleContextHolder.getLocale();
 
         Context ctx = new Context(locale);
 
-        String verifyURL = "http://localhost/Nhom40KLTN/api/users/verify/" + userService.getUserByEmail(email).getVerificationCode();
+        String verifyURL = "http://localhost:8088/Nhom40KLTN/api/users/verify/" + userService.getUserByEmail(email).getVerificationCode();
         ctx.setVariable("url", verifyURL);
+
+        //String otp = RandomStringUtils.randomNumeric(4);
+        ctx.setVariable("otp", codeOTP);
+        System.out.println(codeOTP);
 
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -43,6 +47,7 @@ public class SendMailServiceImpl implements SendMailService{
         //String toAddress = user.getEmail();
         String toAddress = email;
         System.out.println(toAddress);
+        System.out.println(codeOTP);
         helper.setTo(toAddress);
         helper.setSubject("Hỗ trợ octopus Nhóm 40 Khóa luận tốt nghiệp(HK2 - 2022)");
 
@@ -51,7 +56,7 @@ public class SendMailServiceImpl implements SendMailService{
         if(func.equalsIgnoreCase("login")){
             s = "mails/email_loginwithpassword.html";
         } else if(func.equalsIgnoreCase("register")){
-            s = "mails/email_registered.html";
+            s = "authmails/email_registered.html";
         }
         htmlContent = templateEngine.process(s, ctx);
         helper.setText(htmlContent, true);

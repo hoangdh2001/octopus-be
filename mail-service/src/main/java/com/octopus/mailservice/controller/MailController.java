@@ -48,7 +48,7 @@ public class MailController {
 
         try {
             //mailService.sendActivationEmail(loginRequest.getEmail(), status);
-            mailService.sendActivationEmail(authConsumer.consume(loginRequest).getEmail(), status);
+            mailService.sendActivationEmail(authConsumer.consume(loginRequest).getEmail(), status, "");
         } catch (MessagingException e) {
             e.printStackTrace();
         }
