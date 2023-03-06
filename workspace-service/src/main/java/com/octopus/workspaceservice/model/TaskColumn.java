@@ -1,36 +1,28 @@
-package com.octopus.workspaceservice.module;
+package com.octopus.workspaceservice.model;
 
 import lombok.*;
 
 import javax.persistence.*;
-import javax.persistence.Column;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "column")
+@Table(name = "task_column")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Getter
 @Setter
-public class Columns implements Serializable {
+public class TaskColumn implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name="name")
-    private String name;
-
-    @Column(name="status")
-    private boolean status;
+    @Column(name="value")
+    private String value;
 
     @Column(name="create_time")
     private String createTime;
 
     @Column(name="update_time")
     private String updateTime;
-
-    @ManyToOne
-    @JoinColumn(name = "space_id")
-    private Space space;
 }
