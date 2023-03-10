@@ -191,6 +191,7 @@ public class UserServiceImpl implements UserService {
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
             String role = authentication.getAuthorities().iterator().next().getAuthority();
+            System.out.println(role);
             String token = jwtProvider.createToken(username, String.valueOf(role));
             return new LoginResponse(role, token);
         } catch (AuthenticationException e) {

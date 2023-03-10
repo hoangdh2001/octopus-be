@@ -26,7 +26,7 @@ public class UserPrinciple implements UserDetails {
 
     public static UserPrinciple createUser(User user) {
         //Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(user.getRoles().getClass().getName()));
-        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("admin"));
+        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("user"));
         return UserPrinciple.builder()
                 .id(user.getId())
                 .username(user.getEmail())
