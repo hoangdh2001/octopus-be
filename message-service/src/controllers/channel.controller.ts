@@ -9,6 +9,9 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  Inject,
+  OnModuleInit,
+  OnModuleDestroy,
 } from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
@@ -29,16 +32,26 @@ import {
 import { convertMessageDTO } from 'src/utils/message.util';
 import { Message } from 'src/models/message.model';
 import { EventsGateway } from 'src/listeners/events.gateway';
+import { ClientKafka } from '@nestjs/microservices';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
-export class ChannelController {
+export class ChannelController implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly channelService: ChannelService,
     private readonly jwtService: JwtService,
     private readonly messageService: MessageServive,
     private readonly eventsGateway: EventsGateway,
+    @Inject('MESSAGE_SERVICE') private readonly client: ClientKafka,
   ) {}
+
+  async onModuleDestroy() {
+    await this.client.close();
+  }
+  async onModuleInit() {
+    this.client.subscribeToResponseOf('user-get');
+    await this.client.connect();
+  }
 
   @Get('/search')
   async findAllByUser(
@@ -70,8 +83,10 @@ export class ChannelController {
     @Headers('Authorization') token?: string,
   ) {
     let { newMembers, name, userID } = createChannelDTO;
-    if (!userID || userID.trim() === '') {
-      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+    if (!userID || userID === 0) {
+      const { id }: { id: number } = this.jwtService.decode(
+        token?.split(' ')[1] || '',
+      ) as any;
       userID = id;
     }
     if (newMembers.length < 2) {
@@ -86,11 +101,14 @@ export class ChannelController {
         userID: userId,
       };
     });
+    this.client.send('user-get', userID);
     const channel: Channel = {
       _id: v4(),
       name: name,
       members: channelMember,
     };
+
+    this.client.send('user-get', userID);
 
     const newChannel = await this.channelService.createChannel(channel);
     return await convertChannelDTO({ channel: newChannel, userID });

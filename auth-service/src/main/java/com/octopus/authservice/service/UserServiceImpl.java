@@ -39,11 +39,9 @@ import java.util.List;
 @Transactional
 public class UserServiceImpl implements UserService {
     public static final int USER_PER_PAGE = 4;
-    @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
-    public PasswordEncoder passwordEncoder;
+    public final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
     private final JwtProvider jwtProvider;

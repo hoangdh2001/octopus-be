@@ -2,6 +2,7 @@ package com.octopus.mailservice.kafka;
 
 import com.octopus.authservice.dto.request.LoginRequest;
 import com.octopus.mailservice.service.SendMailService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +13,9 @@ import javax.mail.MessagingException;
 import java.util.HashMap;
 
 @Service
+@RequiredArgsConstructor
 public class AuthConsumer {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthConsumer.class);
-    @Autowired
     private SendMailService mailService;
 
     @KafkaListener(

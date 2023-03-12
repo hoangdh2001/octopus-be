@@ -1,6 +1,7 @@
 package com.octopus.authservice.kafka;
 
 import com.octopus.authservice.dto.request.LoginRequest;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,25 +17,15 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 
 @Service
-@Component
-@EnableAutoConfiguration
+@RequiredArgsConstructor
 public class AuthProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthProducer.class);
 
-    private NewTopic topic;
-    private KafkaTemplate<String, LoginRequest> kafkaTemplate;
-
-    public AuthProducer(NewTopic topic, KafkaTemplate<String, LoginRequest> kafkaTemplate) {
-        this.topic = topic;
-        this.kafkaTemplate = kafkaTemplate;
-    }
+    private final NewTopic topic;
+    private final KafkaTemplate<String, LoginRequest> kafkaTemplate;
 
     public void sendMessage(LoginRequest event){
         LOGGER.info(String.format("Auth event => %s %s", event.toString(), event.getEmail()));
-
-        //HashMap<LoginRequest, String> h = new HashMap<LoginRequest, String>();
-        //h.put(event, status);
-        // create Message
         Message<LoginRequest> message = MessageBuilder
                 .withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, topic.name())

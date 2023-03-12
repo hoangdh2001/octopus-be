@@ -15,6 +15,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -42,29 +43,20 @@ import java.util.Locale;
 
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/users")
 @CrossOrigin
 //@Retry(name = "service-java")
 //@CircuitBreaker(name = "service-java")
 //@RateLimiter(name = "service-java")
 public class UserController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private TemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
 
-    @Autowired
-    public PasswordEncoder passwordEncoder;
+    public final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public AuthProducer authProducer;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
+    public final AuthProducer authProducer;
 
     @PostMapping(value = "/login")
     //@Retry(name = "service-java")
@@ -126,9 +118,6 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Bad request!")
     })
     public ResponseEntity<Object> register(@Valid @RequestBody UserRequest userRequest) {
-        userRequest.setCreateTime(new Date());
-        userRequest.setUpdateTime(new Date());
-        userRequest.setBirthDay(new Date());
         userRequest.setActive(false);
         userRequest.setVerificationCode(RandomStringUtils.randomAlphanumeric(30));
         UserResponse userResponse = this.userService.register(userRequest);
@@ -181,7 +170,7 @@ public class UserController {
     @PutMapping("{id}")
     @Operation(summary = "update user")
     public ResponseEntity<Boolean> update(@RequestBody UserRequest user, @PathVariable int id) {
-        user.setUpdateTime(new Date());
+        user.setUpdatedDate(new Date());
         return ResponseEntity.ok().body(userService.updateUser(user, id) != null);
     }
 

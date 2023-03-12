@@ -22,7 +22,8 @@ export class AppInterceptor implements NestInterceptor {
     console.log('Before...');
 
     const [req] = context.getArgs();
-    console.log(`${req.method}: ${req.route.path}`);
+
+    console.log(`${req.method}: ${req.route?.path}`);
     console.log(`query: ${JSON.stringify(req.query)}`);
     console.log(`params: ${JSON.stringify(req.params)}`);
     console.log(`body: ${JSON.stringify(req.body)}`);

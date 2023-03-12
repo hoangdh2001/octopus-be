@@ -6,7 +6,7 @@ import { Message, MessageReaction } from '../models/message.model';
 
 export type Reaction = Pick<MessageReaction, 'reaction'> & {
   reacter?: UserDTO;
-  reacterID?: string;
+  reacterID?: number;
 };
 
 export type MessageDTO = Pick<
@@ -21,7 +21,7 @@ export type MessageDTO = Pick<
   | 'updatedAt'
 > & {
   sender?: UserDTO;
-  senderID?: string;
+  senderID?: number;
   reactions?: Reaction[];
 };
 
@@ -50,7 +50,7 @@ export type MessageEvent = {
   channel?: ChannelDTO;
   dataUpdate?: object;
   user?: UserDTO;
-  userID?: string | null;
+  userID?: number | null;
 };
 
 export class MessagePaginationParams {
@@ -76,7 +76,7 @@ export class SendMessageParams {
   @IsOptional()
   @Type(() => String)
   @IsString()
-  senderID?: string;
+  senderID?: number;
   @IsOptional()
   @IsString()
   text?: string;

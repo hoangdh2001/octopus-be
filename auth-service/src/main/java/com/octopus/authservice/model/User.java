@@ -1,6 +1,8 @@
 package com.octopus.authservice.model;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -9,12 +11,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Getter
-@Setter
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +26,8 @@ public class User implements Serializable {
     @Column(name = "last_name", length = 64, nullable = false)
     private String lastName;
 
-    @Column(name = "user_name", length = 64)
-    private String userName;
+    @Column(name = "username", length = 64)
+    private String username;
 
     @Column(name = "email", length = 128, nullable = false, unique = true)
     private String email;
@@ -56,10 +56,11 @@ public class User implements Serializable {
     @Column(name = "verification_code", length = 64)
     private String verificationCode;
 
-    @Column(name = "create_time")
-    private Date createTime;
+    @Column(name = "created_date")
+    @CreatedDate
+    private Date createdDate;
 
-    @Column(name = "update_time")
-    private Date updateTime;
-
+    @Column(name = "updated_date")
+    @LastModifiedDate
+    private Date updatedDate;
 }

@@ -7,8 +7,10 @@ import { Channel, ChannelSchema } from '../models/channel.model';
 import { ChannelService } from '../services/channel.service';
 import { EventModule } from './events.module';
 import { MessageModule } from './message.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { Partitioners } from 'kafkajs';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -48,30 +50,28 @@ import * as Joi from 'joi';
         maxRetries: 10,
         requestRetryDelay: 10000,
       },
-      // disable: false,
-      // disableDiscovery: false,
-      // instanceExtra: {
-      //   hostName: 'localhost',
-      //   status: 'UP',
-      //   ipAddr: '127.0.0.1',
-      //   port: {
-      //     $: 3000,
-      //     '@enabled': true,
-      //   },
-      //   vipAddress: 'message-service',
-      //   instanceId: 'message-service',
-      //   dataCenterInfo: {
-      //     '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
-      //     name: 'MyOwn',
-      //   },
-      //   app: 'message-serivce',
-      // },
       service: {
         name: 'message-service',
         port: parseInt(process.env.PORT, 10),
       },
     }),
-    JwtModule.register({ secret: 'scretKey' }),
+    JwtModule.register({ secret: 'khoa_luan_tot_nghiep_nhom40_octopus' }),
+    ClientsModule.register([
+      {
+        name: 'MESSAGE_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'octopus-client-id',
+            brokers: ['localhost:9092'],
+          },
+          producer: {
+            createPartitioner: Partitioners.DefaultPartitioner,
+          },
+          producerOnlyMode: true,
+        },
+      },
+    ]),
     MessageModule,
     EventModule,
   ],
@@ -79,12 +79,3 @@ import * as Joi from 'joi';
   providers: [ChannelService],
 })
 export class ChannelModule {}
-
-// `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`,
-//       {
-//         auth: {
-//           username: process.env.DB_USERNAME,
-//           password: process.env.DB_PASSWORD,
-//         },
-//         authSource: 'admin',
-//       },

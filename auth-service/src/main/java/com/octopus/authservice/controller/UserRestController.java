@@ -2,6 +2,7 @@ package com.octopus.authservice.controller;
 
 import com.octopus.authservice.model.User;
 import com.octopus.authservice.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class UserRestController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @PostMapping("/check_email")
     public String checkDuplicateEmail(

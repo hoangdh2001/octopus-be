@@ -26,7 +26,7 @@ public class UserRequest {
     private String avatar;
     private String refreshToken;
     private String verificationCode;
-    private Date createTime;
-    private Date updateTime;
+    private Date createdDate;
+    private Date updatedDate;
 
 }

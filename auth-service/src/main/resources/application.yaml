@@ -2,7 +2,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:nhom40authdb}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:userdb}
     username: ${MYSQL_ROOT_USERNAME:root}
     password: ${MYSQL_ROOT_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -14,7 +14,8 @@ spring:
         current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
         id:
           new_generator_mappings: true
-      ddl-auto: true
+    hibernate:
+      ddl-auto: update
   main:
     allow-circular-references: true
   cache:
@@ -30,10 +31,16 @@ spring:
   kafka:
     producer:
       bootstrap-servers: localhost:9092
-      producer.key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: auth-consumer
     topic:
       name: auth_topics
+    client-id: octopus-client-id
 
 
 springdoc:

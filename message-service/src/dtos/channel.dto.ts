@@ -1,4 +1,11 @@
-import { IsNumber, IsOptional, Min, IsString, IsArray } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  Min,
+  IsString,
+  IsArray,
+  isNumber,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { Channel } from 'src/models/channel.model';
 import { UserDTO } from './user.dto';
@@ -6,7 +13,7 @@ import { MessageDTO } from './message.dto';
 
 export class CreateChannelDTO {
   @IsArray()
-  newMembers: string[];
+  newMembers: number[];
 
   @IsOptional()
   @Type(() => String)
@@ -14,14 +21,14 @@ export class CreateChannelDTO {
   name?: string;
 
   @IsOptional()
-  @IsString()
-  @Type(() => String)
-  userID?: string;
+  @IsNumber()
+  @Type(() => Number)
+  userID?: number;
 }
 
 export type ChannelMemberDTO = {
   user?: UserDTO;
-  userID?: string;
+  userID?: number;
 };
 
 export type ChannelInfo = Pick<
@@ -39,9 +46,9 @@ export type ChannelDTO = {
 };
 
 export class ChannelPaginationParams {
-  @Type(() => String)
+  @Type(() => Number)
   @IsString()
-  userID: string;
+  userID: number;
 
   @IsOptional()
   @Type(() => Number)

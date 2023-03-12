@@ -4,6 +4,7 @@ import com.octopus.authservice.dto.request.LoginRequest;
 import com.octopus.authservice.service.UserService;
 import com.octopus.mailservice.kafka.AuthConsumer;
 import com.octopus.mailservice.service.SendMailService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -13,16 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/mails")
 //@CrossOrigin
 public class MailController {
 
     private UserService userService;
-
-    @Autowired
     public AuthConsumer authConsumer;
-
-    @Autowired
     private SendMailService mailService;
 
     /*public MailController(AuthConsumer authConsumer){
