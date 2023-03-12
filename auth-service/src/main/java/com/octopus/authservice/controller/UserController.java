@@ -147,14 +147,24 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Fallback method called !Cannot register now");
     }
 
-    @GetMapping("{/checkmails/mail}")
-    public boolean checkMail(@PathVariable String mail){
+    @PostMapping("/checkmails")
+    public boolean checkMail(@RequestBody String mail){
+        User user = userService.getUserByEmail(mail);
+        System.out.println(user.getEmail());
+        if(user != null){
+            return true;
+        }
+        return false;
+    }
+
+    /*@GetMapping("{/checkmails/mail}")
+    public ResponseEntity<Object> checkMail(@PathVariable String mail){
         User user = userService.findByEmail(mail);
         if(user == null){
-            return false;
+            return register();
         }
         return true;
-    }
+    }*/
 
     @GetMapping("{id}")
     @Operation(summary = "find user by id")
@@ -208,6 +218,7 @@ public class UserController {
             @PathVariable("code") String verificationCode,
             RedirectAttributes redirectAttributes, Model model) {
         User verified = userService.verify(verificationCode);
+        userService.loginNotPassword(verified.getEmail());
         redirectAttributes.addFlashAttribute("message", "verificationCode");
         return verified;
     }

@@ -2,7 +2,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:userdb}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:nhom40authdb}
     username: ${MYSQL_ROOT_USERNAME:root}
     password: ${MYSQL_ROOT_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
