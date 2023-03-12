@@ -147,6 +147,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Fallback method called !Cannot register now");
     }
 
+    @GetMapping("{/checkmails/mail}")
+    public boolean checkMail(@PathVariable String mail){
+        User user = userService.findByEmail(mail);
+        if(user == null){
+            return false;
+        }
+        return true;
+    }
+
     @GetMapping("{id}")
     @Operation(summary = "find user by id")
     public ResponseEntity<Object> findUser(@PathVariable int id) {
