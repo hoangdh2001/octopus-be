@@ -44,7 +44,7 @@ import java.util.Locale;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @CrossOrigin
 //@Retry(name = "service-java")
 //@CircuitBreaker(name = "service-java")
