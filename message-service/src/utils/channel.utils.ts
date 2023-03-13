@@ -1,5 +1,5 @@
 import { ChannelDTO, ChannelMemberDTO } from 'src/dtos/channel.dto';
-import { Channel } from 'src/models/channel.model';
+import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Message } from 'src/models/message.model';
 import { convertMessageDTO } from './message.util';
 
@@ -7,30 +7,34 @@ export const convertChannelDTO = async ({
   channel,
   userID,
   messages,
+  callMembers,
 }: {
   channel: Channel;
   userID?: number;
   messages?: Message[];
+  callMembers: (member: ChannelMember) => Promise<ChannelMemberDTO>;
 }): Promise<ChannelDTO> => {
   const channelDTO: ChannelDTO = {
     channel: {
-      ...channel,
-      hiddenChannel: channel.members.find((member) => member.userID === userID)
+      _id: channel._id,
+      name: channel.name,
+      lastMessageAt: channel.lastMessageAt,
+      createdAt: channel.createdAt,
+      updatedAt: channel.updatedAt,
+      hiddenChannel: channel.members.find((member) => member.userID == userID)
         .hidden,
-      activeNotify: channel.members.find((member) => member.userID === userID)
+      activeNotify: channel.members.find((member) => member.userID == userID)
         .activeNotify,
     },
-    messages: await Promise.all(
-      messages?.map(async (message) => {
-        const messageDTO = await convertMessageDTO(message);
-        return messageDTO;
+    messages: messages?.map((message) => {
+      const messageDTO = convertMessageDTO(message);
+      return messageDTO;
+    }),
+    members: await Promise.all(
+      channel.members.map(async (member) => {
+        return await callMembers(member);
       }),
     ),
-    members: channel.members.map((member) => {
-      return {
-        userID: member.userID,
-      };
-    }),
   };
   return channelDTO;
 };

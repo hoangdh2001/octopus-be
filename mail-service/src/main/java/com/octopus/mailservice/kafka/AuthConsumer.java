@@ -22,7 +22,7 @@ public class AuthConsumer {
             topics = "${spring.kafka.topic.name}"
             ,groupId = "${spring.kafka.consumer.group-id}"
     )
-    public LoginRequest consume(LoginRequest event){
+    public LoginRequest consume(LoginRequest event) {
         LOGGER.info(String.format("Auth event received in mail service => %s %s %s", event.toString(), event.getEmail(), event.getOtp()));
 
         // save the auth event into the database

@@ -40,7 +40,6 @@ spring:
       group-id: auth-consumer
     topic:
       name: auth_topics
-    client-id: octopus-client-id
 
 
 springdoc:

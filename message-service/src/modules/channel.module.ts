@@ -9,10 +9,17 @@ import { EventModule } from './events.module';
 import { MessageModule } from './message.module';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
+import { KafkaModule } from '@rob3000/nestjs-kafka';
+import { HttpModule } from '@nestjs/axios';
+import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
 @Module({
   imports: [
+    HttpModule.register({
+      timeout: 5000,
+      maxRedirects: 5,
+      params: {},
+    }),
     ConfigModule.forRoot({
       envFilePath: '.env',
       validationSchema: Joi.object({
@@ -56,19 +63,19 @@ import { Partitioners } from 'kafkajs';
       },
     }),
     JwtModule.register({ secret: 'khoa_luan_tot_nghiep_nhom40_octopus' }),
-    ClientsModule.register([
+    KafkaModule.register([
       {
         name: 'MESSAGE_SERVICE',
-        transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'octopus-client-id',
             brokers: ['localhost:9092'],
           },
-          producer: {
-            createPartitioner: Partitioners.DefaultPartitioner,
+          consumer: {
+            groupId: 'message-consumer',
           },
-          producerOnlyMode: true,
+          producer: {
+            createPartitioner: Partitioners.LegacyPartitioner,
+          },
         },
       },
     ]),
@@ -76,6 +83,6 @@ import { Partitioners } from 'kafkajs';
     EventModule,
   ],
   controllers: [ChannelController],
-  providers: [ChannelService],
+  providers: [ChannelService, DiscoveryInterceptor],
 })
 export class ChannelModule {}

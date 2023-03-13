@@ -13,7 +13,8 @@ public class AuthConsumer {
     private final UserService userService;
 
     @KafkaListener(topics = "user-get")
-    public UserResponse findUser(int userID){
+    public UserResponse findUser(int userID) {
+        System.out.println("TEST");
         return userService.findUserById(userID);
     }
 }

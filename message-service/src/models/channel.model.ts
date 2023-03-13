@@ -6,7 +6,7 @@ export class ChannelMember {
   @Prop({ type: Number, required: true })
   userID: number;
 
-  @Prop({ type: Boolean, default: false })
+  @Prop({ type: Boolean, default: true })
   activeNotify?: boolean;
 
   @Prop({ type: Boolean, default: false })

@@ -32,8 +32,11 @@ import {
 import { convertMessageDTO } from 'src/utils/message.util';
 import { Message } from 'src/models/message.model';
 import { EventsGateway } from 'src/listeners/events.gateway';
-import { ClientKafka } from '@nestjs/microservices';
-
+import { KafkaService } from '@rob3000/nestjs-kafka';
+import { DiscoveryService } from 'nestjs-eureka';
+import { HttpService } from '@nestjs/axios';
+import { catchError } from 'rxjs';
+import { AxiosError, AxiosRequestConfig } from 'axios';
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
 export class ChannelController implements OnModuleInit, OnModuleDestroy {
@@ -42,14 +45,16 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     private readonly jwtService: JwtService,
     private readonly messageService: MessageServive,
     private readonly eventsGateway: EventsGateway,
-    @Inject('MESSAGE_SERVICE') private readonly client: ClientKafka,
+    private readonly httpService: HttpService,
+    private readonly discoveryService: DiscoveryService,
+    @Inject('MESSAGE_SERVICE') private readonly client: KafkaService,
   ) {}
 
   async onModuleDestroy() {
-    await this.client.close();
+    await this.client.disconnect();
   }
+
   async onModuleInit() {
-    this.client.subscribeToResponseOf('user-get');
     await this.client.connect();
   }
 
@@ -70,7 +75,16 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         const messages = await this.messageService.findAllByChannel(
           channel._id,
         );
-        return await convertChannelDTO({ channel, userID, messages });
+        return convertChannelDTO({
+          channel,
+          userID,
+          messages,
+          callMembers: async (member) => {
+            return await this.httpService.axiosRef.get(
+              `http://auth-service/Nhom40KLTN/api/users/${member.userID}`,
+            );
+          },
+        });
       }),
     );
 
@@ -96,22 +110,25 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       );
     }
     newMembers = [userID, ...newMembers];
-    const channelMember: ChannelMember[] = newMembers.map((userId) => {
-      return {
-        userID: userId,
-      };
-    });
-    this.client.send('user-get', userID);
+
     const channel: Channel = {
       _id: v4(),
       name: name,
-      members: channelMember,
+      members: newMembers.map((member) => ({ userID: member })),
     };
 
-    this.client.send('user-get', userID);
-
     const newChannel = await this.channelService.createChannel(channel);
-    return await convertChannelDTO({ channel: newChannel, userID });
+
+    return convertChannelDTO({
+      channel: newChannel,
+      userID,
+      messages: [],
+      callMembers: async (member) => {
+        return await this.httpService.axiosRef.get(
+          `http://auth-service/Nhom40KLTN/api/users/${member.userID}`,
+        );
+      },
+    });
   }
 
   @Get('/:channelID/messages')

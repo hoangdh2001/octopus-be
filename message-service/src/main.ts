@@ -12,30 +12,10 @@ async function bootstrap() {
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new AppInterceptor());
-  const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
-    .setVersion('1.0')
-    .addTag('cats')
-    .build();
+  app.setGlobalPrefix('api');
+  const config = new DocumentBuilder().build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  // app.connectMicroservice<MicroserviceOptions>({
-  //   transport: Transport.KAFKA,
-  //   options: {
-  //     client: {
-  //       clientId: 'test-id',
-  //       brokers: ['localhost:9092'],
-  //     },
-  //     consumer: {
-  //       groupId: 'message-consumer',
-  //     },
-  //     producer: {
-  //       createPartitioner: Partitioners.LegacyPartitioner,
-  //     },
-  //   },
-  // });
-  // await app.startAllMicroservices();
   await app.listen(3000);
 }
 bootstrap();

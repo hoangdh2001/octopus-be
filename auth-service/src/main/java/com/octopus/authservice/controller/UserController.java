@@ -157,18 +157,10 @@ public class UserController {
         return false;
     }
 
-    /*@GetMapping("{/checkmails/mail}")
-    public ResponseEntity<Object> checkMail(@PathVariable String mail){
-        User user = userService.findByEmail(mail);
-        if(user == null){
-            return register();
-        }
-        return true;
-    }*/
-
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     @Operation(summary = "find user by id")
     public ResponseEntity<Object> findUser(@PathVariable int id) {
+        System.out.println(id);
         return ResponseEntity.ok().body(userService.findUserById(id));
     }
 
@@ -186,14 +178,14 @@ public class UserController {
         return ResponseEntity.ok().body(userService.createUser(user) != null);
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     @Operation(summary = "update user")
     public ResponseEntity<Boolean> update(@RequestBody UserRequest user, @PathVariable int id) {
         user.setUpdatedDate(new Date());
         return ResponseEntity.ok().body(userService.updateUser(user, id) != null);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "delete user by id")
     public ResponseEntity<Boolean> delete(@PathVariable int id) {
         userService.delete(id);
