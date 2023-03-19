@@ -35,8 +35,7 @@ import { EventsGateway } from 'src/listeners/events.gateway';
 import { KafkaService } from '@rob3000/nestjs-kafka';
 import { DiscoveryService } from 'nestjs-eureka';
 import { HttpService } from '@nestjs/axios';
-import { catchError } from 'rxjs';
-import { AxiosError, AxiosRequestConfig } from 'axios';
+
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
 export class ChannelController implements OnModuleInit, OnModuleDestroy {

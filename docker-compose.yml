@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.9'
 
 services:
   mysql:
@@ -25,13 +25,13 @@ services:
       - mysql-network
     environment:
       ADMINER_DESIGN: "hydra"
-  mongo-kl:
-    container_name: mongo-kl
+  mongob:
+    container_name: mongodb
     image: mongo
     restart: unless-stopped
     volumes:
-      - "./docker/mongodb/data:/data/db"
-      - "./docker/mongodb/config:/data/configdb"
+      - type: tmpfs
+        target: ./docker/mongodb/data
       - "./docker/mongodb/db-entrypoint.sh:/docker-entrypoint-initdb.d/db-entrypoint.sh"
     ports:
       - "27017:27017"

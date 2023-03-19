@@ -1,0 +1,41 @@
+.docker:
+  variables:
+    DOCKER_HOST: tcp://docker-dind:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_BUILDKIT: 1
+  services:
+    - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/docker:dind
+      alias: docker-dind
+  before_script:
+    - set -x
+    - set -a; source .env; set +a
+    - apk add docker
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker context create builder-context
+    - docker buildx create --name builderx --driver docker-container --use builder-context
+
+.vault:
+  before_script:
+    - apk add vault
+    - export VAULT_ADDR=$VAULT_SERVER_URL
+    - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=$VAULT_AUTH_ROLE jwt=$CI_JOB_JWT)"
+
+.docker-vault:
+  extends:
+    - .docker
+  before_script:
+    - !reference [.docker, before_script]
+    - !reference [.vault, before_script]
+
+.k8s-vault:
+  image: alpine/k8s:1.25.3 # Image includes k8s and Helm
+  before_script:
+    - set -a; source .env; set +a
+    # Make sure helm is there
+    - helm version
+    # Kubernetes
+    - echo k8s namespace is $K8S_NAMESPACE
+    - kubectl config set-context --current --namespace="$K8S_NAMESPACE"
+    - kubectl version --short
+    - kubectl cluster-info
+    - !reference [.vault, before_script]
