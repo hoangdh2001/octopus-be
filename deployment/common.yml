@@ -8,7 +8,6 @@
       alias: docker-dind
   before_script:
     - set -x
-    - set -a; source .env; set +a
     - apk add docker
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker context create builder-context
