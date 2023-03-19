@@ -6,8 +6,25 @@
 
 # This is the only bit of magic here, never touch this unless you wanna do fancy stuff
 # It basically says "Don't create multiple pipelines on MRs for no reason"
+default:
+  image: docker:latest
 
-image: docker:latest
+variables:
+  REGISTRY_NAMESPACE: $CI_REGISTRY/$CI_PROJECT_NAMESPACE
+  IMAGE_AUTH: $CI_REGISTRY_IMAGE/octopus-core-auth
+  IMAGE_AUTH_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-auth:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+  IMAGE_GATEWAY: $CI_REGISTRY_IMAGE/octopus-core-gateway
+  IMAGE_GATEWAY_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-gateway:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+  IMAGE_MESSAGE: $CI_REGISTRY_IMAGE/octopus-core-message
+  IMAGE_MESSAGE_COMMIT: $CI_REGISTRY_IMAGE/dacadoo-core-message:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+  IMAGE_MAIL: $CI_REGISTRY_IMAGE/octopus-core-mail
+  IMAGE_MAIL_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-mail:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+  IMAGE_WORKSPACE: $CI_REGISTRY_IMAGE/octopus-core-workspace
+  IMAGE_WORKSPACE_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-workspace:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+  IMAGE_STORAGE: $CI_REGISTRY_IMAGE/octopus-core-storage
+  IMAGE_STORAGE_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-storage:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+  IMAGE_EUREKA: $CI_REGISTRY_IMAGE/octopus-core-eureka
+  IMAGE_EUREKA_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-eureka:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
 
 workflow:
   rules:
@@ -42,28 +59,11 @@ build:
     - .except-tags
     - .docker
   variables:
-    BUILD_ID: $CI_COMMIT_SHORT_SHA
-    BASE_PATH: $CI_REGISTRY_IMAGE/octopus-core
-    BUILD_IMAGE: $BASE_PATH:$BUILD_ID-build
-    DEVELOP_BUILD_IMAGE: $BASE_PATH:develop-build
+    BUILD_ID: $CI_COMMIT_SHORT_SHA-build$CI_JOB_ID
+    TAG: $CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+    GIT_SHA: $CI_COMMIT_SHORT_SHA
   script:
-    - echo $BUILD_ID
-    - echo $BASE_PATH
-    - echo $BUILD_IMAGE
-    # - docker manifest inspect $BUILD_PATH > /dev/null && { echo "image already exists - skipping build"; exit 0; }
-    # - BRANCH_BUILD_IMAGE=$BASE_PATH:$(echo $CI_COMMIT_BRANCH | sed 's/\//-/g')-build
-    # - docker buildx build
-    #   --load
-    #   -f docker/Dockerfile
-    #   --build-arg BUILDKIT_INLINE_CACHE=1
-    #   --build-arg BUILD_ID=$BUILD_ID
-    #   --cache-to type=registry,ref=$BRANCH_BUILD_IMAGE,mode=max
-    #   --cache-from type=registry,ref=$BRANCH_BUILD_IMAGE
-    #   --cache-from type=registry,ref=$DEVELOP_BUILD_IMAGE
-    #   --target=runtime
-    #   -t $BUILD_IMAGE
-    #   -t $BRANCH_BUILD_IMAGE .
-    # - echo "Compile complete."
+    - echo $REGISTRY_NAMESPACE
 
 # deliver-gitlab:
 #   stage: deliver-gitlab

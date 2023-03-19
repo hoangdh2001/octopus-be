@@ -25,7 +25,7 @@ services:
       - mysql-network
     environment:
       ADMINER_DESIGN: "hydra"
-  mongob:
+  mongodb:
     container_name: mongodb
     image: mongo
     restart: unless-stopped
@@ -72,15 +72,15 @@ services:
     restart: unless-stopped
     networks:
       - cache-network
-  eureka-service:
-    container_name: eureka-service
-    image: eureka-service
+  eureka:
+    container_name: eureka
+    image: eureka
     build:
       context: ./eureka-service
     ports:
       - "8761:8761"
     depends_on:
-      - mongo-kl
+      - mongodb
       - mysql
     networks:
       - service-network
@@ -92,21 +92,21 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - eureka-service
-      - mongo-kl
+      - eureka
+      - mongodb
       - mysql
     environment:
       - EUREKA_HOST=eureka-service
     networks:
       - service-network
-  auth-service:
-    container_name: auth-service
-    image: auth-service
+  auth:
+    container_name: auth
+    image: auth
     build:
       context: ./auth-service
     depends_on:
-      - eureka-service
-      - mongo-kl
+      - eureka
+      - mongodb
       - mysql
     networks:
       - mysql-network
@@ -119,17 +119,17 @@ services:
       - MYSQL_DATABASE=userdb
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-  message-service:
-    container_name: message-service
-    image: message-service
+  message:
+    container_name: message
+    image: message
     build:
       context: ./message-service
     ports:
       - "3000:3000"
     depends_on:
-      - mongo-kl
+      - mongodb
       - mysql
-      - eureka-service
+      - eureka
     environment:
       - EUREKA_HOST=eureka-service
       - DB_HOST=mongo-kl
@@ -140,6 +140,11 @@ services:
     networks:
       - mongo-network
       - service-network
+  mail:
+    container_name: mail
+    image: mail
+    build:
+      context: ./mail-service
 networks:
   mysql-network:
     driver: bridge
