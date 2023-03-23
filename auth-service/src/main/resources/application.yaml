@@ -33,25 +33,15 @@ spring:
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      bootstrap-servers: localhost:9092
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      group-id: auth-consumer
-    topic:
-      name: auth_topics
-
 
 springdoc:
   api-docs:
-    path: /auth/api-docs
+    path: /api-docs
   swagger-ui:
-    path: /auth/swagger-ui.html
+    path: /swagger-ui.html
 
 server:
   port: 8088
-  servlet:
-    context-path: /api
 
 management:
   health:
@@ -71,37 +61,11 @@ app:
     milliseconds: 604800
     header: Authorization
 
-resilience4j:
-  circuitbreaker:
-    instances:
-      service-java:
-        register-health-indicator: true
-        event-consumer-buffer-size: 10
-        failure-rate-threshold: 50
-        minimum-number-of-calls: 5
-        automatic-transition-from-open-to-half-open-enabled: true
-        wait-duration-in-open-state: 5s
-        permitted-number-of-calls-in-half-open-state: 4
-        sliding-window-type: COUNT_BASED
-        sliding-window-size: 10
-  retry:
-    instances:
-      service-java:
-        wait-duration: 2s
-        max-attempts: 3
-  ratelimiter:
-    instances:
-      service-java:
-        register-health-indicator: false
-        limit-for-period: 3
-        limit-refresh-period: 10s
-        timeout-duration: 90s
-
 eureka:
   client:
     service-url:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
   instance:
     prefer-ip-address: true
-    hostname: localhost
+    hostname: ${EUREKA_HOST:localhost}
 

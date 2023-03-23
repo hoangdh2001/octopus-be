@@ -11,37 +11,45 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
-    @Query("SELECT u FROM User u WHERE u.email like %?1%")
-    public User getUserByEmail(String email);
-    public User findUserById(Integer id);
-    public Long countById(Integer id);
+public interface UserRepository extends JpaRepository<User, UUID> {
+//    @Query("SELECT u FROM User u WHERE u.email like %?1%")
+//    public User getUserByEmail(String email);
+//    public User findUserById(Integer id);
+//    public Long countById(Integer id);
+//
+//    @Query("SELECT u FROM User u WHERE CONCAT(u.id,' ',u.email, ' ',u.firstName,' ',u.lastName)  LIKE %?1%")
+//    public Page<User> findByKeyword(String keyword, Pageable pageable);
+//
+//    @Query("UPDATE User u SET u.active = ?2 WHERE u.id = ?1")
+//    @Modifying
+//    public void updateEnableStatus(Integer id, boolean enable);
+//    //@Query("SELECT u FROM User u WHERE u.resetPasswordToken = :token")
+//    //public User findByResetPasswordToken(@Param("token") String token);
+//
+//    @Query("SELECT u FROM User u WHERE u.verificationCode = ?1")
+//    public User findByVerificationCode(String verificationCode);
+//
+//    @Query("UPDATE User u SET u.active = true, u.verificationCode = '' WHERE u.id = ?1")
+//    @Modifying
+//    public void enabled(Integer id);
+//    User findByEmailAndPassword(String email,String password);
+//    User findByEmail(String email);
+//
+//    @Query("Select u from User u")
+//    public List<User> findAllUser();
+//
+//    @Query("select u from User u where u.refreshToken = ?1")
+//    public User findByOTP(String otp);
 
-    @Query("SELECT u FROM User u WHERE CONCAT(u.id,' ',u.email, ' ',u.firstName,' ',u.lastName)  LIKE %?1%")
-    public Page<User> findByKeyword(String keyword, Pageable pageable);
+    Optional<User> findUserByEmailIgnoreCase(String email);
 
-    @Query("UPDATE User u SET u.active = ?2 WHERE u.id = ?1")
-    @Modifying
-    public void updateEnableStatus(Integer id, boolean enable);
-    //@Query("SELECT u FROM User u WHERE u.resetPasswordToken = :token")
-    //public User findByResetPasswordToken(@Param("token") String token);
+    boolean existsByEmailIgnoreCaseAndEnabledIsTrue(String email);
 
-    @Query("SELECT u FROM User u WHERE u.verificationCode = ?1")
-    public User findByVerificationCode(String verificationCode);
-
-    @Query("UPDATE User u SET u.active = true, u.verificationCode = '' WHERE u.id = ?1")
-    @Modifying
-    public void enabled(Integer id);
-    User findByEmailAndPassword(String email,String password);
-    User findByEmail(String email);
-
-    @Query("Select u from User u")
-    public List<User> findAllUser();
-
-    @Query("select u from User u where u.refreshToken = ?1")
-    public User findByOTP(String otp);
+    boolean existsByEmailIgnoreCase(String email);
 
 }
 

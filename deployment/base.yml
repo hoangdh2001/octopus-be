@@ -1,0 +1,14 @@
+include:
+  - deployment/common.yml
+
+.deliver:
+  extends:
+    - .docker-vault
+  script:
+    - set -x
+    - echo "$CI_ENVIRONMENT_NAME"
+    - source_image_path=$CI_REGISTRY_IMAGE/octopus-core:$CI_COMMIT_SHORT_SHA
+    - target_image_path=$EXT_REGISTRY_URL/octopus-core:$CI_COMMIT_SHORT_SHA
+    - docker pull $source_image_path
+    - docker tag $source_image_path $target_image_path
+    - docker push $target_image_path
