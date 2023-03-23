@@ -62,7 +62,13 @@ import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
         port: parseInt(process.env.PORT, 10),
       },
     }),
-    JwtModule.register({ secret: 'khoa_luan_tot_nghiep_nhom40_octopus' }),
+    JwtModule.register({
+      secret: 'khoa_luan_tot_nghiep_nhom40_octopus',
+      signOptions: {
+        algorithm: 'HS512',
+        expiresIn: 24 * 60 * 60,
+      },
+    }),
     KafkaModule.register([
       {
         name: 'MESSAGE_SERVICE',

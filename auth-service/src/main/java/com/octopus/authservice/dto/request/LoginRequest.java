@@ -1,26 +1,56 @@
 package com.octopus.authservice.dto.request;
 
+import com.octopus.authservice.valid.Password;
+import com.octopus.dtomodels.Code;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Setter
-@Getter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginRequest {
-	@NotNull(message = "required")
-	private String email;
-	
-	//@NotNull(message = "required")
-	@Length(min = 4,max = 50)
-	private String password;
 
-	private String otp;
+    public enum LoginType {
+        LOGIN_WITH_PASSWORD("login_with_password"),
+        LOGIN_WITH_OTP("login_with_otp"),
+        LOGIN_WITH_CODE("login_with_code");
 
-	private int userID;
+        private final String type;
+
+        LoginType(String type) {
+            this.type = type;
+        }
+
+        public String getType() {
+            return this.type;
+        }
+
+        public static LoginType rawValue(String value) {
+            for (LoginType e : values()) {
+                if (e.type.equals(value)) {
+                    return e;
+                }
+            }
+            return null;
+        }
+    }
+
+    @Email
+    @NotBlank
+    @NotNull
+    private String email;
+    @Password
+    private String password;
+    private String code;
+    @NotNull
+    private String type;
+    private Integer otp;
 }

@@ -10,12 +10,16 @@ import org.springframework.kafka.config.TopicBuilder;
 @EnableKafka
 @Configuration
 public class KafkaTopicConfig {
-    @Value("${spring.kafka.topic.name}")
-    private String topicName;
 
     @Bean
     public NewTopic topic(){
-        return TopicBuilder.name(topicName)
+        return TopicBuilder.name("mail.sendEmail")
+                .build();
+    }
+
+    @Bean
+    public NewTopic topicForgotPassword() {
+        return TopicBuilder.name("mail.sendEmailForgotPass")
                 .build();
     }
 }
