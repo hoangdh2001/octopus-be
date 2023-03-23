@@ -1,8 +1,8 @@
 package com.octopus.mailservice.service;
 
+import com.octopus.dtomodels.Code;
 import com.octopus.mailservice.email.Utility;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -19,46 +19,51 @@ import java.util.Locale;
 @RequiredArgsConstructor
 @Transactional
 public class SendMailServiceImpl implements SendMailService{
-    @Autowired
-    private TemplateEngine templateEngine;
-    @Autowired
-    private UserService userService;
-
+    private final TemplateEngine templateEngine;
     @Override
-    public void sendActivationEmail(String email, String func, String codeOTP) throws MessagingException {
+    public void sendActivationEmail(Code code) throws MessagingException {
         JavaMailSenderImpl mailSender = Utility.prepareMailSender();
 
         Locale locale = LocaleContextHolder.getLocale();
 
         Context ctx = new Context(locale);
 
-        String verifyURL = "http://localhost:8088/Nhom40KLTN/api/users/verify/" + userService.getUserByEmail(email).getVerificationCode();
+        String verifyURL = String.format("http://localhost:8088?type=%s&code=%s&email=%s", code.getVerificationType().getType(), code.getVerificationCode(), code.getEmail());
         ctx.setVariable("url", verifyURL);
 
-        //String otp = RandomStringUtils.randomNumeric(4);
-        ctx.setVariable("otp", codeOTP);
-        System.out.println(codeOTP);
-
+        ctx.setVariable("otp", code.getOtp());
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new  MimeMessageHelper(message, false, "utf-8");
 
-        //userService.findByEmail(user.getEmail());
-        //String toAddress = user.getEmail();
-        String toAddress = email;
-        System.out.println(toAddress);
-        System.out.println(codeOTP);
-        helper.setTo(toAddress);
-        helper.setSubject("Hỗ trợ octopus Nhóm 40 Khóa luận tốt nghiệp(HK2 - 2022)");
+        helper.setTo(code.getEmail());
+        helper.setSubject("Octopus Team");
 
-        String htmlContent = "";
-        String s="";
-        if(func.equalsIgnoreCase("login")){
-            s = "mails/email_loginwithpassword.html";
-        } else if(func.equalsIgnoreCase("register")){
-            s = "authmails/email_registered.html";
-        }
-        htmlContent = templateEngine.process(s, ctx);
+        String s = "authmails/email_loginwithpassword.html";
+        String htmlContent = templateEngine.process(s, ctx);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
+    }
+
+    @Override
+    public void sendResetPasswordEmail(Code code) throws MessagingException {
+        JavaMailSenderImpl mailSender = Utility.prepareMailSender();
+
+        Locale locale = LocaleContextHolder.getLocale();
+
+        Context ctx = new Context(locale);
+
+        String verifyURL = String.format("http://localhost:8088/login/reset?type=%s&code=%s&email=%s", code.getVerificationType().getType(), code.getVerificationCode(), code.getEmail());
+        ctx.setVariable("url", verifyURL);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new  MimeMessageHelper(message, false, "utf-8");
+
+        helper.setTo(code.getEmail());
+        helper.setSubject("Octopus Team");
+
+        String s = "authmails/email_forgotpassword.html";
+        String htmlContent = templateEngine.process(s, ctx);
         helper.setText(htmlContent, true);
         mailSender.send(message);
     }

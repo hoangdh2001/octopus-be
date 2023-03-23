@@ -1,6 +1,9 @@
 package com.octopus.gateway.security;
 
+import com.octopus.authutils.jwt.JWTConfig;
+import com.octopus.authutils.jwt.JWTUtils;
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -13,14 +16,16 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
-@RefreshScope
 public class JwtAuthenticationFilter implements GatewayFilter {
 
-    @Autowired
-    private RouteValidator routerValidator;//custom route validator
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final RouteValidator routerValidator;//custom route validator
+    private final JWTUtils jwtUtil;
 
+    @Autowired
+    public JwtAuthenticationFilter(RouteValidator routerValidator) {
+        this.routerValidator = routerValidator;
+        this.jwtUtil = new JWTUtils(new JWTConfig());
+    }
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -29,13 +34,12 @@ public class JwtAuthenticationFilter implements GatewayFilter {
             if (this.isAuthMissing(request))
                 return this.onError(exchange, "Authorization header is missing in request", HttpStatus.UNAUTHORIZED);
 
-            final String token = this.getAuthHeader(request).substring("Bearer ".length()).trim();
+            final String token = this.getAuthHeader(request);
             System.err.println("Token: " + token);
 
-            if (jwtUtil.isInvalid(token))
+            if (!jwtUtil.isValidAuthorizationHeaderValue(token))
                 return this.onError(exchange, "Authorization header is invalid", HttpStatus.UNAUTHORIZED);
 
-            this.populateRequestWithHeaders(exchange, token);
         }
         return chain.filter(exchange);
     }
@@ -50,18 +54,10 @@ public class JwtAuthenticationFilter implements GatewayFilter {
     }
 
     private String getAuthHeader(ServerHttpRequest request) {
-        return request.getHeaders().getOrEmpty("Authorization").get(0);
+        return request.getHeaders().getFirst(jwtUtil.getJwtConfig().getHeader());
     }
 
     private boolean isAuthMissing(ServerHttpRequest request) {
         return !request.getHeaders().containsKey("Authorization");
-    }
-
-    private void populateRequestWithHeaders(ServerWebExchange exchange, String token) {
-        Claims claims = jwtUtil.getAllClaimsFromToken(token);
-        exchange.getRequest().mutate()
-                .header("id", String.valueOf(claims.get("id")))
-                .header("role", String.valueOf(claims.get("role")))
-                .build();
     }
 }
