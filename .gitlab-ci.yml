@@ -7,7 +7,7 @@
 # This is the only bit of magic here, never touch this unless you wanna do fancy stuff
 # It basically says "Don't create multiple pipelines on MRs for no reason"
 default:
-  image: docker:latest
+  image: alpine:latest
 
 variables:
   REGISTRY_NAMESPACE: $CI_REGISTRY/$CI_PROJECT_NAMESPACE
