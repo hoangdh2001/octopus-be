@@ -78,12 +78,6 @@
                 <groupId>com.octopus</groupId>
                 <artifactId>dto-models</artifactId>
                 <version>1.0-SNAPSHOT</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.servlet</groupId>
-                        <artifactId>javax.servlet-api</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>

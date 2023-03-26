@@ -1,0 +1,24 @@
+eurekaDesc:
+  replicaCount: 1
+
+authDesc:
+  coreDbConfigProfiles: root_user,apps_default,services_default
+  replicaCount: 1
+
+gatewayDesc:
+  coreProfiles: backend_default,backend_dev,k8s
+  coreDbConfigProfiles: roles_system_default,roles_support_default,root_user,apps_default,services_default
+  replicaCount: 1
+
+messageDesc:
+  replicaCount: 1
+
+workspaceDesc:
+  replicaCount: 1
+
+storage-service:
+  replicaCount: 1
+
+mailDesc:
+  coreProfiles: k8s
+  replicaCount: 1

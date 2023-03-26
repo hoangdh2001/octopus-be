@@ -1,0 +1,84 @@
+# Default values for app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# partner: <partner>
+# env: <env>
+
+image: {}
+
+eurekaDesc:
+  platformVersion: local
+  platformFullVersion: local
+
+authDesc:
+  # image: <image>
+  replicaCount: 1
+  pullPolicy: Always
+  serviceType: ClusterIP
+  # coreProfiles: <profiles>
+  # coreDbConfigProfiles: <profiles>
+  resources:
+    requests:
+      # max usage on aon-int2 (Dec 19 - Jan 20): ~41Mi
+      memory: 64Mi
+
+gatewayDesc:
+  # image: <image>
+  replicaCount: 1
+  pullPolicy: Always
+  serviceType: ClusterIP
+  # coreProfiles: <profiles>
+  # coreDbConfigProfiles: <profiles>
+  resources:
+    requests:
+      # max usage on aon-int2 (Dec 19 - Jan 20): ~206Mi
+      memory: 256Mi
+
+messageDesc:
+  #  image: <image>
+  replicaCount: 1
+  pullPolicy: Always
+  serviceType: ClusterIP
+  basicAuth: true
+  # coreProfiles: <profiles>
+  resources:
+    requests:
+      # max usage on aon-int2 (Dec 19 - Jan 20): ~3Mi
+      memory: 64Mi
+
+mailDesc:
+  #  image: <image>
+  replicaCount: 1
+  pullPolicy: Always
+  serviceType: ClusterIP
+  basicAuth: true
+  # coreProfiles: <profiles>
+  resources:
+    requests:
+      # max usage on aon-int2 (Dec 19 - Jan 20): ~3Mi
+      memory: 64Mi
+
+workspaceDesc:
+  replicaCount: 1
+  minReadySeconds: 3
+  # coreProfiles from api
+  resources:
+    requests:
+      # max usage on aon-int2 (Dec 19 - Jan 20): ~160Mi
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  domainSuffix: xx
+  secondaryDomainSuffix:
+  frontend: false
+  tls: true
+  letsencrypt: false
+  wafServiceNamespace:
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
