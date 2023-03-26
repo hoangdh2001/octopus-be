@@ -42,6 +42,8 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 8088
+          env:
+            {{- include "auth.envVars" . | nindent 10 }}
           resources:
             {{- toYaml .Values.authDesc.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

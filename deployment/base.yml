@@ -12,3 +12,42 @@ include:
     - docker pull $source_image_path
     - docker tag $source_image_path $target_image_path
     - docker push $target_image_path
+
+.deploy-app:
+  script:
+    - helm upgrade app deployment/helm/app/
+      --install
+      --atomic
+      --timeout=120s
+      --reset-values
+      --values=$HELM_VALUES_APP
+      --set partner=$CUSTOMER_NAME
+      --set "env=${ENVIRONMENT,,}"
+      --set commonDesc.platformVersion=$CORE_TAG
+      --set commonDesc.platformFullVersion=${CI_COMMIT_TAG:-$CI_COMMIT_BRANCH}
+      --set ingress.domainSuffix=$PRIMARY_DOMAIN
+      --set ingress.secondaryDomainSuffix=$SECONDARY_DOMAIN
+      --set ingress.wafServiceNamespace=$WAF_SERVICE_NAMESPACE
+      --set accountDesc.image=$CORE_IMAGE
+      --set apiDesc.image=$CORE_IMAGE
+      --set consoleDesc.image=$CORE_IMAGE
+      --set workerDesc.image=$CORE_IMAGE
+      --set-string "mongodb.srvAddress=${MONGODB_SRV_ADDRESS//,/\\,}"
+      --set apiDbUpgradeJobDesc.image=$CORE_IMAGE
+      --set-file ingress.ipWhitelist=$IP_WHITELIST
+
+.deploy:
+  extends:
+    - .k8s-vault
+    - .secrets
+  variables:
+    HELM_VALUES_APP: deployment/helm/env_values/$ENVIRONMENT.yaml
+    K8S_NAMESPACE: $CUSTOMER_NAME-$ENVIRONMENT-backend
+    CORE_IMAGE: $EXT_REGISTRY_URL/dacadoo-core:$CI_COMMIT_SHORT_SHA
+  stage: deploy
+  script:
+    - export CORE_TAG=$(./deployment/scripts/pipeline/source_core_tag.sh)
+    - apk add bash
+    - kubectl get namespace $K8S_NAMESPACE || kubectl create namespace $K8S_NAMESPACE
+    - set -x
+    - !reference [ .deploy-app, script ]

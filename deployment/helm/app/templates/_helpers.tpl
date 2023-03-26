@@ -53,9 +53,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "app.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "app.fullname" .) .Values.serviceAccount.name }}
+{{- define "app.serviceAuthName" -}}
+{{- if .Values.serviceAuth.create }}
+{{- default (include "app.fullname" .) .Values.serviceAuth.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -84,4 +84,21 @@ api.{{ required "ingress.domainSuffix missing" .Values.ingress.domainSuffix }}
 
 {{- define "api.secondaryDomain" -}}
 api.{{ .Values.ingress.secondaryDomainSuffix }}
+{{- end -}}
+
+# Auth
+{{- define "auth.dbName" -}}
+userdb
+{{- end -}}
+
+{{- define "auth.envVars" -}}
+- name: AUTH_DB_URI
+  value: {{ include "auth.dbUri" . | quote }}
+- name: AUTH_DB_NAME
+  value: {{ include "auth.dbName" . | quote }}
+{{- end -}}
+
+{{- define "auth.dbUri" -}}
+{{/* dbName is only included in URI to set the default db of the connectDB cli */}}
+{{ required "mongodb.srvAddress missing" .Values.mongodb.srvAddress }}
 {{- end -}}
