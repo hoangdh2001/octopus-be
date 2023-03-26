@@ -1,13 +1,14 @@
 .docker:
   variables:
     DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "../cert"
+    DOCKER_TLS_CERTDIR: "/cert"
     DOCKER_TLS_VERIFY: "1"
-    DOCKER_CERT_PATH: ../certs/client
+    DOCKER_CERT_PATH: /certs/client
   services:
     - name: docker:dind
   before_script:
     - set -x
+    - until docker info; do sleep 1; done
     - apk add docker
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - set -a; source .env; set +a
