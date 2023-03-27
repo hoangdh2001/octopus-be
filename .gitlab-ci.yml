@@ -137,11 +137,9 @@ deliver-gitlab:
 trigger-dev:
   extends:
     - .trigger
-  environment: dev
   trigger: deployment/ci_job.yml
 
 trigger-prod:
   extends:
     - .trigger
-  environment: prod
   trigger: deployment/ci_job.yml
