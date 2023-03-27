@@ -21,9 +21,9 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://:9092
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
-      ALLOW_PLAINTEXT_LISTENER: "yes"
+      ALLOW_PLAINTEXT_LISTENER: yes
     depends_on:
       - zookeeper
     networks:
@@ -48,8 +48,8 @@ services:
       - "80:80"
     depends_on:
       - eureka
-    # environment:
-    #   - EUREKA_HOST=eureka
+    environment:
+      - EUREKA_HOST=eureka
     networks:
       - service-network
   auth:
@@ -66,12 +66,12 @@ services:
     networks:
       - service-network
       - kafka-network
-    # env_file:
-    #   - ./auth-service/.env
-    # environment:
-    #   - EUREKA_HOST=eureka
-    #   - KAFKA_HOST=kafka
-    #   - KAFKA_PORT=9092
+    env_file:
+      - ./auth-service/.env
+    environment:
+      - EUREKA_HOST=eureka
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
   message:
     container_name: message
     image: hoangdh2001/message
@@ -83,12 +83,12 @@ services:
     depends_on:
       - eureka
       - kafka
-    # env_file:
-    #   - ./message-service/.env
-    # environment:
-    #   - EUREKA_HOST=eureka
-    #   - KAFKA_HOST=kafka
-    #   - KAFKA_PORT=9092
+    env_file:
+      - ./message-service/.env
+    environment:
+      - EUREKA_HOST=eureka
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
     networks:
       - service-network
       - kafka-network
@@ -103,10 +103,10 @@ services:
     depends_on:
       - eureka
       - kafka
-    # environment:
-    #   - EUREKA_HOST=eureka
-    #   - KAFKA_HOST=kafka
-    #   - KAFKA_PORT=9092
+    environment:
+      - EUREKA_HOST=eureka
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
     networks:
       - kafka-network
       - service-network

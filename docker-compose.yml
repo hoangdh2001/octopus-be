@@ -53,8 +53,6 @@ services:
       - "80:80"
     depends_on:
       - eureka
-    environment:
-      - EUREKA_HOST=eureka
     networks:
       - service-network
   auth:
@@ -75,12 +73,6 @@ services:
     networks:
       - service-network
       - kafka-network
-    env_file:
-      - ./auth-service/.env
-    environment:
-      - EUREKA_HOST=eureka
-      - KAFKA_HOST=kafka
-      - KAFKA_PORT=9092
   message:
     container_name: message
     image: message:${TAG:-local}
@@ -96,12 +88,6 @@ services:
     depends_on:
       - eureka
       - kafka
-    env_file:
-      - ./message-service/.env
-    environment:
-      - EUREKA_HOST=eureka
-      - KAFKA_HOST=kafka
-      - KAFKA_PORT=9092
     networks:
       - service-network
       - kafka-network
@@ -120,10 +106,6 @@ services:
     depends_on:
       - eureka
       - kafka
-    environment:
-      - EUREKA_HOST=eureka
-      - KAFKA_HOST=kafka
-      - KAFKA_PORT=9092
     networks:
       - kafka-network
       - service-network
