@@ -1,0 +1,25 @@
+stages:
+  - deliver-external
+  - deploy-app
+
+include: 
+  - deployment/base.yml
+  - deployment/common.yml
+
+deliver:
+  stage: deliver-external
+  environment: 
+    name: dev
+  allow_failure: true
+  extends:
+    - .deliver
+  when: on_success
+
+deploy:
+  stage: deploy-app
+  environment: 
+    name: dev
+  needs: ["deliver"]
+  when: on_success
+  extends:
+    - .deploy

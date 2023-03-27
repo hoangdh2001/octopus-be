@@ -5,7 +5,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: backend-api
+  name: backend-gateway
 {{- with .Values.ingress.wafServiceNamespace }}
   namespace: {{ . }}
 {{- end }}
@@ -24,14 +24,14 @@ spec:
   {{- if .Values.ingress.tls }}
   tls:
     - hosts:
-        - {{ include "api.domain" . }}
+        - {{ include "gateway.domain" . }}
       {{- if .Values.ingress.letsencrypt }}
       secretName: backend-api-tls
     {{- end }}
   {{- end }}
 
   rules:
-    - host: {{ include "api.domain" . }}
+    - host: {{ include "gateway.domain" . }}
       http:
         paths:
           - path: /

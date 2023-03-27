@@ -1,1 +1,1 @@
-The api is accessible at https://{{- include "api.domain" . | replace "." "%2E" }}
+The api is accessible at https://{{- include "gateway.domain" . | replace "." "%2E" }}

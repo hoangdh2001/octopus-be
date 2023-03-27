@@ -78,27 +78,54 @@ nginx.ingress.kubernetes.io/configuration-snippet: |
 {{/*
 Domain names of own applications.
 */}}
-{{- define "api.domain" -}}
+{{- define "gateway.domain" -}}
 api.{{ required "ingress.domainSuffix missing" .Values.ingress.domainSuffix }}
 {{- end -}}
 
-{{- define "api.secondaryDomain" -}}
+{{- define "gateway.secondaryDomain" -}}
 api.{{ .Values.ingress.secondaryDomainSuffix }}
 {{- end -}}
 
-# Auth
-{{- define "auth.dbName" -}}
-userdb
+{{- define "eureka.envVars" -}}
+- name: EUREKA_HOST
+  value: eureka-0.eureka.default.svc.cluster.local
 {{- end -}}
 
+{{- define "redis.envVars" -}}
+{{- if .Values.redis.dbUri }}
+- name: REDIS_API
+  value: {{ .Values.redis.address | quote }}
+{{- else }}
+- name: REDIS_USER
+  value: {{ required "redis.user missing" .Values.redis.user }}
+- name: REDIS_PASS
+  value: {{ required "redis.pass missing" .Values.redis.pass }}
+{{- end -}}
+{{- end -}}
+
+# Auth
 {{- define "auth.envVars" -}}
-- name: AUTH_DB_URI
+- name: MYSQL_API
   value: {{ include "auth.dbUri" . | quote }}
-- name: AUTH_DB_NAME
-  value: {{ include "auth.dbName" . | quote }}
+- name: MYSQL_USER
+  value: {{ required "mysql.user missing" .Values.mysql.user }}
+- name: MYSQL_PASS
+  value: {{ required "mysql.pass missing" .Values.mysql.pass }}
 {{- end -}}
 
 {{- define "auth.dbUri" -}}
-{{/* dbName is only included in URI to set the default db of the connectDB cli */}}
+{{ required "mysql.address missing" .Values.mysql.address }}
+{{- end -}}
+
+{{- define "message.envVars" -}}
+- name: MONGODB_API
+  value: {{ include "message.dbUri" . | quote }}
+- name: MONGODB_USER
+  value: {{ required "mongodb.user missing" .Values.mongodb.user }}
+- name: MONGODB_PASS
+  value: {{ required "mongodb.pass missing" .Values.mongodb.pass }}
+{{- end -}}
+
+{{- define "message.dbUri" -}}
 {{ required "mongodb.srvAddress missing" .Values.mongodb.srvAddress }}
 {{- end -}}

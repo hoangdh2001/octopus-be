@@ -13,4 +13,3 @@ spec:
       name: auth
   selector:
     app.kubernetes.io/name: auth
-    app.kubernetes.io/instance: {{ .Release.Name }}

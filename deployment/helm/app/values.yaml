@@ -8,8 +8,7 @@
 image: {}
 
 eurekaDesc:
-  platformVersion: local
-  platformFullVersion: local
+  # image: <image>
 
 authDesc:
   # image: <image>
@@ -82,3 +81,13 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+mysql:
+  # address: mysql://<hostname>
+  user:
+  pass:
+
+redis:
+  # address: rediss://<hostname>
+  user:
+  pass:

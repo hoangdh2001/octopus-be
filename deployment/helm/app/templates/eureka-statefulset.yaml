@@ -16,7 +16,7 @@ spec:
       containers:
         - name: eureka
           image: "{{ .Values.eurekaDesc.image }}"
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.eurekaDesc.pullPolicy }}
           ports:
             - containerPort: 8761
           env:
