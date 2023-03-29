@@ -8,7 +8,7 @@
       alias: docker-dind
   before_script:
     - set -x
-    - sudo apt install docker
+    - apk add docker
     - docker --version
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
