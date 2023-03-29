@@ -62,7 +62,6 @@ maven-build:
     paths:
       - "**/target/*.jar"
 
-# build
 build:
   stage: build
   extends:
