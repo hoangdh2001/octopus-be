@@ -61,7 +61,7 @@ maven-build:
     when: on_success
     paths:
       - "**/target/*.jar"
-#build
+
 build:
   stage: build
   extends:
