@@ -57,9 +57,10 @@ build:
     BUILD_ID: $CI_COMMIT_SHORT_SHA
     TAG: $BUILD_ID-build
   script:
-    - apk add --no-cache docker-compose
+    - apk add docker-compose
     - pwd
-    - docker-compose up
+    - docker-compose down
+    - docker-compose build
     - docker tag eureka:$TAG $IMAGE_EUREKA:$TAG
     - docker push $IMAGE_EUREKA:$TAG
     - docker tag gateway:$TAG $IMAGE_GATEWAY:$TAG
