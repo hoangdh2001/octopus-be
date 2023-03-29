@@ -58,10 +58,7 @@ maven-build:
   before_script:
     - mvn --version
   script:
-    - mvn clean package -f eureka-service/pom.xml
-    - mvn clean package -f gateway/pom.xml
-    - mvn clean package -f auth-service/pom.xml
-    - mvn clean package -f mail-service/pom.xml
+    - mvn clean package
   artifacts:
     when: on_success
     paths:
