@@ -59,7 +59,7 @@ build:
   script:
     - apk add --no-cache docker-compose
     - pwd
-    - docker-compose build
+    - docker-compose up
     - docker tag eureka:$TAG $IMAGE_EUREKA:$TAG
     - docker push $IMAGE_EUREKA:$TAG
     - docker tag gateway:$TAG $IMAGE_GATEWAY:$TAG
