@@ -8,6 +8,9 @@
 # It basically says "Don't create multiple pipelines on MRs for no reason"
 default:
   image: alpine:latest
+before_script:
+  - docker info
+  - docker-compose --version
 
 variables:
   IMAGE_AUTH_NAME: octopus-core-auth
@@ -57,9 +60,6 @@ build:
     BUILD_ID: $CI_COMMIT_SHORT_SHA
     TAG: $BUILD_ID-build
   script:
-    - apk add docker-compose
-    - pwd
-    - docker-compose down
     - docker-compose build
     - docker tag eureka:$TAG $IMAGE_EUREKA:$TAG
     - docker push $IMAGE_EUREKA:$TAG
