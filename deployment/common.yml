@@ -25,9 +25,8 @@
   before_script:
     - helm version
     # Kubernetes
-    - kubectl config set-context $K8S_CONFIG_NAME --kubeconfig="$K8S_CONFIG"
+    - kubectl config --kubeconfig="$K8S_CONFIG" use-context $K8S_CONFIG_NAME
     - kubectl config get-contexts
-    - kubectl config user-context $K8S_CONFIG_NAME
     - kubectl config view
     - kubectl version --short
     - kubectl cluster-info
