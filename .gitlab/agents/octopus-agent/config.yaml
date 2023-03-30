@@ -1,0 +1,3 @@
+ci_access:
+  groups:
+    - id: nhom-40-khoa-luan-tot-nghiep/octopus-be
