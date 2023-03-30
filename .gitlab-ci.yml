@@ -32,6 +32,7 @@ workflow:
 
 include:
   - deployment/common.yml
+  - deployment/base.yml
 
 .except-tags:
   rules:
