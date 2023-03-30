@@ -45,11 +45,11 @@ include:
       --reset-values
       --values=$HELM_VALUES_APP
       --set ingress.domainSuffix=octopus.com
-      --set eurekaDesc.image=$EXT_REGISTRY_URL/$IMAGE_EUREKA_NAME:$CI_COMMIT_SHORT_SHA
-      --set gatewayDesc.image=$EXT_REGISTRY_URL/$IMAGE_GATEWAY_NAME:$CI_COMMIT_SHORT_SHA
-      --set authDesc.image=$EXT_REGISTRY_URL/$IMAGE_AUTH_NAME:$CI_COMMIT_SHORT_SHA
-      --set messageDesc.image=$EXT_REGISTRY_URL/$IMAGE_MESSAGE_NAME:$CI_COMMIT_SHORT_SHA
-      --set mailDesc.image=$EXT_REGISTRY_URL/$IMAGE_MAIL_NAME:$CI_COMMIT_SHORT_SHA
+      --set eurekaDesc.image=$IMAGE_EUREKA:$CI_COMMIT_SHORT_SHA
+      --set gatewayDesc.image=$IMAGE_GATEWAY:$CI_COMMIT_SHORT_SHA
+      --set authDesc.image=$IMAGE_AUTH:$CI_COMMIT_SHORT_SHA
+      --set messageDesc.image=$IMAGE_MESSAGE:$CI_COMMIT_SHORT_SHA
+      --set mailDesc.image=$IMAGE_MAIL:$CI_COMMIT_SHORT_SHA
       --set-string "mongodb.srvAddress=${MONGODB_SRV_ADDRESS}"
       --set-string "mongodb.user=${MONGODB_SRV_ADDRESS}"
       --set-string "mongodb.pass=${MONGODB_SRV_ADDRESS}"
@@ -64,10 +64,10 @@ include:
     - .k8s-vault
   variables:
     HELM_VALUES_APP: deployment/helm/env_values/$ENVIRONMENT.yaml
-    K8S_NAMESPACE: octopus
+    K8S_NAMESPACE: default
   stage: deploy
   script:
     - apk add bash
-    - kubectl get namespace $K8S_NAMESPACE || kubectl create namespace $K8S_NAMESPACE
+    - kubectl get namespace $K8S_NAMESPACE
     - set -x
     - !reference [ .deploy-app, script ]

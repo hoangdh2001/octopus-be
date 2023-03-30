@@ -51,7 +51,7 @@ stages:
   - maven-build
   - build
   - deliver-gitlab
-  - trigger
+  - deploy
 
 maven-build:
   image: maven:3.8.1-openjdk-17
@@ -144,18 +144,12 @@ deliver-gitlab:
     - docker tag $SRC_MAIL_IMAGE $DST_MAIL_IMAGE
     - docker push $DST_MAIL_IMAGE
 
-.trigger:
-  stage: trigger
+deploy:
+  stage: deploy
   allow_failure: true
   extends:
     - .release-develop-or-tag
-
-trigger-dev:
-  extends:
-    - .trigger
-  trigger: deployment/ci_job.yml
-
-trigger-prod:
-  extends:
-    - .trigger
-  trigger: deployment/ci_job.yml
+    - .deploy
+  when: on_success
+  
+  

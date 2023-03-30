@@ -23,8 +23,6 @@
 .k8s-vault:
   image: alpine/k8s:1.25.3 # Image includes k8s and Helm
   before_script:
-    - set -a; source .env; set +a
-    # Make sure helm is there
     - helm version
     # Kubernetes
     - echo $K8S_CONFIG > $K8S_CONFIG_NAME_FILE
@@ -32,4 +30,3 @@
     - kubectl config set-context --current --namespace="$K8S_NAMESPACE"
     - kubectl version --short
     - kubectl cluster-info
-    - !reference [.vault, before_script]
