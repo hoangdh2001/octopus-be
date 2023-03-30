@@ -47,7 +47,6 @@ services:
       - eureka
     networks:
       - service-network
-      - kafka-network
   message:
     container_name: message
     image: message:${TAG:-local}
