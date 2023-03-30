@@ -25,8 +25,16 @@
   before_script:
     - helm version
     # Kubernetes
-    - kubectl config set-context --kubeconfig="$K8S_CONFIG" use-context $K8S_CONFIG_NAME
+    - kubectl config set-context $K8S_CONFIG_NAME \
+     --cluster="$K8S_CONFIG_CLUSTER" \
+     --user="$K8S_CONFIG_USER" \
+     --client-certificate="$K8S_CONFIG_CERTIFICATE_AUTHORITY" \
+     --token="$K8S_CONFIG_TOKEN" \
+     --server="$K8S_CONFIG_SERVER"
+     --context="$K8S_CONFIG_NAME"
+     --username="$K8S_CONFIG_USER"
     - kubectl config get-contexts
+    - kubectl config use-context $K8S_CONFIG_NAME
     - kubectl config view
     - kubectl version --short
     - kubectl cluster-info
