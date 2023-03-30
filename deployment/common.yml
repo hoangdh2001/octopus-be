@@ -25,7 +25,7 @@
   before_script:
     - helm version
     # Kubernetes
-    - kubectl config set-context \
+    - kubectl config set-context $K8S_CONFIG_NAME \
      --cluster="$K8S_CONFIG_NAME" \
      --user="$K8S_CONFIG_USER" \
      --client-certificate="$K8S_CONFIG_CERTIFICATE_AUTHORITY" \
