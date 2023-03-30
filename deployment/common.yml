@@ -25,6 +25,8 @@
   before_script:
     - helm version
     # Kubernetes
+    - echo $K8S_CONFIG
+    - echo $K8S_CONFIG_NAME_FILE
     - echo $K8S_CONFIG >> $K8S_CONFIG_NAME_FILE
     - kubectl --kubeconfig="$K8S_CONFIG_NAME_FILE"
     - kubectl config set-context --current --namespace="$K8S_NAMESPACE"
