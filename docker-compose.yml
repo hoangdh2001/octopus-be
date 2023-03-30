@@ -6,7 +6,7 @@ services:
     image: eureka:${TAG:-local}
     build:
       context: ./eureka-service
-      args: 
+      args:
         BUILD_ID: ${BUILD_ID:-local}
       labels:
         core.build.id: ${BUILD_ID:-local}
@@ -20,7 +20,7 @@ services:
     image: gateway:${TAG:-local}
     build:
       context: ./gateway
-      args: 
+      args:
         BUILD_ID: ${BUILD_ID:-local}
       labels:
         core.build.id: ${BUILD_ID:-local}
@@ -36,7 +36,7 @@ services:
     image: auth:${TAG:-local}
     build:
       context: ./auth-service
-      args: 
+      args:
         BUILD_ID: ${BUILD_ID:-local}
       labels:
         core.build.id: ${BUILD_ID:-local}
@@ -45,7 +45,6 @@ services:
       - "8088:8088"
     depends_on:
       - eureka
-      - kafka
     networks:
       - service-network
       - kafka-network
@@ -54,7 +53,7 @@ services:
     image: message:${TAG:-local}
     build:
       context: ./message-service
-      args: 
+      args:
         BUILD_ID: ${BUILD_ID:-local}
       labels:
         core.build.id: ${BUILD_ID:-local}
@@ -63,16 +62,14 @@ services:
       - "3000:3000"
     depends_on:
       - eureka
-      - kafka
     networks:
       - service-network
-      - kafka-network
   mail:
     container_name: mail
     image: mail:${TAG:-local}
     build:
       context: ./mail-service
-      args: 
+      args:
         BUILD_ID: ${BUILD_ID:-local}
       labels:
         core.build.id: ${BUILD_ID:-local}
@@ -81,12 +78,8 @@ services:
       - "8082:8082"
     depends_on:
       - eureka
-      - kafka
     networks:
-      - kafka-network
       - service-network
 networks:
   service-network:
-    driver: bridge
-  kafka-network:
     driver: bridge
