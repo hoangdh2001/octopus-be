@@ -51,8 +51,8 @@ include:
       --set messageDesc.image=$IMAGE_MESSAGE:$CI_COMMIT_SHORT_SHA
       --set mailDesc.image=$IMAGE_MAIL:$CI_COMMIT_SHORT_SHA
       --set-string "mongodb.srvAddress=${MONGODB_SRV_ADDRESS}"
-      --set-string "mongodb.user=${MONGODB_SRV_ADDRESS}"
-      --set-string "mongodb.pass=${MONGODB_SRV_ADDRESS}"
+      --set-string "mongodb.user=${MONGODB_USER}"
+      --set-string "mongodb.pass=${MONGODB_PASS}"
       --set-string "mysql.address=${MYSQL_ADDRESS}"
       --set-string "mysql.user=${MYSQL_USER}"
       --set-string "mysql.pass=${MYSQL_PASS}"
