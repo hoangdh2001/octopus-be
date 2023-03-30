@@ -8,23 +8,21 @@
 # It basically says "Don't create multiple pipelines on MRs for no reason"
 default:
   image: docker:latest
+before_script:
+  - docker info
+  - docker-compose --version
 
 variables:
-  REGISTRY_NAMESPACE: $CI_REGISTRY/$CI_PROJECT_NAMESPACE
-  IMAGE_AUTH: $CI_REGISTRY_IMAGE/octopus-core-auth
-  IMAGE_AUTH_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-auth:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
-  IMAGE_GATEWAY: $CI_REGISTRY_IMAGE/octopus-core-gateway
-  IMAGE_GATEWAY_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-gateway:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
-  IMAGE_MESSAGE: $CI_REGISTRY_IMAGE/octopus-core-message
-  IMAGE_MESSAGE_COMMIT: $CI_REGISTRY_IMAGE/dacadoo-core-message:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
-  IMAGE_MAIL: $CI_REGISTRY_IMAGE/octopus-core-mail
-  IMAGE_MAIL_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-mail:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
-  IMAGE_WORKSPACE: $CI_REGISTRY_IMAGE/octopus-core-workspace
-  IMAGE_WORKSPACE_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-workspace:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
-  IMAGE_STORAGE: $CI_REGISTRY_IMAGE/octopus-core-storage
-  IMAGE_STORAGE_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-storage:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
-  IMAGE_EUREKA: $CI_REGISTRY_IMAGE/octopus-core-eureka
-  IMAGE_EUREKA_COMMIT: $CI_REGISTRY_IMAGE/octopus-core-eureka:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
+  IMAGE_AUTH_NAME: octopus-core-auth
+  IMAGE_AUTH: $CI_REGISTRY_IMAGE/$IMAGE_AUTH_NAME
+  IMAGE_GATEWAY_NAME: octopus-core-gateway
+  IMAGE_GATEWAY: $CI_REGISTRY_IMAGE/$IMAGE_GATEWAY_NAME
+  IMAGE_MESSAGE_NAME: octopus-core-message
+  IMAGE_MESSAGE: $CI_REGISTRY_IMAGE/$IMAGE_MESSAGE_NAME
+  IMAGE_MAIL_NAME: octopus-core-mail
+  IMAGE_MAIL: $CI_REGISTRY_IMAGE/$IMAGE_MAIL_NAME
+  IMAGE_EUREKA_NAME: octopus-core-eureka
+  IMAGE_EUREKA: $CI_REGISTRY_IMAGE/$IMAGE_EUREKA_NAME
 
 workflow:
   rules:
@@ -34,6 +32,7 @@ workflow:
 
 include:
   - deployment/common.yml
+  - deployment/base.yml
 
 .except-tags:
   rules:
@@ -49,9 +48,22 @@ include:
       - tags
 
 stages:
+  - maven-build
   - build
   - deliver-gitlab
   - deploy
+
+maven-build:
+  image: maven:3.8.1-openjdk-17
+  stage: maven-build
+  before_script:
+    - mvn --version
+  script:
+    - mvn clean package
+  artifacts:
+    when: on_success
+    paths:
+      - "**/target/*.jar"
 
 build:
   stage: build
@@ -59,30 +71,85 @@ build:
     - .except-tags
     - .docker
   variables:
-    BUILD_ID: $CI_COMMIT_SHORT_SHA-build$CI_JOB_ID
-    TAG: $CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID
-    GIT_SHA: $CI_COMMIT_SHORT_SHA
+    BUILD_ID: $CI_COMMIT_SHORT_SHA
+    TAG: $BUILD_ID-build
   script:
-    - echo $REGISTRY_NAMESPACE
+    - docker-compose build
+    - docker tag eureka:$TAG $IMAGE_EUREKA:$TAG
+    - docker push $IMAGE_EUREKA:$TAG
+    - docker tag gateway:$TAG $IMAGE_GATEWAY:$TAG
+    - docker push $IMAGE_GATEWAY:$TAG
+    - docker tag auth:$TAG $IMAGE_AUTH:$TAG
+    - docker push $IMAGE_AUTH:$TAG
+    - docker tag message:$TAG $IMAGE_MESSAGE:$TAG
+    - docker push $IMAGE_MESSAGE:$TAG
+    - docker tag mail:$TAG $IMAGE_MAIL:$TAG
+    - docker push $IMAGE_MAIL:$TAG
 
-# deliver-gitlab:
-#   stage: deliver-gitlab
-#   extends:
-#     - .release-develop-or-tag
-#     - .docker
-#   variables:
-#     BUILD_ID: $CI_COMMIT_SHORT_SHA
-#     BASE_PATH: $CI_REGISTRY_IMAGE/octopus-core
-#     BUILD_IMAGE: $BASE_PATH:$BUILD_ID-build
-#     TARGET_IMAGE: $BASE_PATH:$BUILD_ID
+deliver-gitlab:
+  stage: deliver-gitlab
+  extends:
+    - .release-develop-or-tag
+    - .docker
+  variables:
+    BUILD_ID: $CI_COMMIT_SHORT_SHA
+    SRC_TAG: $BUILD_ID-build
+    TARGET_TAG: $BUILD_ID
+  script:
+    # octopus-core-eureka
+    - SRC_EUREKA_IMAGE=$IMAGE_EUREKA:$SRC_TAG
+    - DST_EUREKA_IMAGE=$IMAGE_EUREKA:$TARGET_TAG
+    - docker pull $SRC_EUREKA_IMAGE
+    - EUREKA_SHORT_SHA=`docker inspect --format '{{ index .Config.Labels "core.git.sha" }}' $SRC_EUREKA_IMAGE`
+    # octopus-core-gateway
+    - SRC_GATEWAY_IMAGE=$IMAGE_GATEWAY:$SRC_TAG
+    - DST_GATEWAY_IMAGE=$IMAGE_GATEWAY:$TARGET_TAG
+    - docker pull $SRC_GATEWAY_IMAGE
+    - GATEWAY_SHORT_SHA=`docker inspect --format '{{ index .Config.Labels "core.git.sha" }}' $SRC_GATEWAY_IMAGE`
+    # octopus-core-auth
+    - SRC_AUTH_IMAGE=$IMAGE_AUTH:$SRC_TAG
+    - DST_AUTH_IMAGE=$IMAGE_AUTH:$TARGET_TAG
+    - docker pull $SRC_AUTH_IMAGE
+    - AUTH_SHORT_SHA=`docker inspect --format '{{ index .Config.Labels "core.git.sha" }}' $SRC_AUTH_IMAGE`
+    # octopus-core-message
+    - SRC_MESSAGE_IMAGE=$IMAGE_MESSAGE:$SRC_TAG
+    - DST_MESSAGE_IMAGE=$IMAGE_MESSAGE:$TARGET_TAG
+    - docker pull $SRC_MESSAGE_IMAGE
+    - MESSAGE_SHORT_SHA=`docker inspect --format '{{ index .Config.Labels "core.git.sha" }}' $SRC_MESSAGE_IMAGE`
+    # octopus-core-mail
+    - SRC_MAIL_IMAGE=$IMAGE_MAIL:$SRC_TAG
+    - DST_MAIL_IMAGE=$IMAGE_MAIL:$TARGET_TAG
+    - docker pull $SRC_MAIL_IMAGE
+    - MAIL_SHORT_SHA=`docker inspect --format '{{ index .Config.Labels "core.git.sha" }}' $SRC_MAIL_IMAGE`
+    # verify the correct image was pulled
+    - test $EUREKA_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
+      { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-eureka $EUREKA_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
+    - test $GATEWAY_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
+      { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-gateway $GATEWAY_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
+    - test $AUTH_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
+      { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-auth $AUTH_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
+    - test $MESSAGE_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
+      { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-message $MESSAGE_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
+    - test $MAIL_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
+      { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-mail $MAIL_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
+    # tag and push
+    - docker tag $SRC_EUREKA_IMAGE $DST_EUREKA_IMAGE
+    - docker push $DST_EUREKA_IMAGE
+    - docker tag $SRC_GATEWAY_IMAGE $DST_GATEWAY_IMAGE
+    - docker push $DST_GATEWAY_IMAGE
+    - docker tag $SRC_AUTH_IMAGE $DST_AUTH_IMAGE
+    - docker push $DST_AUTH_IMAGE
+    - docker tag $SRC_MESSAGE_IMAGE $DST_MESSAGE_IMAGE
+    - docker push $DST_MESSAGE_IMAGE
+    - docker tag $SRC_MAIL_IMAGE $DST_MAIL_IMAGE
+    - docker push $DST_MAIL_IMAGE
 
-# deploy-dev:
-#   stage: deploy
-#   environment: dev
-#   script:
-#     - echo "Deploying application..."
-#     - echo "Application successfully deployed."
-
-# deploy-prod:
-#   stage: deploy
-#   environment: prod
+deploy:
+  stage: deploy
+  allow_failure: true
+  extends:
+    - .release-develop-or-tag
+    - .deploy
+  when: on_success
+  
+  

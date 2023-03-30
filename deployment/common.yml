@@ -1,16 +1,11 @@
 .docker:
-  variables:
-    DOCKER_HOST: tcp://docker-dind:2375
-    DOCKER_TLS_CERTDIR: "/cert"
-    DOCKER_TLS_VERIFY: "1"
-    DOCKER_CERT_PATH: /certs/client
   services:
-    - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/docker:dind
-      alias: docker-dind
+    - name: docker:dind
   before_script:
     - set -x
     - apk add docker
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker --version
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 .vault:
   before_script:
@@ -28,12 +23,18 @@
 .k8s-vault:
   image: alpine/k8s:1.25.3 # Image includes k8s and Helm
   before_script:
-    - set -a; source .env; set +a
-    # Make sure helm is there
     - helm version
     # Kubernetes
-    - echo k8s namespace is $K8S_NAMESPACE
-    - kubectl config set-context --current --namespace="$K8S_NAMESPACE"
+    - kubectl config set-context --current
+     --cluster="$K8S_CONFIG_NAME"
+     --user="$K8S_CONFIG_USER"
+     --token="$K8S_CONFIG_TOKEN"
+     --server="$K8S_CONFIG_SERVER"
+     --context="$K8S_CONFIG_NAME"
+     --client-certificate="$K8S_CONFIG_CERTIFICATE_AUTHORITY"
+     --username="$K8S_CONFIG_USER"
+    - kubectl config get-contexts
+    - kubectl config use-context $K8S_CONFIG_NAME
+    - kubectl config view
     - kubectl version --short
     - kubectl cluster-info
-    - !reference [.vault, before_script]

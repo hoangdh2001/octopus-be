@@ -1,0 +1,44 @@
+{{- $serviceName := "gateway" -}}
+{{- if .Values.ingress.wafServiceNamespace }}
+  {{- $serviceName = "microgateway" -}}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-gateway
+{{- with .Values.ingress.wafServiceNamespace }}
+  namespace: {{ . }}
+{{- end }}
+  labels:
+  {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    {{- if .Values.ingress.frontend }}
+    {{- include "nginx.ingress.annotations.frontend" . | nindent 4 }}
+  {{- end }}
+    {{- if .Values.ingress.letsencrypt }}
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ include "gateway.domain" . }}
+      {{- if .Values.ingress.letsencrypt }}
+      secretName: backend-api-tls
+    {{- end }}
+  {{- end }}
+
+  rules:
+    - host: {{ include "gateway.domain" . }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: 80
+                  

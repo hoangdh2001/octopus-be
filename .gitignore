@@ -72,3 +72,4 @@ package-lock.lock
 !.vscode/extensions.json
 
 docker/
+**/.env

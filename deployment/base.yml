@@ -4,11 +4,70 @@ include:
 .deliver:
   extends:
     - .docker-vault
+  variables:
+    EXT_REGISTRY_URL: registry.digitalocean.com
   script:
     - set -x
     - echo "$CI_ENVIRONMENT_NAME"
-    - source_image_path=$CI_REGISTRY_IMAGE/octopus-core:$CI_COMMIT_SHORT_SHA
-    - target_image_path=$EXT_REGISTRY_URL/octopus-core:$CI_COMMIT_SHORT_SHA
-    - docker pull $source_image_path
-    - docker tag $source_image_path $target_image_path
-    - docker push $target_image_path
+    - docker login -u "$DOC_REGISTRY_USERNAME" -p "$DOC_REGISTRY_PASSWORD" $EXT_REGISTRY_URL;
+    - SOURCE_EUREKA_IMAGE_PATH=$IMAGE_EUREKA:$CI_COMMIT_SHORT_SHA
+    - TARGET_EUREKA_IMAGE_PATH=$EXT_REGISTRY_URL/$IMAGE_EUREKA_NAME:$CI_COMMIT_SHORT_SHA
+    - SOURCE_GATEWAY_IMAGE_PATH=$IMAGE_GATEWAY:$CI_COMMIT_SHORT_SHA
+    - TARGET_GATEWAY_IMAGE_PATH=$EXT_REGISTRY_URL/$IMAGE_GATEWAY_NAME:$CI_COMMIT_SHORT_SHA
+    - SOURCE_AUTH_IMAGE_PATH=$IMAGE_AUTH:$CI_COMMIT_SHORT_SHA
+    - TARGET_AUTH_IMAGE_PATH=$EXT_REGISTRY_URL/$IMAGE_AUTH_NAME:$CI_COMMIT_SHORT_SHA
+    - SOURCE_MESSAGE_IMAGE_PATH=$IMAGE_MESSAGE:$CI_COMMIT_SHORT_SHA
+    - TARGET_MESSAGE_IMAGE_PATH=$EXT_REGISTRY_URL/$IMAGE_MESSAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - SOURCE_MAIL_IMAGE_PATH=$IMAGE_MAIL:$CI_COMMIT_SHORT_SHA
+    - TARGET_MAIL_IMAGE_PATH=$EXT_REGISTRY_URL/$IMAGE_MAIL_NAME:$CI_COMMIT_SHORT_SHA
+    - docker pull $SOURCE_EUREKA_IMAGE_PATH
+    - docker tag $SOURCE_EUREKA_IMAGE_PATH $TARGET_EUREKA_IMAGE_PATH
+    - docker push $TARGET_EUREKA_IMAGE_PATH
+    - docker pull $SOURCE_GATEWAY_IMAGE_PATH
+    - docker tag $SOURCE_GATEWAY_IMAGE_PATH $TARGET_GATEWAY_IMAGE_PATH
+    - docker push $TARGET_GATEWAY_IMAGE_PATH
+    - docker pull $SOURCE_AUTH_IMAGE_PATH
+    - docker tag $SOURCE_AUTH_IMAGE_PATH $TARGET_AUTH_IMAGE_PATH
+    - docker push $TARGET_AUTH_IMAGE_PATH
+    - docker pull $SOURCE_MESSAGE_IMAGE_PATH
+    - docker tag $SOURCE_MESSAGE_IMAGE_PATH $TARGET_MESSAGE_IMAGE_PATH
+    - docker push $TARGET_MESSAGE_IMAGE_PATH
+    - docker pull $SOURCE_MAIL_IMAGE_PATH
+    - docker tag $SOURCE_MAIL_IMAGE_PATH $TARGET_MAIL_IMAGE_PATH
+    - docker push $TARGET_MAIL_IMAGE_PATH
+
+.deploy-app:
+  script:
+    - helm upgrade app deployment/helm/app/
+      --install
+      --atomic
+      --timeout=120s
+      --reset-values
+      --values=$HELM_VALUES_APP
+      --set ingress.domainSuffix=octopus.com
+      --set eurekaDesc.image=$IMAGE_EUREKA:$CI_COMMIT_SHORT_SHA
+      --set gatewayDesc.image=$IMAGE_GATEWAY:$CI_COMMIT_SHORT_SHA
+      --set authDesc.image=$IMAGE_AUTH:$CI_COMMIT_SHORT_SHA
+      --set messageDesc.image=$IMAGE_MESSAGE:$CI_COMMIT_SHORT_SHA
+      --set mailDesc.image=$IMAGE_MAIL:$CI_COMMIT_SHORT_SHA
+      --set-string "mongodb.srvAddress=${MONGODB_SRV_ADDRESS}"
+      --set-string "mongodb.user=${MONGODB_SRV_ADDRESS}"
+      --set-string "mongodb.pass=${MONGODB_SRV_ADDRESS}"
+      --set-string "mysql.address=${MYSQL_ADDRESS}"
+      --set-string "mysql.user=${MYSQL_USER}"
+      --set-string "mysql.pass=${MYSQL_PASS}"
+      --set-string "redis.user=${REDIS_USER}"
+      --set-string "redis.pass=${REDIS_PASS}"
+
+.deploy:
+  extends:
+    - .k8s-vault
+  variables:
+    HELM_VALUES_APP: deployment/helm/env_values/$ENVIRONMENT.yaml
+    K8S_NAMESPACE: default
+  stage: deploy
+  script:
+    - apk add bash
+    - kubectl get namespace $K8S_NAMESPACE
+    - set -x
+    - !reference [ .deploy-app, script ]

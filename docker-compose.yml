@@ -1,156 +1,84 @@
 version: '3.9'
 
 services:
-  mysql:
-    container_name: mysql
-    image: mysql:8.0.32
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - "./docker/mysql:/var/lib/mysql"
-    restart: unless-stopped
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=userdb
-    ports:
-      - "3306:3306"
-    networks:
-      - mysql-network
-  adminer:
-    container_name: adminer
-    image: adminer
-    restart: unless-stopped
-    ports:
-      - "8086:8080"
-    networks:
-      - mysql-network
-    environment:
-      ADMINER_DESIGN: "hydra"
-  mongodb:
-    container_name: mongodb
-    image: mongo
-    restart: unless-stopped
-    volumes:
-      - type: tmpfs
-        target: ./docker/mongodb/data
-      - "./docker/mongodb/db-entrypoint.sh:/docker-entrypoint-initdb.d/db-entrypoint.sh"
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=root
-      - DB_PORT=27017
-      - DB_DATABASE=messagedb
-      - DB_USERNAME=admin
-      - DB_PASSWORD=admin
-    networks:
-      - mongo-network
-  zookeeper:
-    image: 'bitnami/zookeeper:latest'
-    ports:
-      - '2181:2181'
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-  kafka:
-    image: 'bitnami/kafka:latest'
-    ports:
-      - '9092:9092'
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-    depends_on:
-      - zookeeper
-  redis:
-    container_name: redis
-    image: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./docker/redis/data:/data
-    restart: unless-stopped
-    networks:
-      - cache-network
   eureka:
     container_name: eureka
-    image: eureka
+    image: eureka:${TAG:-local}
     build:
       context: ./eureka-service
+      args:
+        BUILD_ID: ${BUILD_ID:-local}
+      labels:
+        core.build.id: ${BUILD_ID:-local}
+        core.git.sha: ${BUILD_ID:-local}
     ports:
       - "8761:8761"
-    depends_on:
-      - mongodb
-      - mysql
     networks:
       - service-network
   gateway:
     container_name: gateway
-    image: gateway
+    image: gateway:${TAG:-local}
     build:
       context: ./gateway
+      args:
+        BUILD_ID: ${BUILD_ID:-local}
+      labels:
+        core.build.id: ${BUILD_ID:-local}
+        core.git.sha: ${BUILD_ID:-local}
     ports:
       - "80:80"
     depends_on:
       - eureka
-      - mongodb
-      - mysql
-    environment:
-      - EUREKA_HOST=eureka-service
     networks:
       - service-network
   auth:
     container_name: auth
-    image: auth
+    image: auth:${TAG:-local}
     build:
       context: ./auth-service
+      args:
+        BUILD_ID: ${BUILD_ID:-local}
+      labels:
+        core.build.id: ${BUILD_ID:-local}
+        core.git.sha: ${BUILD_ID:-local}
+    ports:
+      - "8088:8088"
     depends_on:
       - eureka
-      - mongodb
-      - mysql
     networks:
-      - mysql-network
       - service-network
-    environment:
-      - EUREKA_HOST=eureka-service
-      - MYSQL_HOST=mysql
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_ROOT_USERNAME=root
-      - MYSQL_DATABASE=userdb
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
   message:
     container_name: message
-    image: message
+    image: message:${TAG:-local}
     build:
       context: ./message-service
+      args:
+        BUILD_ID: ${BUILD_ID:-local}
+      labels:
+        core.build.id: ${BUILD_ID:-local}
+        core.git.sha: ${BUILD_ID:-local}
     ports:
       - "3000:3000"
     depends_on:
-      - mongodb
-      - mysql
       - eureka
-    environment:
-      - EUREKA_HOST=eureka-service
-      - DB_HOST=mongo-kl
-      - DB_PORT=27017
-      - DB_DATABASE=messagedb
-      - DB_USERNAME=admin
-      - DB_PASSWORD=admin
     networks:
-      - mongo-network
       - service-network
   mail:
     container_name: mail
-    image: mail
+    image: mail:${TAG:-local}
     build:
       context: ./mail-service
+      args:
+        BUILD_ID: ${BUILD_ID:-local}
+      labels:
+        core.build.id: ${BUILD_ID:-local}
+        core.git.sha: ${BUILD_ID:-local}
+    ports:
+      - "8082:8082"
+    depends_on:
+      - eureka
+    networks:
+      - service-network
 networks:
-  mysql-network:
-    driver: bridge
-  mongo-network:
-    driver: bridge
-  cache-network:
-    driver: bridge
   service-network:
     driver: bridge
