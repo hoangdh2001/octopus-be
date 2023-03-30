@@ -43,7 +43,7 @@ include:
 .release-develop-or-tag:
   only:
     refs:
-      - develop
+      - dev
       - /^release.*/
       - tags
 
