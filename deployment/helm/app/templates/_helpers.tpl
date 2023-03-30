@@ -129,3 +129,8 @@ api.{{ .Values.ingress.secondaryDomainSuffix }}
 {{- define "message.dbUri" -}}
 {{ required "mongodb.srvAddress missing" .Values.mongodb.srvAddress }}
 {{- end -}}
+
+{{- define "kafka.envVars"-}}
+- name: KAFKA_HOST
+  value: kafka
+{{- end -}}

@@ -45,6 +45,7 @@ include:
       - develop
       - /^release.*/
       - tags
+      - feature/hotfix
 
 stages:
   - maven-build
