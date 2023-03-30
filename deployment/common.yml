@@ -1,11 +1,6 @@
 .docker:
-  variables:
-    DOCKER_HOST: tcp://docker-dind:2375
-    DOCKER_TLS_CERTDIR: ''
-    DOCKER_BUILDKIT: 1
   services:
-    - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/docker:dind
-      alias: docker-dind
+    - name: docker:dind
   before_script:
     - set -x
     - apk add docker
