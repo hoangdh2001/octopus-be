@@ -133,7 +133,7 @@ deliver-gitlab:
     - test $MAIL_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
       { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-mail $MAIL_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
     # tag and push
-    - docker tag $EUREKA_SHORT_SHA $DST_EUREKA_IMAGE
+    - docker tag $SRC_EUREKA_IMAGE $DST_EUREKA_IMAGE
     - docker push $DST_EUREKA_IMAGE
     - docker tag $SRC_GATEWAY_IMAGE $DST_GATEWAY_IMAGE
     - docker push $DST_GATEWAY_IMAGE
