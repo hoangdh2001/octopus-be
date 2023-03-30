@@ -67,7 +67,9 @@ build:
     BUILD_ID: $CI_COMMIT_SHORT_SHA
     TAG: $BUILD_ID-build
   script:
+    - apk update
     - apk add docker-compose
+    - docker-compose --version
     - docker-compose build
     - docker tag eureka:$TAG $IMAGE_EUREKA:$TAG
     - docker push $IMAGE_EUREKA:$TAG
