@@ -6,6 +6,12 @@
 
 # This is the only bit of magic here, never touch this unless you wanna do fancy stuff
 # It basically says "Don't create multiple pipelines on MRs for no reason"
+default:
+  image: docker:latest
+before_script:
+  - docker info
+  - docker-compose --version
+
 variables:
   IMAGE_AUTH_NAME: octopus-core-auth
   IMAGE_AUTH: $CI_REGISTRY_IMAGE/$IMAGE_AUTH_NAME
@@ -67,9 +73,6 @@ build:
     BUILD_ID: $CI_COMMIT_SHORT_SHA
     TAG: $BUILD_ID-build
   script:
-    - apk update
-    - apk add docker-compose
-    - docker-compose --version
     - docker-compose build
     - docker tag eureka:$TAG $IMAGE_EUREKA:$TAG
     - docker push $IMAGE_EUREKA:$TAG
