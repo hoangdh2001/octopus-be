@@ -27,4 +27,5 @@
     # Kubernetes
     - kubectl config set-context $K8S_CONFIG_NAME --kubeconfig="$K8S_CONFIG"
     - kubectl version --short
+    - kubectl config view
     - kubectl cluster-info
