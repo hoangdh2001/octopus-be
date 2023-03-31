@@ -41,7 +41,6 @@ include:
     - helm upgrade app deployment/helm/app/
       --install
       --atomic
-      --timeout=120s
       --reset-values
       --values=$HELM_VALUES_APP
       --set ingress.domainSuffix=octopus.com
