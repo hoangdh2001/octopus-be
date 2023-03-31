@@ -1,6 +1,8 @@
 .maven-build:
-  image: maven:3.8.1-openjdk-17
   before_script:
+    - set -x
+    - apk add openjdk17 maven
+    - java --version
     - mvn --version
     - mvn clean package
 
