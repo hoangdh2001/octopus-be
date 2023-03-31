@@ -1,3 +1,9 @@
+.maven-build:
+  image: maven:3.8.1-openjdk-17
+  before_script:
+    - mvn --version
+    - mvn clean package
+
 .docker:
   services:
     - name: docker:dind
@@ -23,8 +29,12 @@
 .k8s-vault:
   image: alpine/k8s:1.25.3 # Image includes k8s and Helm
   before_script:
+    - ls -al /builds/nhom-40-khoa-luan-tot-nghiep/
+    - cat /builds/nhom-40-khoa-luan-tot-nghiep/octopus-be.tmp
+    - chmod g+r /builds/nhom-40-khoa-luan-tot-nghiep/octopus-be.tmp/KUBECONFIG
     - helm version
     # Kubernetes
+    - chmod g-r /builds/nhom-40-khoa-luan-tot-nghiep/octopus-be.tmp/KUBECONFIG
     - kubectl config get-contexts
     - kubectl config use-context nhom-40-khoa-luan-tot-nghiep/octopus-be:octopus-agent
     - kubectl version --short

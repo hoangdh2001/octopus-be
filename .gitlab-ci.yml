@@ -48,27 +48,15 @@ include:
       - tags
 
 stages:
-  - maven-build
   - build
   - deliver-gitlab
   - deploy
-
-maven-build:
-  image: maven:3.8.1-openjdk-17
-  stage: maven-build
-  before_script:
-    - mvn --version
-  script:
-    - mvn clean package
-  artifacts:
-    when: on_success
-    paths:
-      - "**/target/*.jar"
 
 build:
   stage: build
   extends:
     - .except-tags
+    - .maven-build
     - .docker
   variables:
     BUILD_ID: $CI_COMMIT_SHORT_SHA
