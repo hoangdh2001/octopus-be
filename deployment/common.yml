@@ -1,16 +1,13 @@
-.maven-build:
+.maven:
   before_script:
     - set -x
     - apk add openjdk17 maven
     - java --version
     - mvn --version
-    - mvn clean package
 
 .docker:
   variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ''
-    DOCKER_BUILDKIT: 1
+    DOCKER_TLS_CERTDIR: ""
   services:
     - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/docker:dind
   before_script:

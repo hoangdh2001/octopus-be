@@ -6,6 +6,7 @@
 
 # This is the only bit of magic here, never touch this unless you wanna do fancy stuff
 # It basically says "Don't create multiple pipelines on MRs for no reason"
+
 variables:
   IMAGE_AUTH_NAME: octopus-core-auth
   IMAGE_AUTH: $CI_REGISTRY_IMAGE/$IMAGE_AUTH_NAME
@@ -42,15 +43,26 @@ include:
       - tags
 
 stages:
+  - maven-build
   - build
   - deliver-gitlab
   - deploy
+
+maven-build:
+  stage: maven-build
+  extends:
+    - .maven
+  script:
+    - mvn clean package
+  artifacts:
+    when: on_success
+    paths:
+      - "**/target/*.jar"
 
 build:
   stage: build
   extends:
     - .except-tags
-    - .maven-build
     - .docker
   variables:
     BUILD_ID: $CI_COMMIT_SHORT_SHA
