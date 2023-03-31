@@ -88,7 +88,7 @@ api.{{ .Values.ingress.secondaryDomainSuffix }}
 
 {{- define "eureka.envVars" -}}
 - name: EUREKA_HOST
-  value: eureka-0.eureka.default.svc.cluster.local
+  value: eureka-0
 {{- end -}}
 
 {{- define "redis.envVars" -}}
@@ -132,5 +132,5 @@ api.{{ .Values.ingress.secondaryDomainSuffix }}
 
 {{- define "kafka.envVars" -}}
 - name: KAFKA_HOST
-  value: kafka
+  value: kafka.octopus-backend.svc.cluster.local
 {{- end -}}

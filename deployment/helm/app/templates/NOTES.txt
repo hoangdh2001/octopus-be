@@ -1,1 +1,2 @@
 The api is accessible at https://{{- include "gateway.domain" . | replace "." "%2E" }}
+Kafka api host {{- include "kafka.envVars" . }}

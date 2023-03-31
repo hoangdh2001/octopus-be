@@ -32,7 +32,7 @@ import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
         MONGODB_USER: Joi.string(),
         MONGODB_PASS: Joi.string(),
         KAFKA_HOST: Joi.string().default('localhost'),
-        KAFKA_PORT: Joi.string().default('29094'),
+        KAFKA_PORT: Joi.string().default('9092'),
       }),
     }),
     MongooseModule.forRootAsync({
@@ -70,10 +70,7 @@ import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
         name: 'MESSAGE_SERVICE',
         options: {
           client: {
-            brokers: [
-              `localhost:9092`,
-              `${process.env.KAFKA_HOST}:${process.env.KAFKA_PORT}`,
-            ],
+            brokers: [`${process.env.KAFKA_HOST}:${process.env.KAFKA_PORT}`],
           },
           consumer: {
             groupId: 'message-consumer',
