@@ -2,7 +2,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:${MYSQL_API:mysql://db-mysql-sgp1-75876-do-user-12877679-0.b.db.ondigitalocean.com:25060/userdb?ssl-mode=REQUIRED}
+    url: jdbc:mysql://db-mysql-sgp1-75876-do-user-12877679-0.b.db.ondigitalocean.com:25060/userdb?ssl-mode=REQUIRED
     username: ${MYSQL_USER}
     password: ${MYSQL_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -133,4 +133,6 @@ api.{{ .Values.ingress.secondaryDomainSuffix }}
 {{- define "kafka.envVars" -}}
 - name: KAFKA_HOST
   value: kafka.octopus-backend.svc.cluster.local
+- name: KAFKA_PORT
+  value: 9092
 {{- end -}}

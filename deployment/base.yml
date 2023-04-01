@@ -40,7 +40,6 @@ include:
   script:
     - helm upgrade app deployment/helm/app/
       --install
-      --atomic
       --reset-values
       --values=$HELM_VALUES_APP
       --set ingress.domainSuffix=octopus.com
