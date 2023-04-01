@@ -37,5 +37,6 @@
     - chmod g-r /builds/nhom-40-khoa-luan-tot-nghiep/octopus-be.tmp/KUBECONFIG
     - kubectl config get-contexts
     - kubectl config use-context nhom-40-khoa-luan-tot-nghiep/octopus-be:octopus-agent
+    - kubectl config view
     - kubectl version --short
     - kubectl cluster-info
