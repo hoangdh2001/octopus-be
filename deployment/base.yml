@@ -40,6 +40,7 @@ include:
   script:
     - helm upgrade app deployment/helm/app/
       --install
+      --namespace $K8S_NAMESPACE
       --reset-values
       --values=$HELM_VALUES_APP
       --set ingress.domainSuffix=octopus.com
