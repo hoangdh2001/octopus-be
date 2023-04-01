@@ -15,17 +15,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class KafkaProducer {
-
-    private final NewTopic topic;
-
-    private final NewTopic topicForgotPassword;
-
     private final KafkaTemplate<String, Code> template;
 
     public void sendEmail(Code code) {
         Message<Code> message = MessageBuilder
                 .withPayload(code)
-                .setHeader(KafkaHeaders.TOPIC, topic.name())
+                .setHeader(KafkaHeaders.TOPIC, "mail.sendEmail")
                 .build();
         template.send(message);
     }
@@ -33,7 +28,7 @@ public class KafkaProducer {
     public void sendEmailForgotPassword(Code code) {
         Message<Code> message = MessageBuilder
                 .withPayload(code)
-                .setHeader(KafkaHeaders.TOPIC, topicForgotPassword.name())
+                .setHeader(KafkaHeaders.TOPIC, "mail.sendEmailForgotPass")
                 .build();
         template.send(message);
     }

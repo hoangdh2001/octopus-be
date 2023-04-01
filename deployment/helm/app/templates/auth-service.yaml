@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth
+  name: auth-service
   labels:
-    app.kubernetes.io/name: auth
+    app.kubernetes.io/name: auth-service
 spec:
   type: {{ .Values.authDesc.serviceType }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: auth
+    app.kubernetes.io/name: auth-service

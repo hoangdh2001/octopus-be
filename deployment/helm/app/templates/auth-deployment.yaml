@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth
+  name: auth-service
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.authDesc.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: auth
+      app.kubernetes.io/name: auth-service
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: auth
+        app.kubernetes.io/name: auth-service
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
