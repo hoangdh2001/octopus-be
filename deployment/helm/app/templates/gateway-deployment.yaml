@@ -31,7 +31,6 @@ spec:
           image: "{{ .Values.gatewayDesc.image }}"
           imagePullPolicy: {{ .Values.gatewayDesc.pullPolicy }}
           ports:
-            - name: http
               containerPort: 80
               protocol: TCP
           livenessProbe:

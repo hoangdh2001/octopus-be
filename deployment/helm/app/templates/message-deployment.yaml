@@ -31,15 +31,14 @@ spec:
           image: "{{ .Values.messageDesc.image }}"
           imagePullPolicy: {{ .Values.messageDesc.pullPolicy }}
           ports:
-            - name: http
-              containerPort: 8088
+              containerPort: 3000
               protocol: TCP
           livenessProbe:
             tcpSocket:
-                port: 8088
+                port: 3000
           readinessProbe:
             tcpSocket:
-              port: 8088
+              port: 3000
           env:
             {{- include "eureka.envVars" . | nindent 10 }}
             {{- include "redis.envVars" . | nindent 10 }}
