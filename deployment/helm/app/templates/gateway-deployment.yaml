@@ -37,9 +37,13 @@ spec:
           livenessProbe:
             tcpSocket:
                 port: 80
+            initialDelaySeconds: 20
+            periodSeconds: 5
           readinessProbe:
             tcpSocket:
               port: 80
+            initialDelaySeconds: 20
+            periodSeconds: 5
           env:
             {{- include "eureka.envVars" . | nindent 10 }}
           resources:
