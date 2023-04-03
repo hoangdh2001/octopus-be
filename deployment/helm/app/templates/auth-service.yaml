@@ -10,6 +10,6 @@ spec:
     - port: 8088
       targetPort: 8088
       protocol: TCP
-      name: auth
+      name: http
   selector:
     app.kubernetes.io/name: auth-service
