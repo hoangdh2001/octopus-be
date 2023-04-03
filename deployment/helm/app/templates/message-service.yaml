@@ -10,5 +10,6 @@ spec:
     - port: 3000
       targetPort: 3000
       protocol: TCP
+      name: message
   selector:
     app.kubernetes.io/name: message-service

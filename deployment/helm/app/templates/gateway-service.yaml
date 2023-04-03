@@ -4,11 +4,18 @@ metadata:
   name: gateway
   labels:
     app.kubernetes.io/name: gateway
+    service.beta.kubernetes.io/do-loadbalancer-size-unit: "3"
+    service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "false"
+    service.beta.kubernetes.io/do-loadbalancer-hostname: "api.octopus.com"
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
+    service.beta.kubernetes.io/do-loadbalancer-name: "api.octopus.com"
 spec:
-  type: {{ .Values.gatewayDesc.ServiceType }}
+  type: {{ .Values.gatewayDesc.serviceType }}
   ports:
     - port: 80
       targetPort: 80
       protocol: TCP
+      name: http
   selector:
     app.kubernetes.io/name: gateway
+  sessionAffinity: None

@@ -31,6 +31,7 @@ spec:
           image: "{{ .Values.authDesc.image }}"
           imagePullPolicy: {{ .Values.authDesc.pullPolicy }}
           ports:
+            - name: auth
               containerPort: 8088
               protocol: TCP
           livenessProbe:

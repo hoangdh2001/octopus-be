@@ -26,7 +26,7 @@ gatewayDesc:
   # image: <image>
   replicaCount: 1
   pullPolicy: Always
-  serviceType: ClusterIP
+  serviceType: LoadBalancer
   # coreProfiles: <profiles>
   # coreDbConfigProfiles: <profiles>
   resources:

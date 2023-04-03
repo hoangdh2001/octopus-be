@@ -31,6 +31,7 @@ spec:
           image: "{{ .Values.messageDesc.image }}"
           imagePullPolicy: {{ .Values.messageDesc.pullPolicy }}
           ports:
+            - name: message
               containerPort: 3000
               protocol: TCP
           livenessProbe:

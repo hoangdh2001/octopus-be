@@ -79,7 +79,7 @@ nginx.ingress.kubernetes.io/configuration-snippet: |
 Domain names of own applications.
 */}}
 {{- define "gateway.domain" -}}
-api.{{ required "ingress.domainSuffix missing" .Values.ingress.domainSuffix }}
+{{ required "ingress.domainSuffix missing" .Values.ingress.domainSuffix }}
 {{- end -}}
 
 {{- define "gateway.secondaryDomain" -}}
@@ -132,7 +132,7 @@ api.{{ .Values.ingress.secondaryDomainSuffix }}
 
 {{- define "kafka.envVars" -}}
 - name: KAFKA_HOST
-  value: kafka.octopus-backend.svc.cluster.local
+  value: "kafka.octopus-backend.svc.cluster.local"
 - name: KAFKA_PORT
   value: "9092"
 {{- end -}}
