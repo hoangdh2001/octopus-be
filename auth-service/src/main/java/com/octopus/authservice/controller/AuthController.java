@@ -8,7 +8,6 @@ import com.octopus.authservice.dto.response.VerifyResponse;
 import com.octopus.authservice.mapper.UserMapper;
 import com.octopus.authservice.messaging.producer.KafkaProducer;
 import com.octopus.authservice.model.User;
-import com.octopus.authservice.security.models.AuthRequestModel;
 import com.octopus.authservice.security.models.TokenResponse;
 import com.octopus.authservice.service.OTPService;
 import com.octopus.authservice.service.UserService;
@@ -28,7 +27,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -68,7 +66,9 @@ public class AuthController {
     public ResponseEntity<VerifyResponse> requestVerify(@Valid @RequestBody VerifyRequest verifyRequest) {
         var verificationType = Code.VerificationType.LOGIN;
         if (!this.userService.existByEmailAndEnableIsTrue(verifyRequest.getEmail())) {
-            userService.createUserTemp(verifyRequest.getEmail());
+            if (!this.userService.existByEmail(verifyRequest.getEmail())) {
+                userService.createUserTemp(verifyRequest.getEmail());
+            }
             verificationType = Code.VerificationType.SIGN_UP;
         }
 

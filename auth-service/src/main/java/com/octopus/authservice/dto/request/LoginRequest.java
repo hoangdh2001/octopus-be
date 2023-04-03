@@ -47,7 +47,6 @@ public class LoginRequest {
     @NotBlank
     @NotNull
     private String email;
-    @Password
     private String password;
     private String code;
     @NotNull
