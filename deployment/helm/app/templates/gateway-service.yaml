@@ -4,6 +4,7 @@ metadata:
   name: gateway
   labels:
     app.kubernetes.io/name: gateway
+    kubernetes.digitalocean.com/load-balancer-id: "octopus-load-balancer"
     service.beta.kubernetes.io/do-loadbalancer-size-unit: "3"
     service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "false"
     service.beta.kubernetes.io/do-loadbalancer-hostname: "api.octopus.com"
