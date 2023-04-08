@@ -136,3 +136,8 @@ api.{{ .Values.ingress.secondaryDomainSuffix }}
 - name: KAFKA_PORT
   value: "9092"
 {{- end -}}
+
+{{- define "domain" -}}
+- name: DOMAIN
+  value: '137.184.249.59'
+{{- end -}}

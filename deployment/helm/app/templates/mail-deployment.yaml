@@ -45,8 +45,7 @@ spec:
             {{- include "redis.envVars" . | nindent 10 }}
             {{- include "auth.envVars" . | nindent 10 }}
             {{- include "kafka.envVars" . | nindent 10 }}
-            - name: DOMAIN
-              value: '137.184.249.59'
+            {{- include "domain" . | nindent 10 }}
           resources:
             {{- toYaml .Values.mailDesc.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
