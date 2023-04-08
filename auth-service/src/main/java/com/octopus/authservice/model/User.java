@@ -58,7 +58,7 @@ public class User implements Serializable {
     @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Column(name = "enabled")
+    @Column(name = "enabled", columnDefinition = "bit default 0")
     private Boolean enabled = false;
 
     @Column(name = "created_date")
