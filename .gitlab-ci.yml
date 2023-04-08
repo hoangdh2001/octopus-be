@@ -58,6 +58,7 @@ maven-build:
     when: on_success
     paths:
       - "**/target/*.jar"
+    expire_in: 1 day
 
 build:
   stage: build
@@ -145,5 +146,5 @@ deploy:
     - .release-develop-or-tag
     - .deploy
   when: on_success
-  
-  
+
+

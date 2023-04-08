@@ -3,6 +3,7 @@ package com.octopus.mailservice.service;
 import com.octopus.dtomodels.Code;
 import com.octopus.mailservice.email.Utility;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -19,6 +20,9 @@ import java.util.Locale;
 @RequiredArgsConstructor
 @Transactional
 public class SendMailServiceImpl implements SendMailService{
+
+    @Value("${server.domain}")
+    private final String domain;
     private final TemplateEngine templateEngine;
     @Override
     public void sendActivationEmail(Code code) throws MessagingException {
@@ -28,7 +32,7 @@ public class SendMailServiceImpl implements SendMailService{
 
         Context ctx = new Context(locale);
 
-        String verifyURL = String.format("http://localhost:8088?type=%s&code=%s&email=%s", code.getVerificationType().getType(), code.getVerificationCode(), code.getEmail());
+        String verifyURL = String.format("http://%s?type=%s&code=%s&email=%s", domain, code.getVerificationType().getType(), code.getVerificationCode(), code.getEmail());
         ctx.setVariable("url", verifyURL);
 
         ctx.setVariable("otp", code.getOtp());
@@ -37,7 +41,7 @@ public class SendMailServiceImpl implements SendMailService{
         MimeMessageHelper helper = new  MimeMessageHelper(message, false, "utf-8");
 
         helper.setTo(code.getEmail());
-        helper.setSubject("Octopus Team");
+        helper.setSubject(String.format("Sign into Octopus: %s", code.getOtp()));
 
         String s = "authmails/email_loginwithpassword.html";
         String htmlContent = templateEngine.process(s, ctx);
