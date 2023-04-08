@@ -42,7 +42,7 @@ public class OTPGenerator {
     public Integer generateOTP(String key)
     {
         Random random = new Random();
-        int OTP = 100000 + random.nextInt(900000);
+        int OTP = 1000 + random.nextInt(9000);
         otpCache.put(key, OTP);
 
         return OTP;
