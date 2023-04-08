@@ -22,7 +22,7 @@ import java.util.Locale;
 public class SendMailServiceImpl implements SendMailService{
 
     @Value("${server.domain}")
-    private final String domain;
+    private String domain;
     private final TemplateEngine templateEngine;
     @Override
     public void sendActivationEmail(Code code) throws MessagingException {
