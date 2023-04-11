@@ -23,5 +23,5 @@ public class WorkSpaceMember implements Serializable {
     private String description;
 
     @Column(name="user_id")
-    private String userId;
+    private int userId;
 }

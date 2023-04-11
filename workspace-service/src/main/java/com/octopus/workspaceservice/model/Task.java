@@ -1,9 +1,12 @@
 package com.octopus.workspaceservice.model;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,14 +26,23 @@ public class Task implements Serializable {
     private String description;
 
     @Column(name="create_time")
-    private String createTime;
+    @CreatedDate
+    private Date createTime;
 
     @Column(name="create_by")
     private String createBy;
 
     @Column(name="update_time")
-    private String updateTime;
+    @LastModifiedDate
+    private Date updateTime;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TaskStatus> taskStatuses = new HashSet<>();
+
+    @OneToMany(mappedBy = "taskRoot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Task> tasks = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "task_id")
+    private Task taskRoot;
 }

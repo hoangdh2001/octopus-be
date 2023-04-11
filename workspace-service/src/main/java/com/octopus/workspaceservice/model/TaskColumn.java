@@ -1,9 +1,12 @@
 package com.octopus.workspaceservice.model;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 @Entity
 @Table(name = "task_column")
@@ -21,8 +24,10 @@ public class TaskColumn implements Serializable {
     private String value;
 
     @Column(name="create_time")
-    private String createTime;
+    @CreatedDate
+    private Date createTime;
 
     @Column(name="update_time")
-    private String updateTime;
+    @LastModifiedDate
+    private Date updateTime;
 }

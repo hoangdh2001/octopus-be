@@ -1,6 +1,8 @@
 package com.octopus.workspaceservice.model;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -26,9 +28,11 @@ public class Space implements Serializable {
     private boolean status;
 
     @Column(name="create_time")
+    @CreatedDate
     private String createTime;
 
     @Column(name="update_time")
+    @LastModifiedDate
     private String updateTime;
 
     @ManyToOne
@@ -37,4 +41,12 @@ public class Space implements Serializable {
 
     @OneToMany(mappedBy = "space", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Columns> columns = new HashSet<>();
+
+    @OneToMany(mappedBy = "spaceRoot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Space> spaces = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "space_id")
+    private Space spaceRoot;
+
 }
