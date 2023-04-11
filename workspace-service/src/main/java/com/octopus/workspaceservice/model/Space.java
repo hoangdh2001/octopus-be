@@ -6,6 +6,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,11 +30,11 @@ public class Space implements Serializable {
 
     @Column(name="create_time")
     @CreatedDate
-    private String createTime;
+    private Date createTime;
 
     @Column(name="update_time")
     @LastModifiedDate
-    private String updateTime;
+    private Date updateTime;
 
     @ManyToOne
     @JoinColumn(name = "project_id")

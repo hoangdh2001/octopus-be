@@ -21,12 +21,12 @@ public class SpaceServiceImpl implements SpaceService {
     }
 
     @Override
-    public void deleteProject(int id) {
+    public void deleteSpace(int id) {
         this.spaceRepository.deleteById(id);
     }
 
     @Override
-    public Space updateProject(Space space) {
+    public Space updateSpace(Space space) {
         return this.spaceRepository.save(space);
     }
 
@@ -36,7 +36,7 @@ public class SpaceServiceImpl implements SpaceService {
     }
 
     @Override
-    public Space searchProject(String key) {
+    public Space searchSpace(String key) {
         return this.spaceRepository.findByKeyword(key);
     }
 }

@@ -1,6 +1,5 @@
 package com.octopus.workspaceservice.service;
 
-import com.octopus.workspaceservice.model.Project;
 import com.octopus.workspaceservice.model.Task;
 
 import java.util.Optional;

@@ -2,6 +2,7 @@ package com.octopus.workspaceservice.controller;
 
 import com.octopus.workspaceservice.dto.request.WorkspaceRequest;
 import com.octopus.workspaceservice.model.WorkSpace;
+import com.octopus.workspaceservice.service.WorkspaceMemberService;
 import com.octopus.workspaceservice.service.WorkspaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -23,6 +24,8 @@ public class WorkspaceController {
 
     @Autowired
     private WorkspaceService workspaceService;
+    @Autowired
+    private WorkspaceMemberService workspaceMemberService;
 
     @Operation(summary = "Create Workspace", description = "Create Workspace")
     @PostMapping("/createWorkspace")
