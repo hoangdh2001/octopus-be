@@ -1,7 +1,9 @@
 package com.octopus.workspaceservice.controller;
 
+import com.octopus.workspaceservice.dto.request.WorkspaceMemberRequest;
 import com.octopus.workspaceservice.dto.request.WorkspaceRequest;
 import com.octopus.workspaceservice.model.WorkSpace;
+import com.octopus.workspaceservice.model.WorkSpaceMember;
 import com.octopus.workspaceservice.service.WorkspaceMemberService;
 import com.octopus.workspaceservice.service.WorkspaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -82,6 +85,75 @@ public class WorkspaceController {
     })
     public ResponseEntity<WorkSpace> findByKeyWorks(@PathVariable("key") String key){
         return ResponseEntity.ok().body(workspaceService.searchWorkspace(key));
+    }
+
+    @Operation(summary = "Get all data workspace", description = "Get all data workspace")
+    @GetMapping("/")
+    @ApiResponses({
+            @ApiResponse(responseCode = "209", description = "Get all data workspace"),
+            @ApiResponse(responseCode = "411", description = "Not find member")
+    })
+    public ResponseEntity<List<WorkSpace>> getAllWorkspace(){
+        return ResponseEntity.ok().body(workspaceService.getAllWorkspace());
+    }
+
+    @Operation(summary = "Add Workspace member", description = "Add Workspace member")
+    @PostMapping("/member/add")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Add Workspace member"),
+            @ApiResponse(responseCode = "406", description = "Unauthorized")
+    })
+    public ResponseEntity<WorkSpaceMember> addWorkspaceMember(@Valid @RequestBody WorkspaceMemberRequest workspaceMemberRequest){
+        WorkSpaceMember space = new WorkSpaceMember();
+        space.setDescription(workspaceMemberRequest.getDescription());
+        space.setUserId(workspaceMemberRequest.getUserId());
+
+        return ResponseEntity.ok().body(workspaceMemberService.addMember(space));
+    }
+
+    @Operation(summary = "Update Workspace member", description = "Update Workspace member")
+    @PutMapping("/member/{workspacemember_id}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "205", description = "Update Workspace member"),
+            @ApiResponse(responseCode = "407", description = "Unauthorized")
+    })
+    public ResponseEntity<WorkSpaceMember> updateWorkspaceMember(@RequestBody WorkspaceMemberRequest workspaceMemberRequest, @PathVariable("workspacemember_id") Integer id){
+        Optional<WorkSpaceMember> space = workspaceMemberService.findMemberById(id);
+        space.get().setDescription(workspaceMemberRequest.getDescription());
+        space.get().setUserId(workspaceMemberRequest.getUserId());
+
+        return ResponseEntity.ok().body(workspaceMemberService.updateMember(space.get()));
+    }
+
+    @Operation(summary = "Delete Workspace member", description = "Delete Workspace member")
+    @DeleteMapping("member/{workspacemember_id}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "206", description = "Delete Workspace"),
+            @ApiResponse(responseCode = "408", description = "Unauthorized")
+    })
+    public ResponseEntity<?> deleteWorkspaceMember(@PathVariable("workspacemember_id") Integer id) {
+        workspaceMemberService.deleteMember(id);
+        return ResponseEntity.ok().body("Workspace member has been deleted successfully.");
+    }
+
+    @Operation(summary = "Find workspace member by id", description = "Find workspace member by id")
+    @GetMapping("/member/{id}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "207", description = "Find workspace member by id"),
+            @ApiResponse(responseCode = "409", description = "Not find workspace")
+    })
+    public ResponseEntity<Optional<WorkSpaceMember>> findMemberById(@PathVariable("id") int id){
+        return ResponseEntity.ok().body(workspaceMemberService.findMemberById(id));
+    }
+
+    @Operation(summary = "Get all data workspace member", description = "Get all data workspace member")
+    @GetMapping("/member")
+    @ApiResponses({
+            @ApiResponse(responseCode = "208", description = "Get all data workspace member"),
+            @ApiResponse(responseCode = "410", description = "Not find member")
+    })
+    public ResponseEntity<List<WorkSpaceMember>> getAllWorkspaceMember(){
+        return ResponseEntity.ok().body(workspaceMemberService.getAllWorkspaceMember());
     }
 
 }

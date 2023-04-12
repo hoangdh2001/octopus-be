@@ -4,6 +4,7 @@ import com.octopus.workspaceservice.model.Project;
 import com.octopus.workspaceservice.model.WorkSpace;
 import com.octopus.workspaceservice.model.WorkSpaceMember;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface WorkspaceService {
@@ -13,5 +14,6 @@ public interface WorkspaceService {
     public WorkSpace updateWorkspace(WorkSpace workSpace);
     public WorkSpace searchWorkspace(String key);
     public Optional<WorkSpace> findById(int id);
+    public List<WorkSpace> getAllWorkspace();
 
 }

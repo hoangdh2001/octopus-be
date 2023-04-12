@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,5 +43,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     public Optional<WorkSpace> findById(int id) {
         return this.workspaceRepository.findById(id);
     }
+
+    @Override
+    public List<WorkSpace> getAllWorkspace() {
+        return this.workspaceRepository.findAll();
+    }
+
 
 }
