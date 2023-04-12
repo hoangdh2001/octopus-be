@@ -213,7 +213,7 @@ public class WorkspaceController {
     }
 
     @Operation(summary = "Get all data role workspace", description = "Get all data role workspace")
-    @GetMapping("/member")
+    @GetMapping("/role")
     @ApiResponses({
             @ApiResponse(responseCode = "214", description = "Get all data role workspace"),
             @ApiResponse(responseCode = "416", description = "Not find member")
