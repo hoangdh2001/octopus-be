@@ -1,9 +1,12 @@
 package com.octopus.workspaceservice.controller;
 
+import com.octopus.workspaceservice.dto.request.RoleWorkspaceRequest;
 import com.octopus.workspaceservice.dto.request.WorkspaceMemberRequest;
 import com.octopus.workspaceservice.dto.request.WorkspaceRequest;
+import com.octopus.workspaceservice.model.RoleWorkSpace;
 import com.octopus.workspaceservice.model.WorkSpace;
 import com.octopus.workspaceservice.model.WorkSpaceMember;
+import com.octopus.workspaceservice.service.RoleWorkspaceService;
 import com.octopus.workspaceservice.service.WorkspaceMemberService;
 import com.octopus.workspaceservice.service.WorkspaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +32,8 @@ public class WorkspaceController {
     private WorkspaceService workspaceService;
     @Autowired
     private WorkspaceMemberService workspaceMemberService;
+    @Autowired
+    private RoleWorkspaceService roleWorkspaceService;
 
     @Operation(summary = "Create Workspace", description = "Create Workspace")
     @PostMapping("/createWorkspace")
@@ -154,6 +159,67 @@ public class WorkspaceController {
     })
     public ResponseEntity<List<WorkSpaceMember>> getAllWorkspaceMember(){
         return ResponseEntity.ok().body(workspaceMemberService.getAllWorkspaceMember());
+    }
+
+    @Operation(summary = "Add Role Workspace", description = "Add Role Workspace")
+    @PostMapping("/role/add")
+    @ApiResponses({
+            @ApiResponse(responseCode = "210", description = "Add Role Workspace"),
+            @ApiResponse(responseCode = "412", description = "Unauthorized")
+    })
+    public ResponseEntity<RoleWorkSpace> addRole(@Valid @RequestBody RoleWorkspaceRequest roleWorkspaceRequest){
+        RoleWorkSpace role = new RoleWorkSpace();
+        role.setName(roleWorkspaceRequest.getName());
+        role.setDescription(roleWorkspaceRequest.getDescription());
+        role.setUserId(roleWorkspaceRequest.getUserId());
+
+        return ResponseEntity.ok().body(roleWorkspaceService.addRoleWorkspace(role));
+    }
+
+    @Operation(summary = "Update Role Workspace", description = "Update Role Workspace")
+    @PutMapping("/role/{role_id}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "211", description = "Update Role Workspace"),
+            @ApiResponse(responseCode = "413", description = "Unauthorized")
+    })
+    public ResponseEntity<RoleWorkSpace> updateRole(@RequestBody RoleWorkspaceRequest roleWorkspaceRequest, @PathVariable("role_id") Integer id){
+        Optional<RoleWorkSpace> role = roleWorkspaceService.findRoleWorkspaceById(id);
+        role.get().setName(roleWorkspaceRequest.getName());
+        role.get().setDescription(roleWorkspaceRequest.getDescription());
+        role.get().setUserId(roleWorkspaceRequest.getUserId());
+
+        return ResponseEntity.ok().body(roleWorkspaceService.updateRoleWorkspace(role.get()));
+    }
+
+    @Operation(summary = "Delete Role Workspace", description = "Delete Role Workspace")
+    @DeleteMapping("role/{role_id}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "212", description = "Delete Role Workspace"),
+            @ApiResponse(responseCode = "414", description = "Unauthorized")
+    })
+    public ResponseEntity<?> deleteRole(@PathVariable("role_id") Integer id) {
+        roleWorkspaceService.deleteRoleWorkspace(id);
+        return ResponseEntity.ok().body("Role Workspace has been deleted successfully.");
+    }
+
+    @Operation(summary = "Find role workspace by id", description = "Find role workspace by id")
+    @GetMapping("/role/{id}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "213", description = "Find role workspace by id"),
+            @ApiResponse(responseCode = "415", description = "Not find workspace")
+    })
+    public ResponseEntity<Optional<RoleWorkSpace>> findRoleById(@PathVariable("id") int id){
+        return ResponseEntity.ok().body(roleWorkspaceService.findRoleWorkspaceById(id));
+    }
+
+    @Operation(summary = "Get all data role workspace", description = "Get all data role workspace")
+    @GetMapping("/member")
+    @ApiResponses({
+            @ApiResponse(responseCode = "214", description = "Get all data role workspace"),
+            @ApiResponse(responseCode = "416", description = "Not find member")
+    })
+    public ResponseEntity<List<RoleWorkSpace>> getAllRole(){
+        return ResponseEntity.ok().body(roleWorkspaceService.getAllRoleWorkspace());
     }
 
 }
