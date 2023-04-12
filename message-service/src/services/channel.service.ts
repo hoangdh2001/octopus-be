@@ -18,7 +18,7 @@ export class ChannelService {
   }
 
   async findAllByUser(
-    userID: number,
+    userID: string,
     documentToSkip: number = 0,
     limitOfDocuments: number = 10,
   ) {
@@ -32,7 +32,7 @@ export class ChannelService {
     return channels;
   }
 
-  async countByUserID(userID: number): Promise<number> {
+  async countByUserID(userID: string): Promise<number> {
     const count = await this.channelModel
       .find({
         members: { $elemMatch: { userID: userID } },

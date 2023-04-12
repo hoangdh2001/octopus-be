@@ -10,8 +10,8 @@ export class MessageReaction {
   })
   reaction: string;
 
-  @Prop({ type: Number, required: true })
-  reacter_id: number;
+  @Prop({ type: String, required: true })
+  reacter_id: string;
 }
 
 export const MessageReactionSchema =
@@ -27,8 +27,8 @@ export class Message {
   @Prop({ type: Boolean, default: false })
   updated?: boolean;
 
-  @Prop({ type: Number, required: true })
-  senderID: number;
+  @Prop({ type: String, required: true })
+  senderID: string;
 
   @Prop({
     type: String,

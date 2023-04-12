@@ -3,8 +3,8 @@ import { HydratedDocument } from 'mongoose';
 
 @Schema({ _id: false, timestamps: true })
 export class ChannelMember {
-  @Prop({ type: Number, required: true })
-  userID: number;
+  @Prop({ type: String, required: true })
+  userID: string;
 
   @Prop({ type: Boolean, default: true })
   activeNotify?: boolean;
