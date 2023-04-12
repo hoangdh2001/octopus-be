@@ -21,8 +21,8 @@ export class CreateChannelDTO {
   name?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
+  @IsString()
+  @Type(() => String)
   userID?: string;
 }
 
