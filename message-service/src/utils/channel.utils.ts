@@ -10,7 +10,7 @@ export const convertChannelDTO = async ({
   callMembers,
 }: {
   channel: Channel;
-  userID?: number;
+  userID?: string;
   messages?: Message[];
   callMembers: (member: ChannelMember) => Promise<ChannelMemberDTO>;
 }): Promise<ChannelDTO> => {

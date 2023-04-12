@@ -192,7 +192,7 @@ public class AuthController {
                 .accessToken(token)
                 .tokenType("Bearer")
                 .expiredIn(exp.getTime())
-                .userDTO(mapper.mapToUserDTO(user))
+                .user(mapper.mapToUserDTO(user))
                 .verificationType(Code.VerificationType.LOGIN)
                 .build();
     }

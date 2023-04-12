@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 @Description(value = "Service for generating and validating verification code.")
 @Service
 public class VerificationCodeGenerator {
-    private static final Integer EXPIRE_MIN = 5;
+    private static final Integer EXPIRE_MIN = 15;
     private LoadingCache<String, String> verificationCodeCache;
 
     /**

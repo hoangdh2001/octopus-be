@@ -22,7 +22,7 @@ spring:
         - id: message-service
           uri: lb://message-service
           predicates:
-            - Path=/api/channels/**, /channels/**
+            - Path=/api/channels/**, /channels/**, /**
     discovery:
       enabled: true
 logging:

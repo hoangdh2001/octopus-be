@@ -15,6 +15,6 @@ public class TokenResponse {
     private String accessToken;
     private String tokenType;
     private Long expiredIn;
-    private UserDTO userDTO;
+    private UserDTO user;
     private Code.VerificationType verificationType;
 }

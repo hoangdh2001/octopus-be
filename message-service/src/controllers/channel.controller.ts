@@ -96,8 +96,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     @Headers('Authorization') token?: string,
   ) {
     let { newMembers, name, userID } = createChannelDTO;
-    if (!userID || userID === 0) {
-      const { id }: { id: number } = this.jwtService.decode(
+    if (!userID || userID.trim().length === 0) {
+      const { id }: { id: string } = this.jwtService.decode(
         token?.split(' ')[1] || '',
       ) as any;
       userID = id;

@@ -13,7 +13,7 @@ import { MessageDTO } from './message.dto';
 
 export class CreateChannelDTO {
   @IsArray()
-  newMembers: number[];
+  newMembers: string[];
 
   @IsOptional()
   @Type(() => String)
@@ -21,14 +21,14 @@ export class CreateChannelDTO {
   name?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  userID?: number;
+  @IsString()
+  @Type(() => String)
+  userID?: string;
 }
 
 export type ChannelMemberDTO = {
   user?: UserDTO;
-  userID?: number;
+  userID?: string;
 };
 
 export type ChannelInfo = Pick<
@@ -46,9 +46,9 @@ export type ChannelDTO = {
 };
 
 export class ChannelPaginationParams {
-  @Type(() => Number)
+  @Type(() => String)
   @IsString()
-  userID: number;
+  userID: string;
 
   @IsOptional()
   @Type(() => Number)

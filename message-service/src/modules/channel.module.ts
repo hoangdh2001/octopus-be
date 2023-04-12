@@ -28,23 +28,19 @@ import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
           .default('development'),
         PORT: Joi.number().default(3000),
         EUREKA_HOST: Joi.string().default('localhost'),
-        DB_USERNAME: Joi.string().default('admin'),
-        DB_PASSWORD: Joi.string().default('admin'),
-        DB_HOST: Joi.string().default('localhost'),
-        DB_PORT: Joi.string().default('27017'),
-        DB_DATABASE: Joi.string().default('messagedb'),
+        MONGODB_API: Joi.string(),
+        MONGODB_USER: Joi.string(),
+        MONGODB_PASS: Joi.string(),
+        KAFKA_HOST: Joi.string().default('localhost'),
+        KAFKA_PORT: Joi.string().default('9092'),
       }),
     }),
     MongooseModule.forRootAsync({
       useFactory: () => {
-        console.log(
-          `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}?authMechanism=DEFAULT&authSource=messagedb`,
-        );
         return {
-          uri: `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`,
-          user: process.env.DB_USERNAME,
-          pass: process.env.DB_PASSWORD,
-          dbName: process.env.DB_DATABASE,
+          uri: process.env.MONGODB_API,
+          user: process.env.MONGODB_USER,
+          pass: process.env.MONGODB_PASS,
         };
       },
     }),
@@ -62,13 +58,19 @@ import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
         port: parseInt(process.env.PORT, 10),
       },
     }),
-    JwtModule.register({ secret: 'khoa_luan_tot_nghiep_nhom40_octopus' }),
+    JwtModule.register({
+      secret: 'khoa_luan_tot_nghiep_nhom40_octopus',
+      signOptions: {
+        algorithm: 'HS512',
+        expiresIn: 24 * 60 * 60,
+      },
+    }),
     KafkaModule.register([
       {
         name: 'MESSAGE_SERVICE',
         options: {
           client: {
-            brokers: ['localhost:9092'],
+            brokers: [`${process.env.KAFKA_HOST}:${process.env.KAFKA_PORT}`],
           },
           consumer: {
             groupId: 'message-consumer',
