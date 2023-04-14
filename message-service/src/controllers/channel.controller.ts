@@ -59,7 +59,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
   @Get('/search')
   async findAllByUser(
-    @Query() { userID, skip, limit }: ChannelPaginationParams,
+    @Query() { userID, skip = 0, limit = 10 }: ChannelPaginationParams,
   ): Promise<Pagination> {
     const totalItem = await this.channelService.countByUserID(userID);
     const totalPage = Math.floor(totalItem / limit) + 1;
@@ -87,7 +87,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 
-    return { skip, limit, totalItem, totalPage, data };
+    return {
+      skip: Number.parseInt(skip.toString()),
+      limit: Number.parseInt(limit.toString()),
+      totalItem,
+      totalPage,
+      data,
+    };
   }
 
   @Post()
@@ -149,7 +155,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 
-    return { skip, limit, totalItem, totalPage, data };
+    return {
+      skip: Number.parseInt(skip.toString()),
+      limit: Number.parseInt(limit.toString()),
+      totalItem,
+      totalPage,
+      data,
+    };
   }
 
   @Post('/:channelID/messages')
