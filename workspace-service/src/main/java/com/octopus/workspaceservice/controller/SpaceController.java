@@ -31,7 +31,7 @@ public class SpaceController {
     public ResponseEntity<Space> createSpace(@Valid @RequestBody SpaceRequest spaceRequest){
         Space space = new Space();
         space.setName(spaceRequest.getName());
-        space.setStatus(spaceRequest.isStatus());
+        space.setStatus(true);
         space.setCreateTime(spaceRequest.getCreateTime());
         space.setUpdateTime(spaceRequest.getUpdateTime());
 
@@ -47,7 +47,7 @@ public class SpaceController {
     public ResponseEntity<Space> updateSpace(@RequestBody SpaceRequest spaceRequest, @PathVariable("space_id") Integer id){
         Optional<Space> space = spaceService.findById(id);
         space.get().setName(spaceRequest.getName());
-        space.get().setStatus(spaceRequest.isStatus());
+        space.get().setStatus(true);
         space.get().setCreateTime(spaceRequest.getCreateTime());
         space.get().setUpdateTime(spaceRequest.getUpdateTime());
 

@@ -34,6 +34,7 @@ public class TaskController {
         task.setCreateBy(taskRequest.getCreateBy());
         task.setUpdateTime(taskRequest.getUpdateTime());
         task.setDescription(taskRequest.getDescription());
+        task.setStatus(true);
 
         return ResponseEntity.ok().body(taskService.createTask(task));
     }
@@ -50,6 +51,7 @@ public class TaskController {
         task.get().setCreateBy(taskRequest.getCreateBy());
         task.get().setUpdateTime(taskRequest.getUpdateTime());
         task.get().setDescription(taskRequest.getDescription());
+        task.get().setStatus(true);
 
         return ResponseEntity.ok().body(taskService.updateTask(task.get()));
     }

@@ -1,5 +1,6 @@
 package com.octopus.workspaceservice.controller;
 
+import com.octopus.authutils.SecurityUtils;
 import com.octopus.workspaceservice.dto.request.RoleWorkspaceRequest;
 import com.octopus.workspaceservice.dto.request.WorkspaceMemberRequest;
 import com.octopus.workspaceservice.dto.request.WorkspaceRequest;
@@ -110,8 +111,9 @@ public class WorkspaceController {
     })
     public ResponseEntity<WorkSpaceMember> addWorkspaceMember(@Valid @RequestBody WorkspaceMemberRequest workspaceMemberRequest){
         WorkSpaceMember space = new WorkSpaceMember();
+        SecurityUtils securityUtils = new SecurityUtils();
         space.setDescription(workspaceMemberRequest.getDescription());
-        space.setUserId(workspaceMemberRequest.getUserId());
+        space.setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(workspaceMemberService.addMember(space));
     }
@@ -124,8 +126,9 @@ public class WorkspaceController {
     })
     public ResponseEntity<WorkSpaceMember> updateWorkspaceMember(@RequestBody WorkspaceMemberRequest workspaceMemberRequest, @PathVariable("workspacemember_id") Integer id){
         Optional<WorkSpaceMember> space = workspaceMemberService.findMemberById(id);
+        SecurityUtils securityUtils = new SecurityUtils();
         space.get().setDescription(workspaceMemberRequest.getDescription());
-        space.get().setUserId(workspaceMemberRequest.getUserId());
+        space.get().setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(workspaceMemberService.updateMember(space.get()));
     }
@@ -169,9 +172,10 @@ public class WorkspaceController {
     })
     public ResponseEntity<RoleWorkSpace> addRole(@Valid @RequestBody RoleWorkspaceRequest roleWorkspaceRequest){
         RoleWorkSpace role = new RoleWorkSpace();
+        SecurityUtils securityUtils = new SecurityUtils();
         role.setName(roleWorkspaceRequest.getName());
         role.setDescription(roleWorkspaceRequest.getDescription());
-        role.setUserId(roleWorkspaceRequest.getUserId());
+        role.setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(roleWorkspaceService.addRoleWorkspace(role));
     }
@@ -184,9 +188,10 @@ public class WorkspaceController {
     })
     public ResponseEntity<RoleWorkSpace> updateRole(@RequestBody RoleWorkspaceRequest roleWorkspaceRequest, @PathVariable("role_id") Integer id){
         Optional<RoleWorkSpace> role = roleWorkspaceService.findRoleWorkspaceById(id);
+        SecurityUtils securityUtils = new SecurityUtils();
         role.get().setName(roleWorkspaceRequest.getName());
         role.get().setDescription(roleWorkspaceRequest.getDescription());
-        role.get().setUserId(roleWorkspaceRequest.getUserId());
+        role.get().setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(roleWorkspaceService.updateRoleWorkspace(role.get()));
     }

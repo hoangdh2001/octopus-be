@@ -1,5 +1,6 @@
 package com.octopus.workspaceservice.controller;
 
+import com.octopus.authutils.SecurityUtils;
 import com.octopus.workspaceservice.dto.request.*;
 import com.octopus.workspaceservice.model.*;
 import com.octopus.workspaceservice.service.*;
@@ -105,8 +106,9 @@ public class ProjectController {
     })
     public ResponseEntity<WorkSpaceMember> addProjecteMember(@Valid @RequestBody ProjectRequest projectRequest){
         WorkSpaceMember member = new WorkSpaceMember();
+        SecurityUtils securityUtils = new SecurityUtils();
         member.setDescription(projectRequest.getName());
-        member.setUserId(projectRequest.getMemberId());
+        member.setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(projectMemberService.addMember(member));
     }
@@ -119,8 +121,9 @@ public class ProjectController {
     })
     public ResponseEntity<WorkSpaceMember> updateWorkspaceMember(@RequestBody WorkspaceMemberRequest workspaceMemberRequest, @PathVariable("workspacemember_id") Integer id){
         Optional<WorkSpaceMember> space = projectMemberService.findMemberById(id);
+        SecurityUtils securityUtils = new SecurityUtils();
         space.get().setDescription(workspaceMemberRequest.getDescription());
-        space.get().setUserId(workspaceMemberRequest.getUserId());
+        space.get().setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(projectMemberService.updateMember(space.get()));
     }
@@ -164,9 +167,10 @@ public class ProjectController {
     })
     public ResponseEntity<RoleProject> addRole(@Valid @RequestBody RoleWorkspaceRequest roleWorkspaceRequest){
         RoleProject role = new RoleProject();
+        SecurityUtils securityUtils = new SecurityUtils();
         role.setName(roleWorkspaceRequest.getName());
         role.setDescription(roleWorkspaceRequest.getDescription());
-        role.setUserId(roleWorkspaceRequest.getUserId());
+        role.setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(roleProjectService.addRoleProject(role));
     }
@@ -179,9 +183,10 @@ public class ProjectController {
     })
     public ResponseEntity<RoleProject> updateRole(@RequestBody RoleProjectRequest roleProjectRequest, @PathVariable("role_id") Integer id){
         Optional<RoleProject> role = roleProjectService.findRoleProjectById(id);
+        SecurityUtils securityUtils = new SecurityUtils();
         role.get().setName(roleProjectRequest.getName());
         role.get().setDescription(roleProjectRequest.getDescription());
-        role.get().setUserId(roleProjectRequest.getUserId());
+        role.get().setUserId(Integer.getInteger(securityUtils.getCurrentUser()));
 
         return ResponseEntity.ok().body(roleProjectService.updateRoleProject(role.get()));
     }
