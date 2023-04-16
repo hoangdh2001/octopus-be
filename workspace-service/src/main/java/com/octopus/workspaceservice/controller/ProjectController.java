@@ -40,7 +40,7 @@ public class ProjectController {
         project.setName(projectRequest.getName());
         project.setAvatar(projectRequest.getAvatar());
         project.setKey(projectRequest.getKey());
-        project.setStatus(projectRequest.isStatus());
+        project.setStatus(true);
         project.setCreateTime(projectRequest.getCreateTime());
         project.setUpdateTime(projectRequest.getUpdateTime());
         project.setDeleteTime(projectRequest.getDeleteTime());
@@ -59,7 +59,7 @@ public class ProjectController {
         Optional<Project> project = projectService.findById(id);
         project.get().setName(projectRequest.getName());
         project.get().setAvatar(projectRequest.getAvatar());
-        project.get().setStatus(projectRequest.isStatus());
+        project.get().setStatus(true);
         project.get().setCreateTime(projectRequest.getCreateTime());
         project.get().setUpdateTime(projectRequest.getUpdateTime());
         project.get().setDeleteTime(projectRequest.getDeleteTime());

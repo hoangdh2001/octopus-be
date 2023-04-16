@@ -46,7 +46,7 @@ public class WorkspaceController {
         WorkSpace space = new WorkSpace();
         space.setName(workspaceRequest.getName());
         space.setAvatar(workspaceRequest.getAvatar());
-        space.setStatus(workspaceRequest.isStatus());
+        space.setStatus(true);
         space.setCreateTime(workspaceRequest.getCreateTime());
         space.setUpdateTime(workspaceRequest.getUpdateTime());
         space.setDeleteTime(workspaceRequest.getDeleteTime());
@@ -64,7 +64,7 @@ public class WorkspaceController {
         Optional<WorkSpace> space = workspaceService.findById(id);
         space.get().setName(workspaceRequest.getName());
         space.get().setAvatar(workspaceRequest.getAvatar());
-        space.get().setStatus(workspaceRequest.isStatus());
+        space.get().setStatus(true);
         space.get().setCreateTime(workspaceRequest.getCreateTime());
         space.get().setUpdateTime(workspaceRequest.getUpdateTime());
         space.get().setDeleteTime(workspaceRequest.getDeleteTime());
