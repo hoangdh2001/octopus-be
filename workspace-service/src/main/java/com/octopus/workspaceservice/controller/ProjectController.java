@@ -30,7 +30,7 @@ public class ProjectController {
     private WorkspaceService workspaceService;
 
     @Operation(summary = "Create Project", description = "Create Project")
-    @PostMapping("/createWorkspace")
+    @PostMapping("/createProject")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Create Project"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
