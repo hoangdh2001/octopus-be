@@ -25,6 +25,9 @@ public class Task implements Serializable {
     @Column(name="description")
     private String description;
 
+    @Column(name="status")
+    private boolean status;
+
     @Column(name="create_time")
     @CreatedDate
     private Date createTime;
@@ -35,6 +38,10 @@ public class Task implements Serializable {
     @Column(name="update_time")
     @LastModifiedDate
     private Date updateTime;
+
+    @Column(name="delete_time")
+    @LastModifiedDate
+    private Date deleteTime;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TaskStatus> taskStatuses = new HashSet<>();

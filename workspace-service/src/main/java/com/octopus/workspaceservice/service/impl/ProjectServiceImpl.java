@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,7 +23,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void deleteProject(int id) {
-        this.projectRepository.deleteById(id);
+        this.projectRepository.findById(id).get().setStatus(false);
+        //this.projectRepository.deleteById(id);
     }
 
     @Override
@@ -38,5 +40,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project searchProject(String key) {
         return this.projectRepository.findByKeyword(key);
+    }
+
+    @Override
+    public List<Project> getAllProject() {
+        return this.projectRepository.findAllProject();
     }
 }

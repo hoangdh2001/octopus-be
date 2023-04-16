@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,7 +23,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void deleteTask(int id) {
-        this.taskRepository.deleteById(id);
+        this.taskRepository.findById(id).get().setStatus(false);
+        //this.taskRepository.deleteById(id);
     }
 
     @Override
@@ -38,5 +40,10 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task searchTask(String key) {
         return this.taskRepository.findByKeyword(key);
+    }
+
+    @Override
+    public List<Task> findAllTask() {
+        return this.taskRepository.findAllTask();
     }
 }

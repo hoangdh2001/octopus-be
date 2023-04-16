@@ -2,6 +2,7 @@ package com.octopus.workspaceservice.service;
 
 import com.octopus.workspaceservice.model.Task;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TaskService {
@@ -11,4 +12,5 @@ public interface TaskService {
     public Task updateTask(Task task);
     public Optional<Task> findById(int id);
     public Task searchTask(String key);
+    public List<Task> findAllTask();
 }

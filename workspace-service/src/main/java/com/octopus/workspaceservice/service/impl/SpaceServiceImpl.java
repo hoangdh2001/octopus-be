@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,7 +23,8 @@ public class SpaceServiceImpl implements SpaceService {
 
     @Override
     public void deleteSpace(int id) {
-        this.spaceRepository.deleteById(id);
+        this.spaceRepository.findById(id).get().setStatus(false);
+        //this.spaceRepository.deleteById(id);
     }
 
     @Override
@@ -38,5 +40,10 @@ public class SpaceServiceImpl implements SpaceService {
     @Override
     public Space searchSpace(String key) {
         return this.spaceRepository.findByKeyword(key);
+    }
+
+    @Override
+    public List<Space> findAllSpace() {
+        return this.spaceRepository.findAllSpace();
     }
 }

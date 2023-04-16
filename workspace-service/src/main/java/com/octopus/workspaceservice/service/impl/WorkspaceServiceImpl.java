@@ -26,7 +26,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     public void deleteWorkspace(int id) {
-        this.workspaceRepository.deleteById(id);
+        this.workspaceRepository.findById(id).get().setStatus(false);
+        //this.workspaceRepository.deleteById(id);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     public List<WorkSpace> getAllWorkspace() {
-        return this.workspaceRepository.findAll();
+        return this.workspaceRepository.findAllWorkspace();
     }
 
 

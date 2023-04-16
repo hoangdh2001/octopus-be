@@ -3,6 +3,7 @@ package com.octopus.workspaceservice.service;
 import com.octopus.workspaceservice.model.Project;
 import com.octopus.workspaceservice.model.Space;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SpaceService {
@@ -12,4 +13,5 @@ public interface SpaceService {
     public Space updateSpace(Space space);
     public Optional<Space> findById(int id);
     public Space searchSpace(String key);
+    public List<Space> findAllSpace();
 }

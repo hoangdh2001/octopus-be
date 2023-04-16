@@ -49,7 +49,7 @@ public class WorkSpace implements Serializable {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "workspace_member", joinColumns = @JoinColumn(name = "workspace_id"), inverseJoinColumns = @JoinColumn(name = "member_id"))
-    private Set<RoleWorkSpace> workspaceMembers = new HashSet<>();
+    private Set<WorkSpaceMember> workspaceMembers = new HashSet<>();
 
     @OneToMany(mappedBy = "workSpace", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Project> projects = new HashSet<>();

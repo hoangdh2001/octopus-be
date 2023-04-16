@@ -36,6 +36,10 @@ public class Space implements Serializable {
     @LastModifiedDate
     private Date updateTime;
 
+    @Column(name="delete_time")
+    @LastModifiedDate
+    private Date deleteTime;
+
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;

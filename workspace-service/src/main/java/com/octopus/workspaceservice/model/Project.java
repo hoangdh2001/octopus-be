@@ -56,4 +56,9 @@ public class Project implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "project_roles", joinColumns = @JoinColumn(name = "project_id"), inverseJoinColumns = @JoinColumn(name = "role_project_id"))
     private Set<RoleWorkSpace> roleProjects = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "project_member", joinColumns = @JoinColumn(name = "project_id"), inverseJoinColumns = @JoinColumn(name = "member_id"))
+    private Set<WorkSpaceMember> workspaceMembers = new HashSet<>();
+
 }

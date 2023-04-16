@@ -22,4 +22,6 @@ public class ProjectRequest {
     private Date createTime;
     private Date updateTime;
     private Date deleteTime;
+    private int workspaceId;
+    private int memberId;
 }

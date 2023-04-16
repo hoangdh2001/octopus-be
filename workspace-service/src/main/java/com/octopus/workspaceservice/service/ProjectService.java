@@ -2,6 +2,7 @@ package com.octopus.workspaceservice.service;
 
 import com.octopus.workspaceservice.model.Project;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProjectService {
@@ -11,4 +12,5 @@ public interface ProjectService {
     public Project updateProject(Project project);
     public Optional<Project> findById(int id);
     public Project searchProject(String key);
+    public List<Project> getAllProject();
 }
