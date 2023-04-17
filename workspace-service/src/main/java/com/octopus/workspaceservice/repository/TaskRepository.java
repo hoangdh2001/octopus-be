@@ -1,6 +1,7 @@
 package com.octopus.workspaceservice.repository;
 
 import com.octopus.workspaceservice.model.Project;
+import com.octopus.workspaceservice.model.Space;
 import com.octopus.workspaceservice.model.Task;
 import com.octopus.workspaceservice.model.WorkSpace;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,7 @@ public interface TaskRepository extends JpaRepository<Task, Integer> {
 
     @Query("select t from Task t where t.status = true")
     public List<Task> findAllTask();
+
+    @Query("SELECT t from Task t where day(t.createTime) = ?1 and month(t.createTime) = ?2 and year(t.createTime) = ?3")
+    public List<Task> findByDay(int day, int month, int year);
 }
