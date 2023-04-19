@@ -3,35 +3,25 @@ package com.octopus.authservice.service;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.annotation.Description;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @Description(value = "Service for generating and validating OTP.")
 @Service
+@RequiredArgsConstructor
 public class OTPGenerator {
 
-    private static final Integer EXPIRE_MIN = 15;
-    private LoadingCache<String, Integer> otpCache;
+    private static final Long EXPIRE_MIN = 15L;
+    private static final String PREFIX_KEY = "-otp";
 
-    /**
-     * Constructor configuration.
-     */
-    public OTPGenerator()
-    {
-        super();
-        otpCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(EXPIRE_MIN, TimeUnit.MINUTES)
-                .build(new CacheLoader<String, Integer>() {
-                    @Override
-                    public Integer load(String s) throws Exception {
-                        return 0;
-                    }
-                });
-    }
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * Method for generating OTP and put it in cache.
@@ -42,9 +32,8 @@ public class OTPGenerator {
     public Integer generateOTP(String key)
     {
         Random random = new Random();
-        int OTP = 1000 + random.nextInt(9000);
-        otpCache.put(key, OTP);
-
+        var OTP = 1000 + random.nextInt(9000);
+        redisTemplate.opsForValue().set(key + PREFIX_KEY, OTP, EXPIRE_MIN, TimeUnit.MINUTES);
         return OTP;
     }
 
@@ -56,7 +45,11 @@ public class OTPGenerator {
      */
     public Integer getOPTByKey(String key)
     {
-        return otpCache.getIfPresent(key);
+        var value = redisTemplate.opsForValue().get(key + PREFIX_KEY);
+        if (value == null) {
+            return null;
+        }
+        return Integer.parseInt(value.toString());
     }
 
     /**
@@ -65,6 +58,6 @@ public class OTPGenerator {
      * @param key - target key
      */
     public void clearOTPFromCache(String key) {
-        otpCache.invalidate(key);
+        redisTemplate.delete(key + PREFIX_KEY);
     }
 }

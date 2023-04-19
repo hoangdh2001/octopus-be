@@ -59,6 +59,29 @@ public class JWTUtils {
 
     public String generateToken(UserDTO userDTO) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("id", userDTO.getId());
+        claims.put("email", userDTO.getEmail());
+        if (userDTO.getFirstName() != null) {
+            claims.put("firstName", userDTO.getFirstName());
+        }
+        if (userDTO.getLastName() != null) {
+            claims.put("lastName", userDTO.getLastName());
+        }
+        if (userDTO.getPhoneNumber() != null) {
+            claims.put("phoneNumber", userDTO.getPhoneNumber());
+        }
+        if (userDTO.getBirthday() != null) {
+            claims.put("birthday", userDTO.getBirthday());
+        }
+        if (userDTO.getGender() != null) {
+            claims.put("gender", userDTO.getGender());
+        }
+        if (userDTO.getCreatedDate() != null) {
+            claims.put("createdDate", userDTO.getCreatedDate());
+        }
+        if (userDTO.getUpdatedDate() != null) {
+            claims.put("updatedDate", userDTO.getUpdatedDate());
+        }
         return createToken(claims, userDTO.getEmail(), userDTO.getId());
     }
 
@@ -67,7 +90,7 @@ public class JWTUtils {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setId(id)
-                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration() * 1000L))
                 .signWith(SignatureAlgorithm.HS512, jwtConfig.getSecret())
                 .compact();
     }

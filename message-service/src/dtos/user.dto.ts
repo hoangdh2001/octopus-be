@@ -1,16 +1,15 @@
 export type UserDTO = {
   id: string;
-  firstName: string;
-
-  lastName: string;
-
-  userName: string;
-
+  firstName?: string;
+  lastName?: string;
   email: string;
-
-  phoneNumber: string;
-
-  birthDay: string;
-
-  sex: boolean;
+  phoneNumber?: string;
+  birthday?: string;
+  gender?: boolean;
+  active?: boolean;
+  lastActive?: string;
+  avatar?: string;
+  enabled?: boolean;
+  createdDate?: string;
+  updatedDate?: string;
 };

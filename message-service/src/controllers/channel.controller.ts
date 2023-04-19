@@ -12,6 +12,8 @@ import {
   Inject,
   OnModuleInit,
   OnModuleDestroy,
+  CacheKey,
+  CacheTTL,
 } from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
@@ -35,6 +37,7 @@ import { EventsGateway } from 'src/listeners/events.gateway';
 import { KafkaService } from '@rob3000/nestjs-kafka';
 import { DiscoveryService } from 'nestjs-eureka';
 import { HttpService } from '@nestjs/axios';
+import { UserDTO } from 'src/dtos/user.dto';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
@@ -60,6 +63,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   @Get('/search')
   async findAllByUser(
     @Query() { userID, skip = 0, limit = 10 }: ChannelPaginationParams,
+    @Headers('Authorization') token?: string,
   ): Promise<Pagination> {
     const totalItem = await this.channelService.countByUserID(userID);
     const totalPage = Math.floor(totalItem / limit) + 1;
@@ -79,9 +83,11 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           userID,
           messages,
           callMembers: async (member) => {
-            return await this.httpService.axiosRef.get(
-              `http://auth-service/Nhom40KLTN/api/users/${member.userID}`,
+            const response = await this.httpService.axiosRef.get<UserDTO>(
+              `http://auth-service/api/users/${member.userID}`,
+              { headers: { Authorization: token } },
             );
+            return { user: response.data };
           },
         });
       }),
@@ -124,14 +130,16 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     const newChannel = await this.channelService.createChannel(channel);
 
-    return convertChannelDTO({
+    return await convertChannelDTO({
       channel: newChannel,
       userID,
       messages: [],
       callMembers: async (member) => {
-        return await this.httpService.axiosRef.get(
-          `http://auth-service/Nhom40KLTN/api/users/${member.userID}`,
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${member.userID}`,
+          { headers: { Authorization: token } },
         );
+        return { user: response.data };
       },
     });
   }
