@@ -1,9 +1,12 @@
 package com.octopus.workspaceservice.model;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,13 +35,16 @@ public class Project implements Serializable {
     private String avatar;
 
     @Column(name="create_time")
-    private String createTime;
+    @CreatedDate
+    private Date createTime;
 
     @Column(name="update_time")
-    private String updateTime;
+    @LastModifiedDate
+    private Date updateTime;
 
     @Column(name="delete_time")
-    private String deleteTime;
+    @LastModifiedDate
+    private Date deleteTime;
 
     @ManyToOne
     @JoinColumn(name = "workspace_id")
@@ -50,4 +56,9 @@ public class Project implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "project_roles", joinColumns = @JoinColumn(name = "project_id"), inverseJoinColumns = @JoinColumn(name = "role_project_id"))
     private Set<RoleWorkSpace> roleProjects = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "project_member", joinColumns = @JoinColumn(name = "project_id"), inverseJoinColumns = @JoinColumn(name = "member_id"))
+    private Set<WorkSpaceMember> workspaceMembers = new HashSet<>();
+
 }
