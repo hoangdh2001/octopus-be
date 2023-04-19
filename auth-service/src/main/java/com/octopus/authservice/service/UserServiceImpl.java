@@ -8,6 +8,7 @@ import com.octopus.dtomodels.UserDTO;
 import com.octopus.exceptionutils.InvalidDataException;
 import com.octopus.exceptionutils.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "user", key = "#id")
     public User findUserById(String id) {
         return this.userRepository.findById(UUID.fromString(id)).orElseThrow(() -> new NotFoundException("Not found user with id " + id));
     }
@@ -50,6 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "user", key = "#email")
     public User findUserByEmail(String email) {
         return this.userRepository.findUserByEmailIgnoreCase(email).orElseThrow(() -> new NotFoundException("Not found user with email " + email));
     }

@@ -15,7 +15,7 @@ public class JWTConfig {
     @Value("${security.jwt.prefix:Bearer }")
     private String tokenPrefix = "Bearer ";
 
-    @Value("${security.jwt.expiration:#{24*60*60}}")
+    @Value("${security.jwt.expiration:#{24*60*60*30}}")
     private int expiration = 24*60*60;
 
     @Value("${security.jwt.secret:khoa_luan_tot_nghiep_nhom40_octopus}")
