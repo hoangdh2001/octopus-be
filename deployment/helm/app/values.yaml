@@ -61,7 +61,9 @@ mailDesc:
 workspaceDesc:
   replicaCount: 1
   minReadySeconds: 3
-  # coreProfiles from api
+  pullPolicy: Always
+  serviceType: ClusterIP
+  # coreProfiles: <profiles>
   resources:
     requests:
       # max usage on aon-int2 (Dec 19 - Jan 20): ~160Mi

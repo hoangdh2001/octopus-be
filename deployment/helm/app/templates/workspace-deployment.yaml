@@ -31,14 +31,14 @@ spec:
           imagePullPolicy: {{ .Values.workspaceDesc.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8082
+              containerPort: 8081
               protocol: TCP
           livenessProbe:
             tcpSocket:
-                port: 8082
+                port: 8081
           readinessProbe:
             tcpSocket:
-              port: 8082
+              port: 8081
           env:
             {{- include "eureka.envVars" . | nindent 10 }}
             {{- include "redis.envVars" . | nindent 10 }}
