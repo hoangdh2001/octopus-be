@@ -23,6 +23,10 @@ spring:
           uri: lb://message-service
           predicates:
             - Path=/api/channels/**, /channels/**, /**
+        - id: workspace-service
+          uri: lb://workspace-service
+          predicates:
+            - Path=/api/workspaces/**, /api/tasks/**, /api/spaces/**, /api/projects/**
     discovery:
       enabled: true
 logging:

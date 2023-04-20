@@ -79,6 +79,22 @@ services:
       - eureka
     networks:
       - service-network
+  workspace:
+    container_name: workspace
+    image: workspace:${TAG:-local}
+    build:
+      context: ./workspace-service
+      args:
+        BUILD_ID: ${BUILD_ID:-local}
+      labels:
+        core.build.id: ${BUILD_ID:-local}
+        core.git.sha: ${BUILD_ID:-local}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka
+    networks:
+      - service-network
 networks:
   service-network:
     driver: bridge
