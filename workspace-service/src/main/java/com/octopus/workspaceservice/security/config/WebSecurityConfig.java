@@ -6,7 +6,6 @@ import com.octopus.authutils.jwt.JWTUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -19,7 +18,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final String[] SWAGGER_AUTH_WHITELIST = {
@@ -45,32 +43,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // @formatter:off
 
         http
-            .cors()
-        .and()
-            .csrf()
-            .disable()
-            .httpBasic()
-            .disable()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        .and()
-            .authorizeRequests()
-            .antMatchers(SWAGGER_AUTH_WHITELIST).permitAll()
-            .anyRequest()
-            .authenticated()
-        .and()
-            .exceptionHandling()
-            .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-            .accessDeniedHandler(new AccessDeniedHandlerImpl())
-            .and()
-            .addFilterAfter(new JWTFilter(jwtUtils()), UsernamePasswordAuthenticationFilter.class);
+                .cors()
+                .and()
+                .csrf()
+                .disable()
+                .httpBasic()
+                .disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers(SWAGGER_AUTH_WHITELIST).permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .accessDeniedHandler(new AccessDeniedHandlerImpl())
+                .and()
+                .addFilterAfter(new JWTFilter(jwtUtils()), UsernamePasswordAuthenticationFilter.class);
 
         // @formatter:on
-    }
-
-    @Bean
-    public JWTFilter jwtFilter() {
-        return new JWTFilter(jwtUtils());
     }
 
     @Bean
@@ -83,3 +76,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new JWTConfig();
     }
 }
+

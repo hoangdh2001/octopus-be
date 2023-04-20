@@ -1,18 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mail-service
+  name: workspace-service
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.mailDesc.replicaCount }}
+  replicas: {{ .Values.workspaceDesc.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: mail-service
-  template:
+      app.kubernetes.io/name: workspace-service
     metadata:
       labels:
-        app.kubernetes.io/name: mail-service
+        app.kubernetes.io/name: workspace-service
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -25,11 +24,11 @@ spec:
         {{- end }}
       {{- end }}
       containers:
-        - name: mail
+        - name: workspace
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.mailDesc.image }}"
-          imagePullPolicy: {{ .Values.mailDesc.pullPolicy }}
+          image: "{{ .Values.workspaceDesc.image }}"
+          imagePullPolicy: {{ .Values.workspaceDesc.pullPolicy }}
           ports:
             - name: http
               containerPort: 8082
@@ -47,7 +46,7 @@ spec:
             {{- include "kafka.envVars" . | nindent 10 }}
             {{- include "domain" . | nindent 10 }}
           resources:
-            {{- toYaml .Values.mailDesc.resources | nindent 12 }}
+            {{- toYaml .Values.workspaceDesc.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
