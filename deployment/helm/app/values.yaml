@@ -61,6 +61,8 @@ mailDesc:
 workspaceDesc:
   replicaCount: 1
   minReadySeconds: 3
+  pullPolicy: Always
+  serviceType: ClusterIP
   # coreProfiles from api
   resources:
     requests:
