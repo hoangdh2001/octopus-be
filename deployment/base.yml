@@ -51,7 +51,7 @@ include:
       --set authDesc.image=$IMAGE_AUTH:$CI_COMMIT_SHORT_SHA
       --set messageDesc.image=$IMAGE_MESSAGE:$CI_COMMIT_SHORT_SHA
       --set mailDesc.image=$IMAGE_MAIL:$CI_COMMIT_SHORT_SHA
-      --set workspace.image=$IMAGE_WORKSPACE:$CI_COMMIT_SHORT_SHA
+      --set workspaceDesc.image=$IMAGE_WORKSPACE:$CI_COMMIT_SHORT_SHA
       --set-string "mongodb.srvAddress=${MONGODB_SRV_ADDRESS}"
       --set-string "mongodb.user=${MONGODB_USER}"
       --set-string "mongodb.pass=${MONGODB_PASS}"

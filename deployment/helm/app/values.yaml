@@ -63,7 +63,7 @@ workspaceDesc:
   minReadySeconds: 3
   pullPolicy: Always
   serviceType: ClusterIP
-  # coreProfiles from api
+  # coreProfiles: <profiles>
   resources:
     requests:
       # max usage on aon-int2 (Dec 19 - Jan 20): ~160Mi
