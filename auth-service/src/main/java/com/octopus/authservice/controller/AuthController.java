@@ -1,9 +1,6 @@
 package com.octopus.authservice.controller;
 
-import com.octopus.authservice.dto.request.LoginRequest;
-import com.octopus.authservice.dto.request.ResetRequest;
-import com.octopus.authservice.dto.request.SignupRequest;
-import com.octopus.authservice.dto.request.VerifyRequest;
+import com.octopus.authservice.dto.request.*;
 import com.octopus.authservice.dto.response.VerifyResponse;
 import com.octopus.authservice.mapper.UserMapper;
 import com.octopus.authservice.messaging.producer.KafkaProducer;
@@ -30,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -185,11 +183,24 @@ public class AuthController {
         throw new InvalidDataException("Reset code not match or expire code");
     }
 
+    @PostMapping("/refresh_token")
+    public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest tokenRefreshRequest) {
+        var refreshToken = tokenRefreshRequest.getRefreshToken();
+        if (jwtUtils.validateToken(refreshToken)) {
+            var email = jwtUtils.extractUsername(refreshToken);
+            var user = this.userService.findUserByEmail(email);
+            return ResponseEntity.ok().body(createJWT(user));
+        }
+        throw new InvalidDataException("Refresh token invalid");
+    }
+
     private TokenResponse createJWT(User user) {
         var token = jwtUtils.generateToken(mapper.mapToUserDTO(user));
         var exp = jwtUtils.extractExpiration(token);
+        var refreshToken = jwtUtils.generateRefreshToken(mapper.mapToUserDTO(user));
         return TokenResponse.builder()
                 .accessToken(token)
+                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiredIn(exp.getTime())
                 .user(mapper.mapToUserDTO(user))

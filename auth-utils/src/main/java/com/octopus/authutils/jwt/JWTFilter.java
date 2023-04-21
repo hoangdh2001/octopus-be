@@ -2,6 +2,7 @@ package com.octopus.authutils.jwt;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +33,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 var authentication = jwtUtils.getAuthentication(token);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (JWTDecodeException | TokenExpiredException ex) {
+            } catch (JWTDecodeException | ExpiredJwtException ex) {
                 SecurityContextHolder.clearContext();
             }
         }

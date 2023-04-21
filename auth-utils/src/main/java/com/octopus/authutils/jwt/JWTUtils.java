@@ -1,12 +1,9 @@
 package com.octopus.authutils.jwt;
 
-import com.auth0.jwt.algorithms.Algorithm;
 import com.octopus.authutils.security.SecurityUserDetails;
 import com.octopus.authutils.security.SecurityUserDetailsImpl;
 import com.octopus.dtomodels.UserDTO;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -85,6 +82,40 @@ public class JWTUtils {
         return createToken(claims, userDTO.getEmail(), userDTO.getId());
     }
 
+    public String generateRefreshToken(UserDTO userDTO) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", userDTO.getId());
+        claims.put("email", userDTO.getEmail());
+        if (userDTO.getFirstName() != null) {
+            claims.put("firstName", userDTO.getFirstName());
+        }
+        if (userDTO.getLastName() != null) {
+            claims.put("lastName", userDTO.getLastName());
+        }
+        if (userDTO.getPhoneNumber() != null) {
+            claims.put("phoneNumber", userDTO.getPhoneNumber());
+        }
+        if (userDTO.getBirthday() != null) {
+            claims.put("birthday", userDTO.getBirthday());
+        }
+        if (userDTO.getGender() != null) {
+            claims.put("gender", userDTO.getGender());
+        }
+        if (userDTO.getCreatedDate() != null) {
+            claims.put("createdDate", userDTO.getCreatedDate());
+        }
+        if (userDTO.getUpdatedDate() != null) {
+            claims.put("updatedDate", userDTO.getUpdatedDate());
+        }
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(userDTO.getEmail())
+                .setId(userDTO.getId())
+                .setExpiration(new Date(System.currentTimeMillis() + 315569520000L))
+                .signWith(SignatureAlgorithm.HS512, jwtConfig.getSecret()).compact();
+
+    }
+
     private String createToken(Map<String, Object> claims, String subject, String id) {
         return Jwts.builder()
                 .setClaims(claims)
@@ -98,6 +129,16 @@ public class JWTUtils {
     public Boolean validateToken(String token, SecurityUserDetails userDetails) {
         final String userID = extractUsername(token);
         return (userID.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean validateToken(String authToken) {
+        try {
+            extractAllClaims(authToken);
+            return true;
+        } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException |
+                 ExpiredJwtException ex) {
+            throw ex;
+        }
     }
 
     public boolean isValidAuthorizationHeaderValue(String authHeaderValue) {
