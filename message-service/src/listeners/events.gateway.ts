@@ -19,6 +19,7 @@ import {
 
 @WebSocketGateway({
   maxHttpBufferSize: 1e8,
+  transports: ['websocket'],
   cors: { origin: '*', methods: ['GET', 'POST'], credentials: true },
 })
 export class EventsGateway
