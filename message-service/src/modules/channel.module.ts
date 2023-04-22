@@ -96,31 +96,32 @@ import { redisStore } from 'cache-manager-redis-store';
         },
       },
     ]),
-    CacheModule.registerAsync<RedisClientOptions>({
-      isGlobal: true,
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        store: (await redisStore({
-          url:
-            configService.get('REDIS_API') != null
-              ? configService.get('REDIS_API')
-              : `rediss://${configService.get(
-                  'REDIS_USER',
-                )}:${configService.get(
-                  'REDIS_PASS',
-                )}@db-redis-sgp1-58343-do-user-12877679-0.b.db.ondigitalocean.com:${configService.get(
-                  'REDIS_PORT',
-                )}`,
-          ttl: configService.get('CACHE_TTL'),
-          socket: {
-            keepAlive: 300,
-            tls: false,
-            reconnectStrategy: 2000,
-          },
-        })) as unknown as CacheStore,
-      }),
-      inject: [ConfigService],
-    }),
+    // CacheModule.registerAsync<RedisClientOptions>({
+    //   isGlobal: true,
+    //   imports: [ConfigModule],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     store: (await redisStore({
+    //       url:
+    //         configService.get('REDIS_API') != null
+    //           ? configService.get('REDIS_API')
+    //           : `rediss://${configService.get(
+    //               'REDIS_USER',
+    //             )}:${configService.get(
+    //               'REDIS_PASS',
+    //             )}@db-redis-sgp1-58343-do-user-12877679-0.b.db.ondigitalocean.com:${configService.get(
+    //               'REDIS_PORT',
+    //             )}`,
+    //       ttl: configService.get('CACHE_TTL'),
+    //       socket: {
+    //         keepAlive: 300,
+    //         tls: false,
+    //         reconnectStrategy: 2000,
+            
+    //       },
+    //     })) as unknown as CacheStore,
+    //   }),
+    //   inject: [ConfigService],
+    // }),
     MessageModule,
     EventModule,
   ],
@@ -128,7 +129,7 @@ import { redisStore } from 'cache-manager-redis-store';
   providers: [
     ChannelService,
     DiscoveryInterceptor,
-    { provide: APP_INTERCEPTOR, useClass: CacheInterceptor },
+    // { provide: APP_INTERCEPTOR, useClass: CacheInterceptor },
   ],
 })
 export class ChannelModule {}

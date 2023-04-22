@@ -25,6 +25,8 @@ export const convertChannelDTO = async ({
         .hidden,
       activeNotify: channel.members.find((member) => member.userID == userID)
         .activeNotify,
+      createdBy: channel.createdBy,
+      avatar: channel.avatar,
     },
     messages: messages?.map((message) => {
       const messageDTO = convertMessageDTO(message);

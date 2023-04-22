@@ -43,7 +43,7 @@ export class Channel {
   createdAt?: string;
   updatedAt?: string;
 
-  @Prop({ type: [String] })
+  @Prop({ type: String })
   createdBy?: string;
 }
 

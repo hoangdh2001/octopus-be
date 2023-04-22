@@ -34,7 +34,7 @@ export type ChannelMemberDTO = {
 
 export type ChannelInfo = Pick<
   Channel,
-  '_id' | 'avatar' | 'lastMessageAt' | 'name' | 'createdAt' | 'updatedAt'
+  '_id' | 'avatar' | 'lastMessageAt' | 'name' | 'createdAt' | 'updatedAt' | 'createdBy'
 > & {
   hiddenChannel?: boolean;
   activeNotify?: boolean;

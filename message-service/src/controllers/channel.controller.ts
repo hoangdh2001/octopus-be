@@ -126,6 +126,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       _id: v4(),
       name: name,
       members: newMembers.map((member) => ({ userID: member })),
+      createdBy: userID,
     };
 
     const newChannel = await this.channelService.createChannel(channel);
