@@ -4,7 +4,6 @@ import {
   Min,
   IsString,
   IsArray,
-  isNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Channel } from 'src/models/channel.model';
@@ -29,6 +28,8 @@ export class CreateChannelDTO {
 export type ChannelMemberDTO = {
   user?: UserDTO;
   userID?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type ChannelInfo = Pick<

@@ -112,6 +112,11 @@ import { redisStore } from 'cache-manager-redis-store';
                   'REDIS_PORT',
                 )}`,
           ttl: configService.get('CACHE_TTL'),
+          socket: {
+            keepAlive: 300,
+            tls: false,
+            reconnectStrategy: 2000,
+          },
         })) as unknown as CacheStore,
       }),
       inject: [ConfigService],

@@ -11,6 +11,10 @@ export class ChannelMember {
 
   @Prop({ type: Boolean, default: false })
   hidden?: boolean;
+
+  createdAt?: string;
+
+  updatedAt?: string;
 }
 
 export const ChannelMemberSchema = SchemaFactory.createForClass(ChannelMember);
@@ -33,11 +37,14 @@ export class Channel {
   })
   members: ChannelMember[];
 
-  @Prop({ type: Number, default: Date.now() })
-  lastMessageAt?: number;
+  @Prop({ type: Date, default: Date.now() })
+  lastMessageAt?: string;
 
-  createdAt?: number;
-  updatedAt?: number;
+  createdAt?: string;
+  updatedAt?: string;
+
+  @Prop({ type: [String] })
+  createdBy?: string;
 }
 
 export const ChannelSchema = SchemaFactory.createForClass(Channel);
