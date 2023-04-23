@@ -1,9 +1,11 @@
 package com.octopus.workspaceservice.controllers;
 
 import com.octopus.authutils.SecurityUtils;
+import com.octopus.dtomodels.Code;
 import com.octopus.workspaceservice.dtos.request.RoleWorkspaceRequest;
 import com.octopus.workspaceservice.dtos.request.WorkspaceMemberRequest;
 import com.octopus.workspaceservice.dtos.request.WorkspaceRequest;
+import com.octopus.workspaceservice.kafka.KafkaProducer;
 import com.octopus.workspaceservice.models.RoleWorkSpace;
 import com.octopus.workspaceservice.models.Workspace;
 import com.octopus.workspaceservice.models.WorkspaceMember;
@@ -13,6 +15,8 @@ import com.octopus.workspaceservice.service.WorkspaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +26,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/workspaces")
 @CrossOrigin
+@RequiredArgsConstructor
 public class WorkspaceController {
 
     @Autowired
@@ -33,6 +39,10 @@ public class WorkspaceController {
     private WorkspaceMemberService workspaceMemberService;
     @Autowired
     private RoleWorkspaceService roleWorkspaceService;
+
+    private final KafkaProducer kafkaProducer;
+
+    //private final VerificationCodeService verificationCodeService;
 
     @Operation(summary = "Create Workspace", description = "Create Workspace")
     @PostMapping("/createWorkspace")
@@ -112,6 +122,14 @@ public class WorkspaceController {
         SecurityUtils securityUtils = new SecurityUtils();
         space.setWorkspace(workspaceMemberRequest.getWorkspace());
         space.setMemberID(UUID.fromString(securityUtils.getCurrentUser()));
+
+//        var code = verificationCodeService.generateVerificationCode(verifyRequest.getEmail());
+//        kafkaProducer.sendEmailAddMemberWorkspace(Code.builder()
+//                .verificationCode(code)
+//                .email(verifyRequest.getEmail())
+//                .verificationType(Code.VerificationType.FORGOT_PASSWORD)
+//                .build()
+//        );
 
         return ResponseEntity.ok().body(workspaceMemberService.addMember(space));
     }

@@ -40,4 +40,28 @@ public class KafkaConsumer {
             e.printStackTrace();
         }
     }
+
+    @KafkaListener(
+            topics = "mail.sendEmailAddMemberWorkspace",
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void consumeAddMemberWorkspace(Code code) {
+        try {
+            this.mailService.sendResetPasswordEmail(code);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @KafkaListener(
+            topics = "mail.sendEmailAddMemberProject",
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void consumeAddMemberProject(Code code) {
+        try {
+            this.mailService.sendResetPasswordEmail(code);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
 }

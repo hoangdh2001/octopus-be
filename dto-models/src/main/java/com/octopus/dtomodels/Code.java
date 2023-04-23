@@ -16,7 +16,9 @@ public class Code {
         LOGIN("login"),
         SIGN_UP("sign_up"),
 
-        FORGOT_PASSWORD("forgot_password");
+        FORGOT_PASSWORD("forgot_password"),
+        ADD_MEMBER_WORKSPACE("add_member_workspace"),
+        ADD_MEMBER_PROJECT("add_member_project");
         private final String type;
 
         VerificationType(String type) {
