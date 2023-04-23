@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.util.Date;
 
@@ -12,12 +14,14 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskRequest {
-    private String name;
     private String description;
-    private int status;
-    private String color;
-    private boolean isDefault;
+    private boolean status;
+    @CreatedDate
     private Date createTime;
-    private Date updateTime;
-    private String createBy;
+    @CreatedDate
+    private Date createdDate;
+    @CreatedDate
+    private Date updatedDate;
+    @CreatedDate
+    private Date deletedDate;
 }
