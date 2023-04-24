@@ -2,17 +2,18 @@ import { ChannelDTO, ChannelMemberDTO } from 'src/dtos/channel.dto';
 import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Message } from 'src/models/message.model';
 import { convertMessageDTO } from './message.util';
+import { UserDTO } from 'src/dtos/user.dto';
 
 export const convertChannelDTO = async ({
   channel,
   userID,
   messages,
-  callMembers,
+  callUser,
 }: {
   channel: Channel;
   userID?: string;
   messages?: Message[];
-  callMembers: (member: ChannelMember) => Promise<ChannelMemberDTO>;
+  callUser: (userID: string) => Promise<UserDTO>;
 }): Promise<ChannelDTO> => {
   const channelDTO: ChannelDTO = {
     channel: {
@@ -28,13 +29,21 @@ export const convertChannelDTO = async ({
       createdBy: channel.createdBy,
       avatar: channel.avatar,
     },
-    messages: messages?.map((message) => {
-      const messageDTO = convertMessageDTO(message);
-      return messageDTO;
-    }),
+    messages: await Promise.all(
+      messages?.map(async (message) => {
+        const messageDTO = await convertMessageDTO({ message, callUser });
+        return messageDTO;
+      }),
+    ),
     members: await Promise.all(
-      channel.members.map(async (member) => {
-        return await callMembers(member);
+      channel.members.map(async (member): Promise<ChannelMemberDTO> => {
+        const user = await callUser(member.userID);
+        return {
+          user,
+          createdAt: member.createdAt,
+          updatedAt: member.createdAt,
+          userID: member.userID,
+        };
       }),
     ),
   };

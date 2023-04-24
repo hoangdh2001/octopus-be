@@ -33,7 +33,7 @@ export const EVENT_MAP = {
   'channel.renamed': true, //Đổi tên channel
   'channel.avatar': true,
   'message.deleted': true,
-  'message.created': true,
+  'message.new': true,
   'message.updated': true,
   'reaction.deleted': true,
   'reaction.new': true,
@@ -49,6 +49,7 @@ export type MessageEvent = {
   message?: MessageDTO | object;
   channel?: ChannelDTO;
   dataUpdate?: object;
+  channelID?: string;
   user?: UserDTO;
   userID?: string | null;
 };
@@ -65,6 +66,31 @@ export class MessagePaginationParams {
   @IsNumber()
   @Min(1)
   limit?: number;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  id_gt?: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  id_gte?: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  id_lt?: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  id_lte?: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  id_around?: string;
 }
 
 export class SendMessageParams {
@@ -72,7 +98,7 @@ export class SendMessageParams {
   @Type(() => String)
   @IsString()
   @Matches(/^[a-zA-Z0-9-]+$/)
-  messageID?: string;
+  _id?: string;
   @IsOptional()
   @Type(() => String)
   @IsString()

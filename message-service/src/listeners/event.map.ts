@@ -12,7 +12,7 @@ export type ServerSideEvents = {
 
 export type EmitEvents = {
   noArg: () => void;
-  sendMessage: (message: MessageEvent) => void;
+  messages: (message: MessageEvent) => void;
   test: (data: string) => void;
 };
 

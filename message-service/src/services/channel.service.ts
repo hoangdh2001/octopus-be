@@ -41,4 +41,8 @@ export class ChannelService {
       .exec();
     return count;
   }
+
+  async findChannelByID(channelID: string) {
+    return await this.channelModel.findById(channelID);
+  }
 }

@@ -30,7 +30,6 @@ export class AppInterceptor implements NestInterceptor {
 
     const now = Date.now();
     return next.handle().pipe(
-      retry(5),
       timeout(5000),
       catchError((err) => {
         if (err instanceof TimeoutError)

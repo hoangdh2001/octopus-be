@@ -46,6 +46,6 @@ export class EventsGateway
   }
 
   sendMessage(message: MessageEvent) {
-    this.server.emit('sendMessage', message);
+    this.server.emit('messages', message);
   }
 }

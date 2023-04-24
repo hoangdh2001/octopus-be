@@ -14,6 +14,7 @@ import {
   OnModuleDestroy,
   CacheKey,
   CacheTTL,
+  HttpCode,
 } from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
@@ -61,6 +62,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Get('/search')
+  @HttpCode(200)
   async findAllByUser(
     @Query() { userID, skip = 0, limit = 10 }: ChannelPaginationParams,
     @Headers('Authorization') token?: string,
@@ -75,19 +77,19 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     const data = await Promise.all(
       channels.map(async (channel) => {
-        const messages = await this.messageService.findAllByChannel(
-          channel._id,
-        );
+        const messages = await this.messageService.findAllByChannel({
+          channelID: channel._id,
+        });
         return convertChannelDTO({
           channel,
           userID,
           messages,
-          callMembers: async (member) => {
+          callUser: async (userID) => {
             const response = await this.httpService.axiosRef.get<UserDTO>(
-              `http://auth-service/api/users/${member.userID}`,
+              `http://auth-service/api/users/${userID}`,
               { headers: { Authorization: token } },
             );
-            return { user: response.data };
+            return response.data;
           },
         });
       }),
@@ -103,6 +105,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post()
+  @HttpCode(201)
   async createChannel(
     @Body() createChannelDTO: CreateChannelDTO,
     @Headers('Authorization') token?: string,
@@ -135,54 +138,110 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       channel: newChannel,
       userID,
       messages: [],
-      callMembers: async (member) => {
+      callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
-          `http://auth-service/api/users/${member.userID}`,
+          `http://auth-service/api/users/${userID}`,
           { headers: { Authorization: token } },
         );
-        return { user: response.data };
+        return response.data;
       },
     });
   }
 
-  @Get('/:channelID/messages')
-  async findAllMessageByChannel(
-    @Query() { skip = 0, limit = 30 }: MessagePaginationParams,
+  @Post('/:channelID/query')
+  @HttpCode(200)
+  async queryChannelByID(
+    @Body()
+    {
+      messages: { skip, limit = 30, id_gt, id_gte, id_lt, id_lte, id_around },
+    }: {
+      messages: MessagePaginationParams;
+    },
+    @Query('userID') userID: string,
     @Param('channelID') channelID: string,
+    @Headers('Authorization') token?: string,
   ) {
-    const totalItem = await this.messageService.countByChannel(channelID);
-    const totalPage = Math.floor(totalItem / limit) + 1;
-    const messages = await this.messageService.findAllByChannel(
-      channelID,
-      skip,
-      limit,
-    );
+    if (!userID || userID.trim().length === 0) {
+      const { id }: { id: string } = this.jwtService.decode(
+        token?.split(' ')[1] || '',
+      ) as any;
+      userID = id;
+    }
+    const channel = await this.channelService.findChannelByID(channelID);
 
-    const data = await Promise.all(
-      messages.map((message) => {
-        return convertMessageDTO(message);
-      }),
-    );
+    var messagesData: Message[];
 
-    return {
-      skip: Number.parseInt(skip.toString()),
-      limit: Number.parseInt(limit.toString()),
-      totalItem,
-      totalPage,
-      data,
-    };
+    if (id_gt) {
+      messagesData = await this.messageService.findAllByChannel({
+        channelID: channelID,
+        messageID: id_gt,
+        limit: limit,
+        condition: 'gt',
+      });
+    } else if (id_gte) {
+      messagesData = await this.messageService.findAllByChannel({
+        channelID: channelID,
+        messageID: id_gte,
+        limit: limit,
+        condition: 'gte',
+      });
+    } else if (id_lt) {
+      messagesData = await this.messageService.findAllByChannel({
+        channelID: channelID,
+        messageID: id_lt,
+        limit: limit,
+        condition: 'lt',
+      });
+    } else if (id_lte) {
+      messagesData = await this.messageService.findAllByChannel({
+        channelID: channelID,
+        messageID: id_lte,
+        limit: limit,
+        condition: 'lte',
+      });
+    } else if (id_around) {
+      messagesData = await this.messageService.queryAroundMessage({
+        channelID: channelID,
+        messageID: id_around,
+        limit: limit,
+      });
+    } else {
+      messagesData = await this.messageService.findAllByChannel({
+        channelID: channelID,
+        skip: skip,
+        limit: limit,
+      });
+    }
+
+    return await convertChannelDTO({
+      channel: channel,
+      userID,
+      messages: messagesData,
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+    });
   }
 
   @Post('/:channelID/messages')
+  @HttpCode(201)
   async sendMessage(
     @Param('channelID') channelID: string,
-    @Body() { senderID, messageID, text }: SendMessageParams,
+    @Body() { senderID, _id, text }: SendMessageParams,
     @Headers('Authorization') token?: string,
+    @Query('userID') userID?: string,
   ) {
-    const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
     const message: Message = {
-      _id: messageID || v4(),
-      senderID: senderID || id,
+      _id: _id || v4(),
+      senderID: senderID || userID,
       status: 'READY',
       type: 'NORMAL',
       channelID: channelID,
@@ -194,11 +253,21 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       message,
     );
 
-    const messageDTO = convertMessageDTO(newMessage);
+    const messageDTO = await convertMessageDTO({
+      message: newMessage,
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+    });
 
     this.eventsGateway.sendMessage({
-      type: 'message.created',
+      type: 'message.new',
       message: messageDTO,
+      channelID: messageDTO.channelID,
     });
 
     return messageDTO;

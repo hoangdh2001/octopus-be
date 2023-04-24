@@ -1,7 +1,14 @@
 import { MessageDTO, Reaction } from 'src/dtos/message.dto';
+import { UserDTO } from 'src/dtos/user.dto';
 import { Message, MessageReaction } from 'src/models/message.model';
 
-export const convertMessageDTO = (message: Message): MessageDTO => {
+export const convertMessageDTO = async ({
+  message,
+  callUser,
+}: {
+  message: Message;
+  callUser: (userID: string) => Promise<UserDTO>;
+}): Promise<MessageDTO> => {
   const messageDTO: MessageDTO = {
     _id: message._id,
     channelID: message.channelID,
@@ -15,6 +22,7 @@ export const convertMessageDTO = (message: Message): MessageDTO => {
     senderID: message.senderID,
     type: message.type,
     updated: message.updated,
+    sender: await callUser(message.senderID),
   };
   return messageDTO;
 };
