@@ -28,7 +28,7 @@ public class Device implements Serializable {
 
     private boolean disabled;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
 }

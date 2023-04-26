@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Mapper(componentModel = "spring")
-@Transactional
 public interface UserMapper {
 
     @Mapping(target = "password", ignore = true)
