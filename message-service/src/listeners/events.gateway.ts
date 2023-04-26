@@ -19,8 +19,7 @@ import {
 import { ChannelService } from 'src/services/channel.service';
 import { MessageServive } from 'src/services/message.service';
 import { HttpService } from '@nestjs/axios';
-import { UserDTO } from 'src/dtos/user.dto';
-import { log } from 'console';
+import { OwnUserDTO, UserDTO } from 'src/dtos/user.dto';
 import { Channel } from 'src/models/channel.model';
 
 @WebSocketGateway({
@@ -56,8 +55,8 @@ export class EventsGateway
 
     console.log(`Connect ${client.id}-${userID}`);
 
-    const firstRes = await this.httpService.axiosRef.get<UserDTO>(
-      `http://auth-service/api/users/${userID}`,
+    const firstRes = await this.httpService.axiosRef.get<OwnUserDTO>(
+      `http://auth-service/api/users/${userID}/me`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
 
@@ -66,8 +65,8 @@ export class EventsGateway
     user.active = true;
     user.connections.push(client.id);
 
-    const response = await this.httpService.axiosRef.put<UserDTO>(
-      `http://auth-service/api/users/${userID}`,
+    const response = await this.httpService.axiosRef.put<OwnUserDTO>(
+      `http://auth-service/api/users/${userID}/me`,
       user,
       { headers: { Authorization: `Bearer ${token}` } },
     );
@@ -94,8 +93,8 @@ export class EventsGateway
 
     console.log(`Disconnect ${client.id}-${userID}`);
 
-    const firstRes = await this.httpService.axiosRef.get<UserDTO>(
-      `http://auth-service/api/users/${userID}`,
+    const firstRes = await this.httpService.axiosRef.get<OwnUserDTO>(
+      `http://auth-service/api/users/${userID}/me`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
 
@@ -108,8 +107,8 @@ export class EventsGateway
       (connection) => connection != client.id,
     );
 
-    const response = await this.httpService.axiosRef.put<UserDTO>(
-      `http://auth-service/api/users/${userID}`,
+    const response = await this.httpService.axiosRef.put<OwnUserDTO>(
+      `http://auth-service/api/users/${userID}/me`,
       user,
       { headers: { Authorization: `Bearer ${token}` } },
     );
@@ -129,7 +128,7 @@ export class EventsGateway
     this.server.in(message.channelID).emit('messages', message);
   }
 
-  private async subcribeAllChannel(user: UserDTO) {
+  private async subcribeAllChannel(user: OwnUserDTO) {
     try {
       const channels: Channel[] = await this.channelService.findAllByUser(
         user.id,
@@ -144,7 +143,7 @@ export class EventsGateway
     }
   }
 
-  private async unsubcribeAllChannel(user: UserDTO) {
+  private async unsubcribeAllChannel(user: OwnUserDTO) {
     try {
       const channels: Channel[] = await this.channelService.findAllByUser(
         user.id,

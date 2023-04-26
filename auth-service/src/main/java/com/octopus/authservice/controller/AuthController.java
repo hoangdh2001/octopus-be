@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -39,6 +40,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping(value = "/api/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
+@Transactional
 public class AuthController {
 
     private final UserService userService;
@@ -50,8 +52,6 @@ public class AuthController {
     private final VerificationCodeService verificationCodeService;
 
     private final JWTUtils jwtUtils;
-
-    private final UserMapper mapper;
 
     private final AuthenticationManager authenticationManager;
 
@@ -111,7 +111,7 @@ public class AuthController {
                 }
                 var isValidOTP = otpService.validateOTP(loginRequest.getEmail(), loginRequest.getOtp());
                 if (isValidOTP) {
-                    User user = this.userService.findUserByEmail(loginRequest.getEmail());
+                    var user = this.userService.findUserByEmail(loginRequest.getEmail());
                     return ResponseEntity.ok().body(createJWT(user));
                 }
                 throw new AuthenticationException("Wrong code or expire code");
@@ -121,14 +121,14 @@ public class AuthController {
                 }
                 var isValidCode = verificationCodeService.validateVerificationCode(loginRequest.getEmail(), loginRequest.getCode());
                 if (isValidCode) {
-                    User user = this.userService.findUserByEmail(loginRequest.getEmail());
+                    var user = this.userService.findUserByEmail(loginRequest.getEmail());
                     return ResponseEntity.ok().body(createJWT(user));
                 }
                 throw new AuthenticationException("Wrong code or expire code");
             case LOGIN_WITH_PASSWORD:
                 try {
                     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-                    User user = this.userService.findUserByEmail(loginRequest.getEmail());
+                    var user = this.userService.findUserByEmail(loginRequest.getEmail());
                     return ResponseEntity.ok().body(createJWT(user));
                 } catch (Exception e) {
                     throw new AuthenticationException("Authentication failed");
@@ -146,8 +146,8 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public ResponseEntity<UserDTO> signup(@Valid @RequestBody SignupRequest signupRequest) {
-        User user = this.userService.createUser(signupRequest);
-        return ResponseEntity.ok().body(mapper.mapToUserDTO(user));
+        var user = this.userService.createUser(signupRequest);
+        return ResponseEntity.ok().body(user);
     }
 
     @PostMapping("/forgot_password")
@@ -177,8 +177,8 @@ public class AuthController {
     public ResponseEntity<UserDTO> resetPassword(@Valid @RequestBody ResetRequest resetRequest) {
         var isValid = verificationCodeService.validateVerificationCode(resetRequest.getEmail(), resetRequest.getCode());
         if (isValid) {
-            User user = this.userService.resetPassword(resetRequest.getEmail(), resetRequest.getPassword());
-            return ResponseEntity.ok().body(mapper.mapToUserDTO(user));
+            var user = this.userService.resetPassword(resetRequest.getEmail(), resetRequest.getPassword());
+            return ResponseEntity.ok().body(user);
         }
         throw new InvalidDataException("Reset code not match or expire code");
     }
@@ -194,16 +194,16 @@ public class AuthController {
         throw new InvalidDataException("Refresh token invalid");
     }
 
-    private TokenResponse createJWT(User user) {
-        var token = jwtUtils.generateToken(mapper.mapToUserDTO(user));
+    private TokenResponse createJWT(UserDTO user) {
+        var token = jwtUtils.generateToken(user);
         var exp = jwtUtils.extractExpiration(token);
-        var refreshToken = jwtUtils.generateRefreshToken(mapper.mapToUserDTO(user));
+        var refreshToken = jwtUtils.generateRefreshToken(user);
         return TokenResponse.builder()
                 .accessToken(token)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiredIn(exp.getTime())
-                .user(mapper.mapToUserDTO(user))
+                .user(user)
                 .verificationType(Code.VerificationType.LOGIN)
                 .build();
     }

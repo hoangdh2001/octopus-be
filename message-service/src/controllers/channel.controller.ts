@@ -20,7 +20,6 @@ import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
 import {
   ChannelDTO,
-  ChannelMemberDTO,
   ChannelPaginationParams,
   CreateChannelDTO,
 } from 'src/dtos/channel.dto';
@@ -38,7 +37,6 @@ import { convertMessageDTO } from 'src/utils/message.util';
 import { Message } from 'src/models/message.model';
 import { EventsGateway } from 'src/listeners/events.gateway';
 import { KafkaService } from '@rob3000/nestjs-kafka';
-import { DiscoveryService } from 'nestjs-eureka';
 import { HttpService } from '@nestjs/axios';
 import { DeviceDTO, UserDTO } from 'src/dtos/user.dto';
 import { FirebaseMessagingService } from '@aginix/nestjs-firebase-admin';

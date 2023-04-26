@@ -15,7 +15,8 @@ import java.util.*;
 @Table(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 public class User implements Serializable {
     @Id

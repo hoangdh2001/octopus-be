@@ -1,4 +1,4 @@
-import { UserDTO } from './user.dto';
+import { OwnUserDTO, UserDTO } from './user.dto';
 import { IsNumber, IsOptional, Min, IsString, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChannelDTO } from './channel.dto';
@@ -53,7 +53,7 @@ export type MessageEvent = {
   channelID?: string;
   user?: UserDTO;
   userID?: string | null;
-  me?: UserDTO;
+  me?: OwnUserDTO;
   connectionID?: string;
 };
 

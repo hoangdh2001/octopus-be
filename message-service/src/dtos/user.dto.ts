@@ -12,11 +12,14 @@ export type UserDTO = {
   enabled?: boolean;
   createdDate?: string;
   updatedDate?: string;
-  connections?: string[];
-  devices: DeviceDTO[];
 };
 
 export type DeviceDTO = {
   deviceID: string;
   pushProvider?: string;
+};
+
+export type OwnUserDTO = UserDTO & {
+  connections?: string[];
+  devices: DeviceDTO[];
 };

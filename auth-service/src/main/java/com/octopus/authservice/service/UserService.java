@@ -6,6 +6,8 @@ import com.octopus.authservice.dto.request.DeviceRequest;
 import com.octopus.authservice.dto.request.SignupRequest;
 import com.octopus.authservice.model.Device;
 import com.octopus.authservice.model.User;
+import com.octopus.dtomodels.DeviceDTO;
+import com.octopus.dtomodels.OwnUserDTO;
 import com.octopus.dtomodels.UserDTO;
 
 import java.util.List;
@@ -13,29 +15,33 @@ import java.util.Optional;
 
 public interface UserService {
 
-    List<User> findAll();
+    List<UserDTO> findAll();
 
-    User findUserById(String id);
+    UserDTO findUserById(String id);
 
-    User updateUserByID(String id, User other);
+    UserDTO updateUserByID(String id, UserDTO other);
     Boolean existByEmailAndEnableIsTrue(String email);
 
-    User findUserByEmail(String email);
+    UserDTO findUserByEmail(String email);
 
-    User createUserTemp(String email);
+    UserDTO createUserTemp(String email);
 
     Boolean existByEmail(String email);
 
-    User createUser(SignupRequest signupRequest);
+    UserDTO createUser(SignupRequest signupRequest);
 
-    User changePassword(String id, ChangePasswordRequest changePasswordRequest);
+    UserDTO changePassword(String id, ChangePasswordRequest changePasswordRequest);
 
-    User resetPassword(String email, String password);
+    UserDTO resetPassword(String email, String password);
 
-    List<Device> findDevicesByUserId(String userID);
+    List<DeviceDTO> findDevicesByUserId(String userID);
 
-    Device addDevice(DeviceRequest device, String userID);
+    DeviceDTO addDevice(DeviceRequest device, String userID);
 
     boolean removeDevice(String id);
+
+    OwnUserDTO getMyInfo(String id);
+
+    OwnUserDTO updateMyInfo(String id, OwnUserDTO ownUserDTO);
 }
 
