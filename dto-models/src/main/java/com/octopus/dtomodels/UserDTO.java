@@ -11,6 +11,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -36,4 +37,6 @@ public class UserDTO implements Serializable {
     private Boolean enabled;
     private Date createdDate;
     private Date updatedDate;
+    private List<String> connections;
+    private List<DeviceDTO> devices;
 }

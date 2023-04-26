@@ -1,20 +1,22 @@
 package com.octopus.authservice.service;
 
 import com.octopus.authservice.dto.request.ChangePasswordRequest;
+import com.octopus.authservice.dto.request.DeviceRequest;
 import com.octopus.authservice.dto.request.SignupRequest;
+import com.octopus.authservice.model.Device;
 import com.octopus.authservice.model.User;
-import com.octopus.authservice.repository.UserRepository;
-import com.octopus.dtomodels.UserDTO;
+import com.octopus.authservice.repositories.DeviceRepository;
+import com.octopus.authservice.repositories.UserRepository;
 import com.octopus.exceptionutils.InvalidDataException;
 import com.octopus.exceptionutils.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,6 +24,8 @@ import java.util.UUID;
 @Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+
+    private final DeviceRepository deviceRepository;
     public final PasswordEncoder passwordEncoder;
 
     @Override
@@ -36,13 +40,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUserByID(String id, UserDTO userDTO) {
+    public User updateUserByID(String id, User other) {
         var user = this.findUserById(id);
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
-        user.setBirthday(userDTO.getBirthday());
-        user.setAvatar(userDTO.getAvatar());
+        user.merge(other);
         return this.userRepository.save(user);
     }
 
@@ -96,6 +96,29 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(password));
         return user;
     }
+
+    @Override
+    public List<Device> findDevicesByUserId(String userID) {
+        return this.deviceRepository.findDevicesByUserIdAndDisabledIsFalse(UUID.fromString(userID));
+    }
+
+    @Override
+    public Device addDevice(DeviceRequest deviceRequest, String id) {
+        var user = this.findUserById(id);
+        var device = Device.builder()
+                .pushProvider(deviceRequest.getPushProvider())
+                .deviceID(deviceRequest.getDeviceID())
+                .user(user)
+                .build();
+        return this.deviceRepository.save(device);
+    }
+
+    @Override
+    public boolean removeDevice(String id) {
+        return this.deviceRepository.disabledDevice(id);
+    }
+
+
 }
 
 

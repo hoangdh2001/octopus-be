@@ -19,6 +19,8 @@ import {
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
 import {
+  ChannelDTO,
+  ChannelMemberDTO,
   ChannelPaginationParams,
   CreateChannelDTO,
 } from 'src/dtos/channel.dto';
@@ -38,7 +40,8 @@ import { EventsGateway } from 'src/listeners/events.gateway';
 import { KafkaService } from '@rob3000/nestjs-kafka';
 import { DiscoveryService } from 'nestjs-eureka';
 import { HttpService } from '@nestjs/axios';
-import { UserDTO } from 'src/dtos/user.dto';
+import { DeviceDTO, UserDTO } from 'src/dtos/user.dto';
+import { FirebaseMessagingService } from '@aginix/nestjs-firebase-admin';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
@@ -49,8 +52,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     private readonly messageService: MessageServive,
     private readonly eventsGateway: EventsGateway,
     private readonly httpService: HttpService,
-    private readonly discoveryService: DiscoveryService,
     @Inject('MESSAGE_SERVICE') private readonly client: KafkaService,
+    private readonly firebaseMessaging: FirebaseMessagingService,
   ) {}
 
   async onModuleDestroy() {
@@ -74,6 +77,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       skip,
       limit,
     );
+
+    console.log(token);
 
     const data = await Promise.all(
       channels.map(async (channel) => {
@@ -263,6 +268,87 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         return response.data;
       },
     });
+
+    const channel: Channel = await this.channelService.findChannelByID(
+      channelID,
+    );
+
+    const channelDTO: ChannelDTO = await convertChannelDTO({
+      channel: channel,
+      userID,
+      messages: [],
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+    });
+
+    const deviceDTO: DeviceDTO[][] = await Promise.all(
+      channel.members.map(async (member): Promise<DeviceDTO[]> => {
+        const response = await this.httpService.axiosRef.get<DeviceDTO[]>(
+          `http://auth-service/api/users/${userID}/devices`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      }),
+    );
+
+    const devices = deviceDTO
+      .reduce((previousValue, currentValue) => {
+        return [...previousValue, ...currentValue];
+      }, [])
+      .map((device) => device.deviceID);
+
+    var channelName = '';
+    if (channelDTO.channel.name.length) {
+      channelName = channelDTO.channel.name;
+    } else {
+      const otherMembers = channelDTO.members.filter(
+        (member) => member.userID != userID,
+      );
+
+      if (otherMembers.length != 0) {
+        if (otherMembers.length == 1) {
+          const user = otherMembers[0].user;
+          if (user != null) {
+            channelName = `${user.firstName} ${user.lastName}`;
+          }
+        } else {
+          channelName = `${otherMembers
+            .map((e) => e.user?.lastName)
+            .join(', ')}`;
+        }
+      }
+    }
+
+    const messageResponse = await this.firebaseMessaging.sendToDevice(
+      devices,
+      {
+        data: {
+          channelID: channelID,
+        },
+        notification: {
+          title: channelName,
+          body: messageDTO.text,
+          icon: 'https://res.cloudinary.com/df7jgzg96/image/upload/v1682337958/octopus/octopus_logo.png',
+        },
+      },
+      { priority: 'High', timeToLive: 60 * 60 * 24 },
+    );
+
+    if (messageResponse.failureCount > 0) {
+      const failedTokens = [];
+      messageResponse.results.forEach((rs, idx) => {
+        console.log(rs);
+        if (rs.error) {
+          failedTokens.push(devices[idx]);
+        }
+      });
+      console.log('List of tokens that caused failures: ' + failedTokens);
+    }
 
     this.eventsGateway.sendMessage({
       type: 'message.new',

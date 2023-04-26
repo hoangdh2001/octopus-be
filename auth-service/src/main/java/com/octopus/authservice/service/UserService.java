@@ -2,7 +2,9 @@ package com.octopus.authservice.service;
 
 
 import com.octopus.authservice.dto.request.ChangePasswordRequest;
+import com.octopus.authservice.dto.request.DeviceRequest;
 import com.octopus.authservice.dto.request.SignupRequest;
+import com.octopus.authservice.model.Device;
 import com.octopus.authservice.model.User;
 import com.octopus.dtomodels.UserDTO;
 
@@ -15,7 +17,7 @@ public interface UserService {
 
     User findUserById(String id);
 
-    User updateUserByID(String id, UserDTO userDTO);
+    User updateUserByID(String id, User other);
     Boolean existByEmailAndEnableIsTrue(String email);
 
     User findUserByEmail(String email);
@@ -29,5 +31,11 @@ public interface UserService {
     User changePassword(String id, ChangePasswordRequest changePasswordRequest);
 
     User resetPassword(String email, String password);
+
+    List<Device> findDevicesByUserId(String userID);
+
+    Device addDevice(DeviceRequest device, String userID);
+
+    boolean removeDevice(String id);
 }
 

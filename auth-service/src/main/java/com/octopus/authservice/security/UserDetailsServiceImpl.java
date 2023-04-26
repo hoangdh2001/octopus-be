@@ -1,8 +1,6 @@
 package com.octopus.authservice.security;
 
-import com.google.common.collect.Lists;
-import com.octopus.authservice.model.User;
-import com.octopus.authservice.repository.UserRepository;
+import com.octopus.authservice.repositories.UserRepository;
 import com.octopus.authutils.security.SecurityUserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

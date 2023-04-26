@@ -5,7 +5,6 @@ import { EurekaModule } from 'nestjs-eureka';
 import { ChannelController } from '../controllers/channel.controller';
 import { Channel, ChannelSchema } from '../models/channel.model';
 import { ChannelService } from '../services/channel.service';
-import { EventModule } from './events.module';
 import { MessageModule } from './message.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
@@ -21,6 +20,10 @@ import {
   CacheStore,
 } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { EventsGateway } from 'src/listeners/events.gateway';
+import { FirebaseAdminModule } from '@aginix/nestjs-firebase-admin';
+import * as admin from 'firebase-admin';
+var serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-70f4c35f75.json');
 @Module({
   imports: [
     HttpModule.register({
@@ -116,19 +119,26 @@ import { redisStore } from 'cache-manager-redis-store';
     //         keepAlive: 300,
     //         tls: false,
     //         reconnectStrategy: 2000,
-            
+
     //       },
     //     })) as unknown as CacheStore,
     //   }),
     //   inject: [ConfigService],
     // }),
     MessageModule,
-    EventModule,
+    FirebaseAdminModule.forRootAsync({
+      useFactory: () => {
+        return {
+          credential: admin.credential.cert(serviceAccount),
+        };
+      },
+    }),
   ],
   controllers: [ChannelController],
   providers: [
     ChannelService,
     DiscoveryInterceptor,
+    EventsGateway,
     // { provide: APP_INTERCEPTOR, useClass: CacheInterceptor },
   ],
 })

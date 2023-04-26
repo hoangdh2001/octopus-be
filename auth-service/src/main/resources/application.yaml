@@ -16,6 +16,7 @@ spring:
           new_generator_mappings: true
     hibernate:
       ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQL8Dialect
   main:
     allow-circular-references: true
   cache:

@@ -26,6 +26,7 @@ export type MessageDTO = Pick<
 };
 
 export const EVENT_MAP = {
+  'health.check': true,
   'channel.created': true,
   'channel.added': true,
   'channel.removed': true, // Xóa thành viên
@@ -52,6 +53,8 @@ export type MessageEvent = {
   channelID?: string;
   user?: UserDTO;
   userID?: string | null;
+  me?: UserDTO;
+  connectionID?: string;
 };
 
 export class MessagePaginationParams {
