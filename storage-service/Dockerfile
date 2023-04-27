@@ -4,9 +4,9 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install glob rimraf --legacy-peer-deps
+RUN npm install glob rimraf
 
-RUN npm install --only=dev --legacy-peer-deps
+RUN npm install --only=dev
 
 COPY . .
 
