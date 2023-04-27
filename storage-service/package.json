@@ -33,7 +33,6 @@
     "helmet": "^6.1.5",
     "joi": "^17.9.2",
     "mongoose": "^7.0.5",
-    "multistream": "^4.1.0",
     "nestjs-eureka": "^2.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
