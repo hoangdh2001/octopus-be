@@ -12,4 +12,5 @@ import java.util.Date;
 public class DeviceDTO {
     private String deviceID;
     private String pushProvider;
+    private String name;
 }

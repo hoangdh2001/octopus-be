@@ -1,12 +1,16 @@
-import { MessageDTO, Reaction } from 'src/dtos/message.dto';
+import { AttachmentDTO, MessageDTO, Reaction } from 'src/dtos/message.dto';
 import { UserDTO } from 'src/dtos/user.dto';
 import { Message, MessageReaction } from 'src/models/message.model';
 
+export type CallAttachment = (attachmentID: string) => Promise<AttachmentDTO>;
+
 export const convertMessageDTO = async ({
   message,
+  attachments,
   callUser,
 }: {
   message: Message;
+  attachments?: AttachmentDTO[] | CallAttachment;
   callUser: (userID: string) => Promise<UserDTO>;
 }): Promise<MessageDTO> => {
   const messageDTO: MessageDTO = {
@@ -23,6 +27,14 @@ export const convertMessageDTO = async ({
     type: message.type,
     updated: message.updated,
     sender: await callUser(message.senderID),
+    attachments:
+      typeof attachments === 'function'
+        ? await Promise.all(
+            message.attachments.map(
+              async (attachment) => await attachments(attachment),
+            ),
+          )
+        : attachments,
   };
   return messageDTO;
 };

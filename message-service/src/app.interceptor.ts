@@ -28,9 +28,16 @@ export class AppInterceptor implements NestInterceptor {
     console.log(`params: ${JSON.stringify(req.params)}`);
     console.log(`body: ${JSON.stringify(req.body)}`);
 
+    const pipe =
+      req.method === 'POST' &&
+      (req.route?.path as string).startsWith('/api/channels/') &&
+      (req.route?.path as string).endsWith('/messages')
+        ? timeout(10000)
+        : null;
+
     const now = Date.now();
     return next.handle().pipe(
-      timeout(5000),
+      pipe,
       catchError((err) => {
         if (err instanceof TimeoutError)
           return throwError(() => new RequestTimeoutException());

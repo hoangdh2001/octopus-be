@@ -53,6 +53,9 @@ export class Message {
 
   createdAt?: string;
   updatedAt?: string;
+
+  @Prop({ type: [String] })
+  attachments?: string[];
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

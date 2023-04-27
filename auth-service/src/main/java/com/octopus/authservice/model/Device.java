@@ -21,6 +21,7 @@ public class Device implements Serializable {
     @Column(name = "deviceID")
     private String deviceID;
     private String pushProvider;
+    private String name;
 
     @Column(name = "created_at")
     @CreatedDate
