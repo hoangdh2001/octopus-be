@@ -12,18 +12,13 @@ import { Partitioners } from 'kafkajs';
 import { KafkaModule } from '@rob3000/nestjs-kafka';
 import { HttpModule } from '@nestjs/axios';
 import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
-import { RedisClientOptions } from 'redis';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import {
-  CacheInterceptor,
-  CacheModule,
-  CacheStore,
-} from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
 import { EventsGateway } from 'src/listeners/events.gateway';
-import { FirebaseAdminModule } from '@aginix/nestjs-firebase-admin';
+import {
+  FirebaseAdminModule,
+  FirebaseMessagingService,
+} from '@aginix/nestjs-firebase-admin';
 import * as admin from 'firebase-admin';
-var serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-70f4c35f75.json');
+const serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-7d430b6962.json');
 @Module({
   imports: [
     HttpModule.register({
@@ -129,7 +124,10 @@ var serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-70f4c35f7
     FirebaseAdminModule.forRootAsync({
       useFactory: () => {
         return {
-          credential: admin.credential.cert(serviceAccount),
+          credential: admin.credential.cert(
+            serviceAccount as Partial<admin.ServiceAccount>,
+          ),
+          projectId: serviceAccount.project_id,
         };
       },
     }),

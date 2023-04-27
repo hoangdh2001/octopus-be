@@ -300,53 +300,74 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       }, [])
       .map((device) => device.deviceID);
 
-    var channelName = '';
-    if (channelDTO.channel.name.length) {
-      channelName = channelDTO.channel.name;
-    } else {
-      const otherMembers = channelDTO.members.filter(
-        (member) => member.userID != userID,
-      );
+    if (devices.length != 0) {
+      var channelName = '';
+      if (channelDTO.channel.name.length) {
+        channelName = channelDTO.channel.name;
+      } else {
+        const otherMembers = channelDTO.members.filter(
+          (member) => member.userID != userID,
+        );
 
-      if (otherMembers.length != 0) {
-        if (otherMembers.length == 1) {
-          const user = otherMembers[0].user;
-          if (user != null) {
-            channelName = `${user.firstName} ${user.lastName}`;
+        if (otherMembers.length != 0) {
+          if (otherMembers.length == 1) {
+            const user = otherMembers[0].user;
+            if (user != null) {
+              channelName = `${user.firstName} ${user.lastName}`;
+            }
+          } else {
+            channelName = `${otherMembers
+              .map((e) => e.user?.lastName)
+              .join(', ')}`;
           }
-        } else {
-          channelName = `${otherMembers
-            .map((e) => e.user?.lastName)
-            .join(', ')}`;
         }
+      }
+
+      try {
+        const messageResponse = await this.firebaseMessaging.sendMulticast({
+          tokens: devices,
+          data: {
+            channelID: channelID,
+          },
+          notification: {
+            title: channelName,
+            body: messageDTO.text,
+            imageUrl:
+              'https://res.cloudinary.com/df7jgzg96/image/upload/v1682337958/octopus/octopus_logo.png',
+          },
+          android: {
+            priority: 'high',
+            data: {
+              channelID: channelID,
+            },
+            ttl: 60 * 60 * 24,
+          },
+        });
+        if (messageResponse.failureCount > 0) {
+          const failedTokens = [];
+          messageResponse.responses.forEach((resp, idx) => {
+            console.log(resp);
+            if (!resp.success) {
+              failedTokens.push(devices[idx]);
+            }
+          });
+          console.log('List of tokens that caused failures: ' + failedTokens);
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
 
-    const messageResponse = await this.firebaseMessaging.sendToDevice(
-      devices,
-      {
-        data: {
-          channelID: channelID,
-        },
-        notification: {
-          title: channelName,
-          body: messageDTO.text,
-          icon: 'https://res.cloudinary.com/df7jgzg96/image/upload/v1682337958/octopus/octopus_logo.png',
-        },
-      },
-      { priority: 'High', timeToLive: 60 * 60 * 24 },
-    );
-
-    if (messageResponse.failureCount > 0) {
-      const failedTokens = [];
-      messageResponse.results.forEach((rs, idx) => {
-        console.log(rs);
-        if (rs.error) {
-          failedTokens.push(devices[idx]);
-        }
-      });
-      console.log('List of tokens that caused failures: ' + failedTokens);
-    }
+    // if (messageResponse.failureCount > 0) {
+    //   const failedTokens = [];
+    //   messageResponse.results.forEach((rs, idx) => {
+    //     console.log(rs);
+    //     if (rs.error) {
+    //       failedTokens.push(devices[idx]);
+    //     }
+    //   });
+    //   console.log('List of tokens that caused failures: ' + failedTokens);
+    // }
 
     this.eventsGateway.sendMessage({
       type: 'message.new',
