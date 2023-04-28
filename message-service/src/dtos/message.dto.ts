@@ -9,6 +9,22 @@ export type Reaction = Pick<MessageReaction, 'reaction'> & {
   reacterID?: string;
 };
 
+export type AttachmentDTO = {
+  _id: string;
+  filesize?: number;
+  mineType?: string;
+  type?: string;
+  originalHeight?: number;
+  originalName?: string;
+  originalWidth?: number;
+  thumbnailUrl?: string;
+  url?: string;
+  secureUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+};
+
 export type MessageDTO = Pick<
   Message,
   | '_id'
@@ -23,6 +39,7 @@ export type MessageDTO = Pick<
   sender?: UserDTO;
   senderID?: string;
   reactions?: Reaction[];
+  attachments?: AttachmentDTO[];
 };
 
 export const EVENT_MAP = {

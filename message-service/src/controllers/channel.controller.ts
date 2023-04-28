@@ -12,9 +12,9 @@ import {
   Inject,
   OnModuleInit,
   OnModuleDestroy,
-  CacheKey,
-  CacheTTL,
   HttpCode,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
@@ -30,6 +30,7 @@ import { Pagination } from 'src/dtos/pagination.dto';
 import { convertChannelDTO } from 'src/utils/channel.utils';
 import { MessageServive } from 'src/services/message.service';
 import {
+  AttachmentDTO,
   MessagePaginationParams,
   SendMessageParams,
 } from 'src/dtos/message.dto';
@@ -40,9 +41,13 @@ import { KafkaService } from '@rob3000/nestjs-kafka';
 import { HttpService } from '@nestjs/axios';
 import { DeviceDTO, UserDTO } from 'src/dtos/user.dto';
 import { FirebaseMessagingService } from '@aginix/nestjs-firebase-admin';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import FormData from 'form-data';
+import { createReadStream } from 'streamifier';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
+@UseInterceptors(AnyFilesInterceptor())
 export class ChannelController implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly channelService: ChannelService,
@@ -237,11 +242,37 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     @Body() { senderID, _id, text }: SendMessageParams,
     @Headers('Authorization') token?: string,
     @Query('userID') userID?: string,
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
     if (!userID || userID.trim().length === 0) {
       const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
       userID = id;
     }
+    let attachments: AttachmentDTO[] = [];
+    if (files && files.length > 0) {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', createReadStream(file.buffer), {
+          filename: file.originalname,
+          contentType: file.mimetype,
+          filepath: file.path,
+        });
+      });
+      const response = await this.httpService.axiosRef.post<AttachmentDTO[]>(
+        `http://storage-service/api/storage/uploads`,
+        formData,
+        {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+      attachments = response.data;
+    }
+
+    const hasFile = attachments.length > 0;
+
     const message: Message = {
       _id: _id || v4(),
       senderID: senderID || userID,
@@ -249,6 +280,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       type: 'NORMAL',
       channelID: channelID,
       text: text,
+      attachments: attachments.map((attachments) => attachments._id),
     };
 
     const newMessage = await this.messageService.createMessage(
@@ -258,6 +290,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     const messageDTO = await convertMessageDTO({
       message: newMessage,
+      attachments: attachments,
       callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
           `http://auth-service/api/users/${userID}`,
@@ -284,10 +317,14 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    const otherMembers = channel.members.filter(
+      (member) => member.userID != userID,
+    );
+
     const deviceDTO: DeviceDTO[][] = await Promise.all(
-      channel.members.map(async (member): Promise<DeviceDTO[]> => {
+      otherMembers.map(async (member): Promise<DeviceDTO[]> => {
         const response = await this.httpService.axiosRef.get<DeviceDTO[]>(
-          `http://auth-service/api/users/${userID}/devices`,
+          `http://auth-service/api/users/${member.userID}/devices`,
           { headers: { Authorization: token } },
         );
         return response.data;
@@ -331,9 +368,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           },
           notification: {
             title: channelName,
-            body: messageDTO.text,
-            imageUrl:
-              'https://res.cloudinary.com/df7jgzg96/image/upload/v1682337958/octopus/octopus_logo.png',
+            body: hasFile
+              ? `Đã gửi ${attachments.length} ảnh`
+              : messageDTO.text,
+            imageUrl: hasFile ? attachments[0].url : null,
           },
           android: {
             priority: 'high',
@@ -341,12 +379,32 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
               channelID: channelID,
             },
             ttl: 60 * 60 * 24,
+            notification: {
+              title: channelName,
+              body: hasFile
+                ? `Đã gửi ${attachments.length} ảnh`
+                : messageDTO.text,
+              imageUrl: hasFile ? attachments[0].url : null,
+            },
+          },
+          apns: {
+            payload: {
+              aps: {
+                alert: {
+                  title: channelName,
+                  body: hasFile
+                    ? `Đã gửi ${attachments.length} ảnh`
+                    : messageDTO.text,
+                  launchImage: hasFile ? attachments[0].url : null,
+                },
+              },
+            },
           },
         });
+        console.log(messageResponse);
         if (messageResponse.failureCount > 0) {
           const failedTokens = [];
           messageResponse.responses.forEach((resp, idx) => {
-            console.log(resp);
             if (!resp.success) {
               failedTokens.push(devices[idx]);
             }
@@ -357,17 +415,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         console.log(error);
       }
     }
-
-    // if (messageResponse.failureCount > 0) {
-    //   const failedTokens = [];
-    //   messageResponse.results.forEach((rs, idx) => {
-    //     console.log(rs);
-    //     if (rs.error) {
-    //       failedTokens.push(devices[idx]);
-    //     }
-    //   });
-    //   console.log('List of tokens that caused failures: ' + failedTokens);
-    // }
 
     this.eventsGateway.sendMessage({
       type: 'message.new',

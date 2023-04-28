@@ -24,6 +24,12 @@ public class GatewayConfig {
                 .route("message-service",r -> r.path("/api/channels/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter))
                         .uri("lb://message-service"))
+                .route("workspace-service",r -> r.path("/api/workspaces/**", "/api/tasks/**", "/api/spaces/**", "/api/projects/**")
+                        .filters(f -> f.filter(jwtAuthenticationFilter))
+                        .uri("lb://workspace-service"))
+                .route("storage-service",r -> r.path("/api/storage/**")
+                        .filters(f -> f.filter(jwtAuthenticationFilter))
+                        .uri("lb://storage-service"))
                 .build();
     }
 }

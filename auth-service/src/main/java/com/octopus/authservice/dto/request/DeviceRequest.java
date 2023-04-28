@@ -17,4 +17,5 @@ public class DeviceRequest {
     @NotBlank
     private String deviceID;
     private String pushProvider;
+    private String name;
 }
