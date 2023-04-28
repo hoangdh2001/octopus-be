@@ -81,8 +81,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       limit,
     );
 
-    console.log(token);
-
     const data = await Promise.all(
       channels.map(async (channel) => {
         const messages = await this.messageService.findAllByChannel({
@@ -157,7 +155,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post('/:channelID/query')
-  @HttpCode(200)
   async queryChannelByID(
     @Body()
     {

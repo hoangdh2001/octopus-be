@@ -13,10 +13,7 @@ import { KafkaModule } from '@rob3000/nestjs-kafka';
 import { HttpModule } from '@nestjs/axios';
 import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
 import { EventsGateway } from 'src/listeners/events.gateway';
-import {
-  FirebaseAdminModule,
-  FirebaseMessagingService,
-} from '@aginix/nestjs-firebase-admin';
+import { FirebaseAdminModule } from '@aginix/nestjs-firebase-admin';
 import * as admin from 'firebase-admin';
 const serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-7d430b6962.json');
 @Module({
