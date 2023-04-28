@@ -20,6 +20,8 @@ variables:
   IMAGE_EUREKA: $CI_REGISTRY_IMAGE/$IMAGE_EUREKA_NAME
   IMAGE_WORKSPACE_NAME: octopus-core-workspace
   IMAGE_WORKSPACE: $CI_REGISTRY_IMAGE/$IMAGE_WORKSPACE_NAME
+  IMAGE_STORAGE_NAME: octopus-core-storage
+  IMAGE_STORAGE: $CI_REGISTRY_IMAGE/$IMAGE_STORAGE_NAME
 
 workflow:
   rules:
@@ -84,6 +86,8 @@ build:
     - docker push $IMAGE_MAIL:$TAG
     - docker tag workspace:$TAG $IMAGE_WORKSPACE:$TAG
     - docker push $IMAGE_WORKSPACE:$TAG
+    - docker tag storage:$TAG $IMAGE_STORAGE:$TAG
+    - docker push $IMAGE_STORAGE:$TAG
 
 deliver-gitlab:
   stage: deliver-gitlab
@@ -125,6 +129,11 @@ deliver-gitlab:
     - DST_WORKSPACE_IMAGE=$IMAGE_WORKSPACE:$TARGET_TAG
     - docker pull $SRC_WORKSPACE_IMAGE
     - WORKSPACE_SHORT_SHA=`docker inspect --format '{{ index .Config.Labels "core.git.sha" }}' $SRC_WORKSPACE_IMAGE`
+    # octopus-core-storage
+    - SRC_STORAGE_IMAGE=$IMAGE_STORAGE:$SRC_TAG
+    - DST_STORAGE_IMAGE=$IMAGE_STORAGE:$TARGET_TAG
+    - docker pull $SRC_STORAGE_IMAGE
+    - STORAGE_SHORT_SHA=`docker inspect --format '{{ index .Config.Labels "core.git.sha" }}' $SRC_STORAGE_IMAGE`
     # verify the correct image was pulled
     - test $EUREKA_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
       { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-eureka $EUREKA_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
@@ -138,6 +147,8 @@ deliver-gitlab:
       { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-mail $MAIL_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
     - test $WORKSPACE_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
       { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-workspace $WORKSPACE_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
+    - test $STORAGE_SHORT_SHA == $CI_COMMIT_SHORT_SHA ||
+      { echo "$CI_COMMIT_SHORT_SHA Docker image octopus-core-storage $STORAGE_SHORT_SHA was built on a different code base - branches are incorrectly merged" >&2; exit 1; }
     # tag and push
     - docker tag $SRC_EUREKA_IMAGE $DST_EUREKA_IMAGE
     - docker push $DST_EUREKA_IMAGE
@@ -151,6 +162,8 @@ deliver-gitlab:
     - docker push $DST_MAIL_IMAGE
     - docker tag $SRC_WORKSPACE_IMAGE $DST_WORKSPACE_IMAGE
     - docker push $DST_WORKSPACE_IMAGE
+    - docker tag $SRC_STORAGE_IMAGE $DST_STORAGE_IMAGE
+    - docker push $DST_STORAGE_IMAGE
 
 deploy:
   stage: deploy

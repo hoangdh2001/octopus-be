@@ -37,6 +37,8 @@ include:
     - docker push $TARGET_MAIL_IMAGE_PATH
     - docker tag $SOURCE_WORKSPACE_IMAGE_PATH $TARGET_WORKSPACE_IMAGE_PATH
     - docker push $TARGET_WORKSPACE_IMAGE_PATH
+    - docker tag $SOURCE_STORAGE_IMAGE_PATH $TARGET_STORAGE_IMAGE_PATH
+    - docker push $TARGET_STORAGE_IMAGE_PATH
 
 .deploy-app:
   script:
@@ -52,6 +54,7 @@ include:
       --set messageDesc.image=$IMAGE_MESSAGE:$CI_COMMIT_SHORT_SHA
       --set mailDesc.image=$IMAGE_MAIL:$CI_COMMIT_SHORT_SHA
       --set workspaceDesc.image=$IMAGE_WORKSPACE:$CI_COMMIT_SHORT_SHA
+      --set storageDesc.image=$IMAGE_STORAGE:$CI_COMMIT_SHORT_SHA
       --set-string "mongodb.srvAddress=${MONGODB_SRV_ADDRESS}"
       --set-string "mongodb.user=${MONGODB_USER}"
       --set-string "mongodb.pass=${MONGODB_PASS}"

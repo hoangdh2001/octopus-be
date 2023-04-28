@@ -69,6 +69,18 @@ workspaceDesc:
       # max usage on aon-int2 (Dec 19 - Jan 20): ~160Mi
       memory: 256Mi
 
+storageDesc:
+  #  image: <image>
+  replicaCount: 1
+  pullPolicy: Always
+  serviceType: ClusterIP
+  basicAuth: true
+  # coreProfiles: <profiles>
+  resources:
+    requests:
+      # max usage on aon-int2 (Dec 19 - Jan 20): ~3Mi
+      memory: 256Mi
+
 ingress:
   enabled: true
   domainSuffix: xx
