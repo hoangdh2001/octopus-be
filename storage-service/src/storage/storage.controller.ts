@@ -63,7 +63,7 @@ export class StorageController implements OnModuleInit, OnModuleDestroy {
     const attachment: Attachment = {
       _id: attachmentID || v4(),
       filesize: response.bytes,
-      mineType: file.mimetype,
+      mimeType: file.mimetype,
       createdAt: response.created_at,
       originalHeight: response.height,
       originalWidth: response.width,

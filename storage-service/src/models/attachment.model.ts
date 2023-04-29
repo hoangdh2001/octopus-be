@@ -12,7 +12,7 @@ export class Attachment {
   filesize?: number;
 
   @Prop({ type: String })
-  mineType?: string;
+  mimeType?: string;
 
   @Prop({ type: String })
   type?: string;

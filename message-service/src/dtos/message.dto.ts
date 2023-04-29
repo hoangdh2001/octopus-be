@@ -12,7 +12,7 @@ export type Reaction = Pick<MessageReaction, 'reaction'> & {
 export type AttachmentDTO = {
   _id: string;
   filesize?: number;
-  mineType?: string;
+  mimeType?: string;
   type?: string;
   originalHeight?: number;
   originalName?: string;
