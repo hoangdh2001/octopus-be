@@ -1,19 +1,22 @@
 import { ChannelDTO, ChannelMemberDTO } from 'src/dtos/channel.dto';
 import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Message } from 'src/models/message.model';
-import { convertMessageDTO } from './message.util';
+import { CallAttachment, convertMessageDTO } from './message.util';
 import { UserDTO } from 'src/dtos/user.dto';
+import { AttachmentDTO } from 'src/dtos/message.dto';
 
 export const convertChannelDTO = async ({
   channel,
   userID,
   messages,
   callUser,
+  attachments,
 }: {
   channel: Channel;
   userID?: string;
   messages?: Message[];
   callUser: (userID: string) => Promise<UserDTO>;
+  attachments?: AttachmentDTO[] | CallAttachment;
 }): Promise<ChannelDTO> => {
   const channelDTO: ChannelDTO = {
     channel: {
@@ -31,7 +34,11 @@ export const convertChannelDTO = async ({
     },
     messages: await Promise.all(
       messages?.map(async (message) => {
-        const messageDTO = await convertMessageDTO({ message, callUser });
+        const messageDTO = await convertMessageDTO({
+          message,
+          callUser,
+          attachments,
+        });
         return messageDTO;
       }),
     ),

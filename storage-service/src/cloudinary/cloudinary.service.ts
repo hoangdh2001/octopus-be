@@ -10,6 +10,7 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       const upload = v2.uploader.upload_stream(
         {
+          resource_type: 'auto',
           folder: 'octopus',
         },
         (error, result) => {
@@ -20,13 +21,5 @@ export class CloudinaryService {
 
       toStream(file.buffer).pipe(upload);
     });
-  }
-
-  async uploadImages(files: Array<Express.Multer.File>) {
-    return await Promise.all(
-      files.map(async (file) => {
-        return await this.uploadImage(file);
-      }),
-    );
   }
 }

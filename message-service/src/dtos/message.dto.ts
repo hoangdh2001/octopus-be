@@ -126,4 +126,5 @@ export class SendMessageParams {
   @IsOptional()
   @IsString()
   text?: string;
+  attachments?: AttachmentDTO[];
 }

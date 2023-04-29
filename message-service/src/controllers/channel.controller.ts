@@ -15,6 +15,8 @@ import {
   HttpCode,
   UseInterceptors,
   UploadedFiles,
+  BadRequestException,
+  UploadedFile,
 } from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
@@ -41,13 +43,17 @@ import { KafkaService } from '@rob3000/nestjs-kafka';
 import { HttpService } from '@nestjs/axios';
 import { DeviceDTO, UserDTO } from 'src/dtos/user.dto';
 import { FirebaseMessagingService } from '@aginix/nestjs-firebase-admin';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import {
+  AnyFilesInterceptor,
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import FormData from 'form-data';
 import { createReadStream } from 'streamifier';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
-@UseInterceptors(AnyFilesInterceptor())
+@UseInterceptors(FileInterceptor('file'))
 export class ChannelController implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly channelService: ChannelService,
@@ -93,6 +99,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           callUser: async (userID) => {
             const response = await this.httpService.axiosRef.get<UserDTO>(
               `http://auth-service/api/users/${userID}`,
+              { headers: { Authorization: token } },
+            );
+            return response.data;
+          },
+          attachments: async (attachmentID) => {
+            const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+              `http://storage-service/api/storage/attachments/${attachmentID}`,
               { headers: { Authorization: token } },
             );
             return response.data;
@@ -151,6 +164,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         );
         return response.data;
       },
+      attachments: [],
     });
   }
 
@@ -229,6 +243,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         );
         return response.data;
       },
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+          `http://storage-service/api/storage/attachments/${attachmentID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
     });
   }
 
@@ -236,36 +257,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   @HttpCode(201)
   async sendMessage(
     @Param('channelID') channelID: string,
-    @Body() { senderID, _id, text }: SendMessageParams,
+    @Body() { senderID, _id, text, attachments = [] }: SendMessageParams,
     @Headers('Authorization') token?: string,
     @Query('userID') userID?: string,
-    @UploadedFiles() files?: Express.Multer.File[],
   ) {
     if (!userID || userID.trim().length === 0) {
       const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
       userID = id;
-    }
-    let attachments: AttachmentDTO[] = [];
-    if (files && files.length > 0) {
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append('files', createReadStream(file.buffer), {
-          filename: file.originalname,
-          contentType: file.mimetype,
-          filepath: file.path,
-        });
-      });
-      const response = await this.httpService.axiosRef.post<AttachmentDTO[]>(
-        `http://storage-service/api/storage/uploads`,
-        formData,
-        {
-          headers: {
-            Authorization: token,
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      );
-      attachments = response.data;
     }
 
     const hasFile = attachments.length > 0;
@@ -382,11 +380,15 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
                 ? `Đã gửi ${attachments.length} ảnh`
                 : messageDTO.text,
               imageUrl: hasFile ? attachments[0].url : null,
+              priority: 'high',
             },
           },
           apns: {
             payload: {
               aps: {
+                aps: {
+                  'mutable-content': 1,
+                },
                 alert: {
                   title: channelName,
                   body: hasFile
@@ -395,6 +397,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
                   launchImage: hasFile ? attachments[0].url : null,
                 },
               },
+            },
+            fcmOptions: {
+              imageUrl: hasFile ? attachments[0].url : null,
             },
           },
         });
@@ -420,5 +425,65 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     });
 
     return messageDTO;
+  }
+
+  @Post('/:channelID/file')
+  @HttpCode(201)
+  async uploadFile(
+    @Body() { attachmentID } : { attachmentID: string },
+    @UploadedFile() file: Express.Multer.File,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', createReadStream(file.buffer), {
+        filename: file.originalname,
+        contentType: file.mimetype,
+        filepath: file.path,
+      });
+      formData.append('attachmentID', attachmentID);
+      const response = await this.httpService.axiosRef.post<AttachmentDTO[]>(
+        `http://storage-service/api/storage/upload`,
+        formData,
+        {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+      return response.data;
+    }
+    throw new BadRequestException('Invalid file type');
+  }
+
+  @Post('/:channelID/image')
+  @HttpCode(201)
+  async uploadImage(
+    @Body() { attachmentID } : { attachmentID: string },
+    @UploadedFile() file: Express.Multer.File,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', createReadStream(file.buffer), {
+        filename: file.originalname,
+        contentType: file.mimetype,
+        filepath: file.path,
+      });
+      formData.append('attachmentID', attachmentID);
+      const response = await this.httpService.axiosRef.post<AttachmentDTO[]>(
+        `http://storage-service/api/storage/upload`,
+        formData,
+        {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+      return response.data;
+    }
+    throw new BadRequestException('Invalid file type');
   }
 }

@@ -19,8 +19,8 @@ const serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-7d430b6
 @Module({
   imports: [
     HttpModule.register({
-      timeout: 5000,
-      maxRedirects: 5,
+      timeout: 30000,
+      maxRedirects: 1000,
       params: {},
     }),
     ConfigModule.forRoot({

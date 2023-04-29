@@ -1,9 +1,13 @@
 import {
   BadRequestException,
+  Body,
   Controller,
+  Get,
   OnModuleDestroy,
   OnModuleInit,
+  Param,
   Post,
+  Query,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -16,7 +20,7 @@ import { StorageService } from './storage.service';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 
 @Controller('/storage')
-@UseInterceptors(AnyFilesInterceptor())
+@UseInterceptors(FileInterceptor('file'))
 export class StorageController implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
@@ -28,49 +32,36 @@ export class StorageController implements OnModuleInit, OnModuleDestroy {
   @Post('/upload')
   async uploadImage(
     @UploadedFile() file: Express.Multer.File,
+    @Body() { attachmentID }: { attachmentID?: string },
   ): Promise<Attachment | UploadApiErrorResponse> {
-    const response = await this.cloudinaryService
-      .uploadImage(file)
-      .catch(() => {
-        throw new BadRequestException('Invalid file type.');
-      });
+    const response = await this.cloudinaryService.uploadImage(file);
 
     if (this.isUploadApiResponse(response)) {
-      return await this.createAttachment(response, file);
+      return await this.createAttachment({ attachmentID, response, file });
     } else {
       return response;
     }
   }
 
-  @Post('/uploads')
-  async uploadImages(
-    @UploadedFiles() files: Express.Multer.File[],
-  ): Promise<(Attachment | UploadApiErrorResponse)[]> {
-    const responses = await this.cloudinaryService
-      .uploadImages(files)
-      .catch(() => {
-        throw new BadRequestException('Invalid file type');
-      });
-
-    console.log(responses);
-
-    return await Promise.all(
-      responses.map(async (response, index) => {
-        if (this.isUploadApiResponse(response)) {
-          return await this.createAttachment(response, files[index]);
-        } else {
-          return response;
-        }
-      }),
+  @Get('/attachments/:attachmentID')
+  async getAttachmentByID(@Param('attachmentID') attachmentID: string) {
+    const attachment: Attachment = await this.storageService.findAttachmentID(
+      attachmentID,
     );
+    return attachment;
   }
 
-  async createAttachment(
-    response: UploadApiResponse,
-    file: Express.Multer.File,
-  ): Promise<Attachment> {
+  async createAttachment({
+    attachmentID,
+    response,
+    file,
+  }: {
+    attachmentID?: string;
+    response: UploadApiResponse;
+    file: Express.Multer.File;
+  }): Promise<Attachment> {
     const attachment: Attachment = {
-      _id: v4(),
+      _id: attachmentID || v4(),
       filesize: response.bytes,
       mineType: file.mimetype,
       createdAt: response.created_at,

@@ -16,4 +16,11 @@ export class StorageService {
     );
     return newAttachment;
   }
+
+  async findAttachmentID(attachmentID: string) {
+    const attachment: Attachment = await this.channelModel.findById(
+      attachmentID,
+    );
+    return attachment;
+  }
 }

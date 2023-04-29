@@ -30,9 +30,9 @@ export const convertMessageDTO = async ({
     attachments:
       typeof attachments === 'function'
         ? await Promise.all(
-            message.attachments.map(
+            message.attachments?.map(
               async (attachment) => await attachments(attachment),
-            ),
+            ) ?? [],
           )
         : attachments,
   };
