@@ -285,7 +285,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     const messageDTO = await convertMessageDTO({
       message: newMessage,
-      attachments: attachments,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+          `http://storage-service/api/storage/attachments/${attachmentID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
       callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
           `http://auth-service/api/users/${userID}`,
@@ -312,7 +318,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    const otherMembers = channel.members.filter(
+    const otherMembers = channelDTO.members.filter(
       (member) => member.userID != userID,
     );
 
@@ -337,10 +343,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       if (channelDTO.channel.name.length) {
         channelName = channelDTO.channel.name;
       } else {
-        const otherMembers = channelDTO.members.filter(
-          (member) => member.userID != userID,
-        );
-
         if (otherMembers.length != 0) {
           if (otherMembers.length == 1) {
             const user = otherMembers[0].user;
@@ -355,6 +357,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         }
       }
 
+      const isGroup = channelDTO.members.length > 2;
+
+      const sender = channelDTO.members.find(
+        (member) => member.userID === userID,
+      );
+      const senderName = `${sender.user.firstName} ${sender.user.lastName}`;
+
       try {
         const messageResponse = await this.firebaseMessaging.sendMulticast({
           tokens: devices,
@@ -364,7 +373,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           notification: {
             title: channelName,
             body: hasFile
-              ? `Đã gửi ${attachments.length} ảnh`
+              ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
+                  attachments.length
+                } ảnh`
               : messageDTO.text,
             imageUrl: hasFile ? attachments[0].url : null,
           },
@@ -377,7 +388,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
             notification: {
               title: channelName,
               body: hasFile
-                ? `Đã gửi ${attachments.length} ảnh`
+                ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
+                    attachments.length
+                  } ảnh`
                 : messageDTO.text,
               imageUrl: hasFile ? attachments[0].url : null,
               priority: 'high',
@@ -392,7 +405,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
                 alert: {
                   title: channelName,
                   body: hasFile
-                    ? `Đã gửi ${attachments.length} ảnh`
+                    ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
+                        attachments.length
+                      } ảnh`
                     : messageDTO.text,
                   launchImage: hasFile ? attachments[0].url : null,
                 },
@@ -430,7 +445,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   @Post('/:channelID/file')
   @HttpCode(201)
   async uploadFile(
-    @Body() { attachmentID } : { attachmentID: string },
+    @Body() { attachmentID }: { attachmentID: string },
     @UploadedFile() file: Express.Multer.File,
     @Headers('Authorization') token?: string,
   ) {
@@ -460,7 +475,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   @Post('/:channelID/image')
   @HttpCode(201)
   async uploadImage(
-    @Body() { attachmentID } : { attachmentID: string },
+    @Body() { attachmentID }: { attachmentID: string },
     @UploadedFile() file: Express.Multer.File,
     @Headers('Authorization') token?: string,
   ) {
