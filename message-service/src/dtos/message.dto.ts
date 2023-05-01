@@ -3,6 +3,7 @@ import { IsNumber, IsOptional, Min, IsString, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChannelDTO } from './channel.dto';
 import { Message, MessageReaction } from '../models/message.model';
+import { EventTypes } from './event.dto';
 
 export type Reaction = Pick<MessageReaction, 'reaction'> & {
   reacter?: UserDTO;
@@ -41,26 +42,6 @@ export type MessageDTO = Pick<
   reactions?: Reaction[];
   attachments?: AttachmentDTO[];
 };
-
-export const EVENT_MAP = {
-  'health.check': true,
-  'channel.created': true,
-  'channel.added': true,
-  'channel.removed': true, // Xóa thành viên
-  'channel.deleted': true, // Xóa channel
-  'channel.renamed': true, //Đổi tên channel
-  'channel.avatar': true,
-  'message.deleted': true,
-  'message.new': true,
-  'message.updated': true,
-  'reaction.deleted': true,
-  'reaction.new': true,
-  'reaction.updated': true,
-  'typing.start': true,
-  'typing.stop': true,
-};
-
-export type EventTypes = 'all' | keyof typeof EVENT_MAP;
 
 export type MessageEvent = {
   type: EventTypes;

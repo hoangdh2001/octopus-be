@@ -50,6 +50,7 @@ import {
 } from '@nestjs/platform-express';
 import FormData from 'form-data';
 import { createReadStream } from 'streamifier';
+import { EventDTO } from 'src/dtos/event.dto';
 
 @Controller('/channels')
 @UseFilters(new ChannelExceptionFilter())
@@ -500,5 +501,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       return response.data;
     }
     throw new BadRequestException('Invalid file type');
+  }
+
+  @Post('/:channelID/event')
+  async sendEvent(@Param('channelID') channelID: string, @Body() event: EventDTO) {
+    this.eventsGateway.sendMessage({
+      type: event.type,
+      channelID: channelID,
+    });
   }
 }
