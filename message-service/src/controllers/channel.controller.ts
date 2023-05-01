@@ -64,7 +64,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     private readonly httpService: HttpService,
     @Inject('MESSAGE_SERVICE') private readonly client: KafkaService,
     private readonly firebaseMessaging: FirebaseMessagingService,
-  ) {}
+  ) { }
 
   async onModuleDestroy() {
     await this.client.disconnect();
@@ -374,9 +374,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           notification: {
             title: channelName,
             body: hasFile
-              ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
-                  attachments.length
-                } ảnh`
+              ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${attachments.length
+              } ảnh`
               : messageDTO.text,
             imageUrl: hasFile ? attachments[0].url : null,
           },
@@ -389,9 +388,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
             notification: {
               title: channelName,
               body: hasFile
-                ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
-                    attachments.length
-                  } ảnh`
+                ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${attachments.length
+                } ảnh`
                 : messageDTO.text,
               imageUrl: hasFile ? attachments[0].url : null,
               priority: 'high',
@@ -406,9 +404,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
                 alert: {
                   title: channelName,
                   body: hasFile
-                    ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
-                        attachments.length
-                      } ảnh`
+                    ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${attachments.length
+                    } ảnh`
                     : messageDTO.text,
                   launchImage: hasFile ? attachments[0].url : null,
                 },
@@ -504,10 +501,27 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post('/:channelID/event')
-  async sendEvent(@Param('channelID') channelID: string, @Body() event: EventDTO) {
+  async sendEvent(
+    @Param('channelID') channelID: string,
+    @Body() event: EventDTO,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    const response = await this.httpService.axiosRef.get<UserDTO>(
+      `http://auth-service/api/users/${userID}`,
+      { headers: { Authorization: token } },
+    );
+    const user = response.data;
+
     this.eventsGateway.sendMessage({
       type: event.type,
       channelID: channelID,
+      user: user,
     });
   }
 }
