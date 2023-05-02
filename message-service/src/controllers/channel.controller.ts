@@ -46,17 +46,12 @@ import { KafkaService } from '@rob3000/nestjs-kafka';
 import { HttpService } from '@nestjs/axios';
 import { DeviceDTO, UserDTO } from 'src/dtos/user.dto';
 import { FirebaseMessagingService } from '@aginix/nestjs-firebase-admin';
-import {
-  AnyFilesInterceptor,
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import FormData from 'form-data';
 import { createReadStream } from 'streamifier';
 import { EventDTO } from 'src/dtos/event.dto';
 
 @Controller('/channels')
-@UseFilters(new ChannelExceptionFilter())
 @UseInterceptors(FileInterceptor('file'))
 export class ChannelController implements OnModuleInit, OnModuleDestroy {
   constructor(
@@ -118,6 +113,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
             const message = await this.messageService.findMessageById(
               messageID,
             );
+            console.log(message);
             return message;
           },
         });
@@ -363,10 +359,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           { headers: { Authorization: token } },
         );
         return response.data;
-      },
-      callQuotedMessage: async (messageID) => {
-        const message = await this.messageService.findMessageById(messageID);
-        return message;
       },
     });
 

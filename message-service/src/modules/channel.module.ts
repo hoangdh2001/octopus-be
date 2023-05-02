@@ -22,6 +22,11 @@ const serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-7d430b6
       timeout: 30000,
       maxRedirects: 1000,
       params: {},
+      headers: {
+        Accept: '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        Connection: 'keep-alive',
+      },
     }),
     ConfigModule.forRoot({
       envFilePath: '.env',

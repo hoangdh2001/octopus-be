@@ -42,7 +42,9 @@ export const convertMessageDTO = async ({
             ) ?? [],
           )
         : attachments,
-    quotedMessage: await callQuotedMessage?.(message.quotedMessageID),
+    quotedMessage: message.quotedMessageID
+      ? await callQuotedMessage?.(message.quotedMessageID)
+      : null,
   };
   return messageDTO;
 };
@@ -64,6 +66,7 @@ export const convertQuotedMessage = async ({
   attachments?: AttachmentDTO[] | CallAttachment;
   callUser: (userID: string) => Promise<UserDTO>;
 }): Promise<QuotedMessageDTO> => {
+  console.log(message._id);
   const messageDTO: QuotedMessageDTO = {
     _id: message._id,
     channelID: message.channelID,
