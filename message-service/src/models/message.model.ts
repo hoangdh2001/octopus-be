@@ -56,6 +56,9 @@ export class Message {
 
   @Prop({ type: [String] })
   attachments?: string[];
+
+  @Prop({ type: String })
+  quotedMessageID?: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

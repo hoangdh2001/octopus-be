@@ -10,7 +10,8 @@ export class MessageServive {
   ) {}
 
   async findMessageById(messageID: string) {
-    return await this.messageModel.findById(messageID);
+    const message: Message = await this.messageModel.findById(messageID);
+    return message;
   }
 
   async findAllByChannel({

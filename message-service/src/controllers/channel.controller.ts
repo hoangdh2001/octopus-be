@@ -36,7 +36,10 @@ import {
   MessagePaginationParams,
   SendMessageParams,
 } from 'src/dtos/message.dto';
-import { convertMessageDTO } from 'src/utils/message.util';
+import {
+  convertMessageDTO,
+  convertQuotedMessage,
+} from 'src/utils/message.util';
 import { Message } from 'src/models/message.model';
 import { EventsGateway } from 'src/listeners/events.gateway';
 import { KafkaService } from '@rob3000/nestjs-kafka';
@@ -64,7 +67,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     private readonly httpService: HttpService,
     @Inject('MESSAGE_SERVICE') private readonly client: KafkaService,
     private readonly firebaseMessaging: FirebaseMessagingService,
-  ) { }
+  ) {}
 
   async onModuleDestroy() {
     await this.client.disconnect();
@@ -110,6 +113,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
               { headers: { Authorization: token } },
             );
             return response.data;
+          },
+          callQuotedMessage: async (messageID) => {
+            const message = await this.messageService.findMessageById(
+              messageID,
+            );
+            return message;
           },
         });
       }),
@@ -166,6 +175,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         return response.data;
       },
       attachments: [],
+      callQuotedMessage: async (messageID) => {
+        const message = await this.messageService.findMessageById(messageID);
+        return message;
+      },
     });
   }
 
@@ -251,6 +264,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         );
         return response.data;
       },
+      callQuotedMessage: async (messageID) => {
+        const message = await this.messageService.findMessageById(messageID);
+        return message;
+      },
     });
   }
 
@@ -258,7 +275,14 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   @HttpCode(201)
   async sendMessage(
     @Param('channelID') channelID: string,
-    @Body() { senderID, _id, text, attachments = [] }: SendMessageParams,
+    @Body()
+    {
+      senderID,
+      _id,
+      text,
+      attachments = [],
+      quotedMessageID,
+    }: SendMessageParams,
     @Headers('Authorization') token?: string,
     @Query('userID') userID?: string,
   ) {
@@ -277,6 +301,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       channelID: channelID,
       text: text,
       attachments: attachments.map((attachments) => attachments._id),
+      quotedMessageID: quotedMessageID,
     };
 
     const newMessage = await this.messageService.createMessage(
@@ -300,6 +325,28 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         );
         return response.data;
       },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return await convertQuotedMessage({
+          message: quotedMessage,
+          callUser: async (userID) => {
+            const response = await this.httpService.axiosRef.get<UserDTO>(
+              `http://auth-service/api/users/${userID}`,
+              { headers: { Authorization: token } },
+            );
+            return response.data;
+          },
+          attachments: async (attachmentID) => {
+            const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+              `http://storage-service/api/storage/attachments/${attachmentID}`,
+              { headers: { Authorization: token } },
+            );
+            return response.data;
+          },
+        });
+      },
     });
 
     const channel: Channel = await this.channelService.findChannelByID(
@@ -316,6 +363,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           { headers: { Authorization: token } },
         );
         return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const message = await this.messageService.findMessageById(messageID);
+        return message;
       },
     });
 
@@ -374,8 +425,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           notification: {
             title: channelName,
             body: hasFile
-              ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${attachments.length
-              } ảnh`
+              ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
+                  attachments.length
+                } ảnh`
               : messageDTO.text,
             imageUrl: hasFile ? attachments[0].url : null,
           },
@@ -388,8 +440,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
             notification: {
               title: channelName,
               body: hasFile
-                ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${attachments.length
-                } ảnh`
+                ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
+                    attachments.length
+                  } ảnh`
                 : messageDTO.text,
               imageUrl: hasFile ? attachments[0].url : null,
               priority: 'high',
@@ -404,8 +457,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
                 alert: {
                   title: channelName,
                   body: hasFile
-                    ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${attachments.length
-                    } ảnh`
+                    ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
+                        attachments.length
+                      } ảnh`
                     : messageDTO.text,
                   launchImage: hasFile ? attachments[0].url : null,
                 },
@@ -524,4 +578,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       user: user,
     });
   }
+
+  @Post('/:channelID/read')
+  async markRead(
+    @Param('channelID') channelID: string,
+    @Body() { messageID }: { messageID: string },
+  ) {}
 }

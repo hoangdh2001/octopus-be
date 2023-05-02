@@ -41,7 +41,10 @@ export type MessageDTO = Pick<
   senderID?: string;
   reactions?: Reaction[];
   attachments?: AttachmentDTO[];
+  quotedMessage?: QuotedMessageDTO;
 };
+
+export type QuotedMessageDTO = Omit<MessageDTO, 'quotedMessage'>;
 
 export type MessageEvent = {
   type: EventTypes;
@@ -108,4 +111,5 @@ export class SendMessageParams {
   @IsString()
   text?: string;
   attachments?: AttachmentDTO[];
+  quotedMessageID?: string;
 }
