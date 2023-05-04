@@ -5,9 +5,10 @@ import { ChannelDTO } from './channel.dto';
 import { Message, MessageReaction } from '../models/message.model';
 import { EventTypes } from './event.dto';
 
-export type Reaction = Pick<MessageReaction, 'reaction'> & {
+export type Reaction = {
   reacter?: UserDTO;
   reacterID?: string;
+  type: string;
 };
 
 export type AttachmentDTO = {
@@ -26,6 +27,8 @@ export type AttachmentDTO = {
   createdBy?: string;
 };
 
+export type ReactionCount = { [key: string]: number };
+
 export type MessageDTO = Pick<
   Message,
   | '_id'
@@ -36,15 +39,21 @@ export type MessageDTO = Pick<
   | 'channelID'
   | 'createdAt'
   | 'updatedAt'
+  | 'ignoreUser'
 > & {
   sender?: UserDTO;
   senderID?: string;
   reactions?: Reaction[];
+  ownReactions?: Reaction[];
   attachments?: AttachmentDTO[];
   quotedMessage?: QuotedMessageDTO;
+  reactionCounts?: ReactionCount;
 };
 
-export type QuotedMessageDTO = Omit<MessageDTO, 'quotedMessage'>;
+export type QuotedMessageDTO = Omit<
+  MessageDTO,
+  'quotedMessage' | 'reactions' | 'reactionCounts' | 'ownReactions'
+>;
 
 export type MessageEvent = {
   type: EventTypes;

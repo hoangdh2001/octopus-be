@@ -7,7 +7,9 @@ import { ChannelModule } from './modules/channel.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(ChannelModule);
+  const app = await NestFactory.create<NestExpressApplication>(ChannelModule, {
+    logger: ['debug', 'error', 'log', 'warn', 'verbose'],
+  });
   app.enableCors({ origin: '*' });
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());

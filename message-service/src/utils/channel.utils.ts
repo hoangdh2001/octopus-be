@@ -41,20 +41,11 @@ export const convertChannelDTO = async ({
     messages: await Promise.all(
       messages?.map(async (message) => {
         const messageDTO = await convertMessageDTO({
+          userID,
           message,
           callUser,
           attachments,
-          callQuotedMessage:
-            callQuotedMessage == null
-              ? null
-              : async (messageID) => {
-                  const quotedMessage = await callQuotedMessage(messageID);
-                  return await convertQuotedMessage({
-                    message: quotedMessage,
-                    callUser: callUser,
-                    attachments: attachments,
-                  });
-                },
+          callQuotedMessage: callQuotedMessage,
         });
         return messageDTO;
       }),

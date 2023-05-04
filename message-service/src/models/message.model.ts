@@ -5,8 +5,6 @@ import { HydratedDocument, Types } from 'mongoose';
 export class MessageReaction {
   @Prop({
     type: String,
-    enum: ['LIKE', 'HAHA', 'HEART', 'CRY', 'WOW', 'ANGRY'],
-    default: 'LIKE',
   })
   reaction: string;
 
@@ -32,15 +30,15 @@ export class Message {
 
   @Prop({
     type: String,
-    enum: ['DELETED', 'ERROR', 'READY'],
+    enum: ['ERROR', 'READY'],
   })
-  status: 'DELETED' | 'ERROR' | 'READY';
+  status: 'ERROR' | 'READY';
 
   @Prop({ type: String })
   text?: string;
 
-  @Prop({ type: String, enum: ['SYSTEM_NOTIFICATION', 'NORMAL'] })
-  type: 'SYSTEM_NOTIFICATION' | 'NORMAL';
+  @Prop({ type: String, enum: ['SYSTEM_NOTIFICATION', 'NORMAL', 'DELETED'] })
+  type: 'SYSTEM_NOTIFICATION' | 'NORMAL' | 'DELETED';
 
   @Prop({ type: [String], default: [] })
   viewers?: string[];
@@ -59,6 +57,9 @@ export class Message {
 
   @Prop({ type: String })
   quotedMessageID?: string;
+
+  @Prop({ type: [String] })
+  ignoreUser?: [string];
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

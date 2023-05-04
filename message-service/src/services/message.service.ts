@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage } from 'mongoose';
+import { Model, PipelineStage, UpdateQuery } from 'mongoose';
 import { Message, MessageDocument } from '../models/message.model';
 
 @Injectable()
@@ -86,5 +86,22 @@ export class MessageServive {
       .count()
       .exec();
     return count;
+  }
+
+  async updateMessage(messageID: string, update: UpdateQuery<Message>) {
+    const message: Message = await this.messageModel.findOneAndUpdate(
+      {
+        _id: messageID,
+      },
+      update,
+      {
+        new: true,
+      },
+    );
+    return message;
+  }
+
+  async deleteMessage(messageID: string) {
+    await this.messageModel.findOneAndDelete({ _id: messageID });
   }
 }

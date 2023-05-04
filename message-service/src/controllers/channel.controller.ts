@@ -17,6 +17,8 @@ import {
   UploadedFiles,
   BadRequestException,
   UploadedFile,
+  Logger,
+  Delete,
 } from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
@@ -39,8 +41,9 @@ import {
 import {
   convertMessageDTO,
   convertQuotedMessage,
+  convertReaction,
 } from 'src/utils/message.util';
-import { Message } from 'src/models/message.model';
+import { Message, MessageReaction } from 'src/models/message.model';
 import { EventsGateway } from 'src/listeners/events.gateway';
 import { KafkaService } from '@rob3000/nestjs-kafka';
 import { HttpService } from '@nestjs/axios';
@@ -113,7 +116,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
             const message = await this.messageService.findMessageById(
               messageID,
             );
-            console.log(message);
             return message;
           },
         });
@@ -272,13 +274,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   async sendMessage(
     @Param('channelID') channelID: string,
     @Body()
-    {
-      senderID,
-      _id,
-      text,
-      attachments = [],
-      quotedMessageID,
-    }: SendMessageParams,
+    { senderID, _id, text, attachments, quotedMessageID }: SendMessageParams,
     @Headers('Authorization') token?: string,
     @Query('userID') userID?: string,
   ) {
@@ -287,7 +283,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       userID = id;
     }
 
-    const hasFile = attachments.length > 0;
+    const hasFile = attachments != null || attachments.length > 0;
 
     const message: Message = {
       _id: _id || v4(),
@@ -306,6 +302,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     );
 
     const messageDTO = await convertMessageDTO({
+      userID: userID,
       message: newMessage,
       attachments: async (attachmentID) => {
         const response = await this.httpService.axiosRef.get<AttachmentDTO>(
@@ -325,23 +322,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         const quotedMessage = await this.messageService.findMessageById(
           messageID,
         );
-        return await convertQuotedMessage({
-          message: quotedMessage,
-          callUser: async (userID) => {
-            const response = await this.httpService.axiosRef.get<UserDTO>(
-              `http://auth-service/api/users/${userID}`,
-              { headers: { Authorization: token } },
-            );
-            return response.data;
-          },
-          attachments: async (attachmentID) => {
-            const response = await this.httpService.axiosRef.get<AttachmentDTO>(
-              `http://storage-service/api/storage/attachments/${attachmentID}`,
-              { headers: { Authorization: token } },
-            );
-            return response.data;
-          },
-        });
+        return quotedMessage;
       },
     });
 
@@ -486,6 +467,69 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     return messageDTO;
   }
 
+  @Delete('/:channelID/messages/:messageID')
+  async deleteMessage(
+    @Param('channelID') channelID: string,
+    @Param('messageID') messageID: string,
+    @Query('hard') hard: boolean | string,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+    let deletedMessage: Message;
+    if (
+      (typeof hard === 'boolean' && hard) ||
+      (typeof hard === 'string' && hard === 'true')
+    ) {
+      deletedMessage = await this.messageService.updateMessage(messageID, {
+        type: 'DELETED',
+      });
+    } else {
+      const message = await this.messageService.findMessageById(messageID);
+      const oldIgnoreUser = message.ignoreUser.filter(
+        (user) => user !== userID,
+      );
+      const ignoreUser = [...oldIgnoreUser, userID];
+      deletedMessage = await this.messageService.updateMessage(messageID, {
+        ignoreUser: ignoreUser,
+      });
+    }
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: deletedMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+          `http://storage-service/api/storage/attachments/${attachmentID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'message.deleted',
+      channelID: channelID,
+      message: messageDTO,
+    });
+  }
+
   @Post('/:channelID/file')
   @HttpCode(201)
   async uploadFile(
@@ -568,6 +612,135 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       type: event.type,
       channelID: channelID,
       user: user,
+    });
+  }
+
+  @Post('/:channelID/messages/:messageID/reactions/:reactionType')
+  async sendReaction(
+    @Param('channelID') channelID: string,
+    @Param('messageID') messageID: string,
+    @Param('reactionType') reactionType: string,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    const newReaction: MessageReaction = {
+      reacter_id: userID,
+      reaction: reactionType,
+    };
+
+    const message = await this.messageService.findMessageById(messageID);
+    const oldReactions = message.reactions.filter(
+      (reaction) => reaction.reacter_id !== newReaction.reacter_id,
+    );
+    const reactions = [...oldReactions, newReaction];
+    const updatedMessage = await this.messageService.updateMessage(messageID, {
+      reactions: reactions,
+    });
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: updatedMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+          `http://storage-service/api/storage/attachments/${attachmentID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    const reactionDTO = await convertReaction({
+      messageReaction: newReaction,
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'reaction.new',
+      message: messageDTO,
+      channelID: channelID,
+    });
+
+    return {
+      message: messageDTO,
+      reaction: reactionDTO,
+    };
+  }
+
+  @Delete('/:channelID/messages/:messageID/reactions/:reactionType')
+  async deleteReaction(
+    @Param('channelID') channelID: string,
+    @Param('messageID') messageID: string,
+    @Param('reactionType') reactionType: string,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    const message = await this.messageService.findMessageById(messageID);
+    const reactions = message.reactions.filter(
+      (reaction) =>
+        reaction.reacter_id !== userID && reaction.reaction !== reactionType,
+    );
+    const updatedMessage = await this.messageService.updateMessage(messageID, {
+      reactions: reactions,
+    });
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: updatedMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+          `http://storage-service/api/storage/attachments/${attachmentID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'reaction.deleted',
+      message: messageDTO,
+      channelID: channelID,
     });
   }
 
