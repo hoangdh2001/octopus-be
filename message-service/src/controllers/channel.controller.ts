@@ -35,7 +35,9 @@ import { convertChannelDTO } from 'src/utils/channel.utils';
 import { MessageServive } from 'src/services/message.service';
 import {
   AttachmentDTO,
+  MessageDTO,
   MessagePaginationParams,
+  Reaction,
   SendMessageParams,
 } from 'src/dtos/message.dto';
 import {
@@ -283,8 +285,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       userID = id;
     }
 
-    const hasFile = attachments != null || attachments.length > 0;
-
     const message: Message = {
       _id: _id || v4(),
       senderID: senderID || userID,
@@ -300,6 +300,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       channelID,
       message,
     );
+
+    await this.channelService.updateChannel(channelID, {
+      lastMessageAt: newMessage.createdAt,
+    });
 
     const messageDTO = await convertMessageDTO({
       userID: userID,
@@ -326,137 +330,16 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    const channel: Channel = await this.channelService.findChannelByID(
+    const hasFile = attachments != null && attachments.length > 0;
+
+    await this.notificationPushToDevice({
       channelID,
-    );
-
-    const channelDTO: ChannelDTO = await convertChannelDTO({
-      channel: channel,
+      token,
       userID,
-      messages: [],
-      callUser: async (userID) => {
-        const response = await this.httpService.axiosRef.get<UserDTO>(
-          `http://auth-service/api/users/${userID}`,
-          { headers: { Authorization: token } },
-        );
-        return response.data;
-      },
+      type: hasFile ? 'attachments' : 'message',
+      attachments,
+      message: messageDTO,
     });
-
-    const otherMembers = channelDTO.members.filter(
-      (member) => member.userID != userID,
-    );
-
-    const deviceDTO: DeviceDTO[][] = await Promise.all(
-      otherMembers.map(async (member): Promise<DeviceDTO[]> => {
-        const response = await this.httpService.axiosRef.get<DeviceDTO[]>(
-          `http://auth-service/api/users/${member.userID}/devices`,
-          { headers: { Authorization: token } },
-        );
-        return response.data;
-      }),
-    );
-
-    const devices = deviceDTO
-      .reduce((previousValue, currentValue) => {
-        return [...previousValue, ...currentValue];
-      }, [])
-      .map((device) => device.deviceID);
-
-    if (devices.length != 0) {
-      var channelName = '';
-      if (channelDTO.channel.name.length) {
-        channelName = channelDTO.channel.name;
-      } else {
-        if (otherMembers.length != 0) {
-          if (otherMembers.length == 1) {
-            const user = otherMembers[0].user;
-            if (user != null) {
-              channelName = `${user.firstName} ${user.lastName}`;
-            }
-          } else {
-            channelName = `${otherMembers
-              .map((e) => e.user?.lastName)
-              .join(', ')}`;
-          }
-        }
-      }
-
-      const isGroup = channelDTO.members.length > 2;
-
-      const sender = channelDTO.members.find(
-        (member) => member.userID === userID,
-      );
-      const senderName = `${sender.user.firstName} ${sender.user.lastName}`;
-
-      try {
-        const messageResponse = await this.firebaseMessaging.sendMulticast({
-          tokens: devices,
-          data: {
-            channelID: channelID,
-          },
-          notification: {
-            title: channelName,
-            body: hasFile
-              ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
-                  attachments.length
-                } ảnh`
-              : messageDTO.text,
-            imageUrl: hasFile ? attachments[0].url : null,
-          },
-          android: {
-            priority: 'high',
-            data: {
-              channelID: channelID,
-            },
-            ttl: 60 * 60 * 24,
-            notification: {
-              title: channelName,
-              body: hasFile
-                ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
-                    attachments.length
-                  } ảnh`
-                : messageDTO.text,
-              imageUrl: hasFile ? attachments[0].url : null,
-              priority: 'high',
-            },
-          },
-          apns: {
-            payload: {
-              aps: {
-                aps: {
-                  'mutable-content': 1,
-                },
-                alert: {
-                  title: channelName,
-                  body: hasFile
-                    ? `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
-                        attachments.length
-                      } ảnh`
-                    : messageDTO.text,
-                  launchImage: hasFile ? attachments[0].url : null,
-                },
-              },
-            },
-            fcmOptions: {
-              imageUrl: hasFile ? attachments[0].url : null,
-            },
-          },
-        });
-        console.log(messageResponse);
-        if (messageResponse.failureCount > 0) {
-          const failedTokens = [];
-          messageResponse.responses.forEach((resp, idx) => {
-            if (!resp.success) {
-              failedTokens.push(devices[idx]);
-            }
-          });
-          console.log('List of tokens that caused failures: ' + failedTokens);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    }
 
     this.eventsGateway.sendMessage({
       type: 'message.new',
@@ -678,6 +561,15 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    await this.notificationPushToDevice({
+      channelID,
+      token,
+      userID,
+      type: 'reaction',
+      reaction: reactionDTO,
+      message: messageDTO,
+    });
+
     this.eventsGateway.sendMessage({
       type: 'reaction.new',
       message: messageDTO,
@@ -749,4 +641,166 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     @Param('channelID') channelID: string,
     @Body() { messageID }: { messageID: string },
   ) {}
+
+  async notificationPushToDevice({
+    channelID,
+    token,
+    userID,
+    type,
+    attachments,
+    message,
+    reaction,
+  }: {
+    channelID: string;
+    token: string;
+    userID: string;
+    type: 'attachments' | 'message' | 'reaction';
+    attachments?: AttachmentDTO[];
+    message?: MessageDTO;
+    reaction?: Reaction;
+  }) {
+    if (!attachments && !message && !reaction) return;
+    if (type === 'attachments' && !attachments) return;
+    if (type === 'message' && !message) return;
+    if (type === 'reaction' && !reaction && !message) return;
+
+    const channel: Channel = await this.channelService.findChannelByID(
+      channelID,
+    );
+
+    const channelDTO: ChannelDTO = await convertChannelDTO({
+      channel: channel,
+      userID,
+      messages: [],
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+    });
+
+    const otherMembers = channelDTO.members.filter(
+      (member) => member.userID != userID,
+    );
+
+    const deviceDTO: DeviceDTO[][] = await Promise.all(
+      otherMembers.map(async (member): Promise<DeviceDTO[]> => {
+        const response = await this.httpService.axiosRef.get<DeviceDTO[]>(
+          `http://auth-service/api/users/${member.userID}/devices`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      }),
+    );
+
+    const devices = deviceDTO
+      .reduce((previousValue, currentValue) => {
+        return [...previousValue, ...currentValue];
+      }, [])
+      .map((device) => device.deviceID);
+
+    if (devices.length != 0) {
+      var channelName = '';
+      if (channelDTO.channel.name.length) {
+        channelName = channelDTO.channel.name;
+      } else {
+        if (otherMembers.length != 0) {
+          if (otherMembers.length == 1) {
+            const user = otherMembers[0].user;
+            if (user != null) {
+              channelName = `${user.firstName} ${user.lastName}`;
+            }
+          } else {
+            channelName = `${otherMembers
+              .map((e) => e.user?.lastName)
+              .join(', ')}`;
+          }
+        }
+      }
+
+      const isGroup = channelDTO.members.length > 2;
+
+      const sender = channelDTO.members.find(
+        (member) => member.userID === userID,
+      );
+      const senderName = `${sender.user.firstName} ${sender.user.lastName}`;
+
+      let body: string = '';
+
+      switch (type) {
+        case 'attachments':
+          body = `${isGroup ? `${senderName}: ` : ''}Đã gửi ${
+            attachments.length
+          } ảnh`;
+          break;
+        case 'message':
+          body = message.text;
+          break;
+        case 'reaction':
+          body = `${isGroup ? `${senderName}: ` : ''}Đã phản ứng ${
+            reaction.type
+          } với tin nhắn: ${message.text}`;
+          break;
+      }
+
+      try {
+        const messageResponse = await this.firebaseMessaging.sendMulticast({
+          tokens: devices,
+          data: {
+            channelID: channelID,
+          },
+          notification: {
+            title: channelName,
+            body: body,
+            imageUrl: type === 'attachments' ? attachments[0].url : null,
+          },
+          android: {
+            priority: 'high',
+            data: {
+              channelID: channelID,
+            },
+            ttl: 60 * 60 * 24,
+            notification: {
+              title: channelName,
+              body: body,
+              imageUrl: type === 'attachments' ? attachments[0].url : null,
+              priority: 'high',
+            },
+          },
+          apns: {
+            payload: {
+              aps: {
+                aps: {
+                  'mutable-content': 1,
+                },
+                alert: {
+                  title: channelName,
+                  body: body,
+                  launchImage:
+                    type === 'attachments' ? attachments[0].url : null,
+                },
+              },
+            },
+            fcmOptions: {
+              imageUrl: type === 'attachments' ? attachments[0].url : null,
+            },
+          },
+        });
+        console.log(messageResponse);
+        if (messageResponse.failureCount > 0) {
+          const failedTokens = [];
+          messageResponse.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              failedTokens.push(devices[idx]);
+            }
+          });
+          console.log('List of tokens that caused failures: ' + failedTokens);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, UpdateQuery } from 'mongoose';
 import { ChannelDTO } from 'src/dtos/channel.dto';
 import { Message } from 'src/models/message.model';
 import { Channel, ChannelDocument } from '../models/channel.model';
@@ -24,7 +24,7 @@ export class ChannelService {
   ) {
     const channels: Channel[] = await this.channelModel.aggregate([
       { $match: { members: { $elemMatch: { userID: userID } } } },
-      { $sort: { receivedMessageAt: -1 } },
+      { $sort: { lastMessageAt: -1 } },
       { $skip: documentToSkip * limitOfDocuments },
       { $limit: Number.parseInt(limitOfDocuments.toString()) },
     ]);
@@ -44,5 +44,18 @@ export class ChannelService {
 
   async findChannelByID(channelID: string) {
     return await this.channelModel.findById(channelID);
+  }
+
+  async updateChannel(messageID: string, update: UpdateQuery<Channel>) {
+    const channel: Channel = await this.channelModel.findOneAndUpdate(
+      {
+        _id: messageID,
+      },
+      update,
+      {
+        new: true,
+      },
+    );
+    return channel;
   }
 }
