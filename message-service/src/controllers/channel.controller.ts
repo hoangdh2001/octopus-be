@@ -292,7 +292,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       type: 'NORMAL',
       channelID: channelID,
       text: text,
-      attachments: attachments.map((attachments) => attachments._id),
+      attachments: attachments?.map((attachments) => attachments._id),
       quotedMessageID: quotedMessageID,
     };
 
@@ -654,7 +654,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     channelID: string;
     token: string;
     userID: string;
-    type: 'attachments' | 'message' | 'reaction';
+    type: 'attachments' | 'message' | 'reaction' | 'call';
     attachments?: AttachmentDTO[];
     message?: MessageDTO;
     reaction?: Reaction;
@@ -736,7 +736,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           } ảnh`;
           break;
         case 'message':
-          body = message.text;
+          body = `${isGroup ? `${senderName}: ` : ''}${message.text}`;
           break;
         case 'reaction':
           body = `${isGroup ? `${senderName}: ` : ''}Đã phản ứng ${
@@ -749,42 +749,55 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         const messageResponse = await this.firebaseMessaging.sendMulticast({
           tokens: devices,
           data: {
+            type: type,
             channelID: channelID,
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
           },
           notification: {
             title: channelName,
             body: body,
-            imageUrl: type === 'attachments' ? attachments[0].url : null,
           },
           android: {
             priority: 'high',
             data: {
+              type: type,
               channelID: channelID,
+              click_action: 'FLUTTER_NOTIFICATION_CLICK',
             },
             ttl: 60 * 60 * 24,
             notification: {
               title: channelName,
               body: body,
-              imageUrl: type === 'attachments' ? attachments[0].url : null,
               priority: 'high',
+              defaultSound: true,
+              sticky: true,
+              visibility: 'private',
             },
           },
           apns: {
+            headers: {
+              'apns-priority': '10',
+              'apns-push-type': 'alert',
+            },
             payload: {
               aps: {
                 aps: {
-                  'mutable-content': 1,
+                  'content-available': 1,
+                },
+                contentAvailable: true,
+                sound: {
+                  name: 'default',
+                  volume: 1,
+                  critical: true,
                 },
                 alert: {
                   title: channelName,
                   body: body,
-                  launchImage:
-                    type === 'attachments' ? attachments[0].url : null,
                 },
               },
-            },
-            fcmOptions: {
-              imageUrl: type === 'attachments' ? attachments[0].url : null,
+              type: type,
+              channelID: channelID,
+              click_action: 'FLUTTER_NOTIFICATION_CLICK',
             },
           },
         });
@@ -793,6 +806,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           const failedTokens = [];
           messageResponse.responses.forEach((resp, idx) => {
             if (!resp.success) {
+              console.log(resp.error);
               failedTokens.push(devices[idx]);
             }
           });
@@ -802,5 +816,124 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         console.log(error);
       }
     }
+  }
+
+  @Post('/:channelID/call/:callType')
+  async call(
+    @Param('channelID') channelID: string,
+    @Param('callType') callType: string,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+    const channel: Channel = await this.channelService.findChannelByID(
+      channelID,
+    );
+
+    const channelDTO: ChannelDTO = await convertChannelDTO({
+      channel: channel,
+      userID,
+      messages: [],
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+    });
+
+    const otherMembers = channelDTO.members.filter(
+      (member) => member.userID != userID,
+    );
+
+    const deviceDTO: DeviceDTO[][] = await Promise.all(
+      otherMembers.map(async (member): Promise<DeviceDTO[]> => {
+        const response = await this.httpService.axiosRef.get<DeviceDTO[]>(
+          `http://auth-service/api/users/${member.userID}/devices`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      }),
+    );
+
+    const devices = deviceDTO
+      .reduce((previousValue, currentValue) => {
+        return [...previousValue, ...currentValue];
+      }, [])
+      .map((device) => device.deviceID);
+
+    if (devices.length != 0) {
+      var channelName = '';
+      if (channelDTO.channel.name.length) {
+        channelName = channelDTO.channel.name;
+      } else {
+        if (otherMembers.length != 0) {
+          if (otherMembers.length == 1) {
+            const user = otherMembers[0].user;
+            if (user != null) {
+              channelName = `${user.firstName} ${user.lastName}`;
+            }
+          } else {
+            channelName = `${otherMembers
+              .map((e) => e.user?.lastName)
+              .join(', ')}`;
+          }
+        }
+      }
+    }
+
+    try {
+      const messageResponse = await this.firebaseMessaging.sendMulticast({
+        tokens: devices,
+        data: {
+          type: callType,
+          uuid: channelID,
+          callerName: channelName,
+        },
+      });
+      console.log(messageResponse);
+      if (messageResponse.failureCount > 0) {
+        const failedTokens = [];
+        messageResponse.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            console.log(resp.error);
+            failedTokens.push(devices[idx]);
+          }
+        });
+        console.log('List of tokens that caused failures: ' + failedTokens);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @Post('/:channelID/response/:responseType')
+  async response(
+    @Param('channelID') channelID: string,
+    @Param('responseType') responseType: 'decline' | 'end' | 'accept',
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    const response = await this.httpService.axiosRef.get<UserDTO>(
+      `http://auth-service/api/users/${userID}`,
+      { headers: { Authorization: token } },
+    );
+
+    const userDTO = response.data;
+
+    this.eventsGateway.sendMessage({
+      type: `call.${responseType}`,
+      channelID: channelID,
+      user: userDTO,
+    });
   }
 }

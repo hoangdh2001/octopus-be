@@ -128,6 +128,7 @@ public class UserServiceImpl implements UserService {
                 .pushProvider(deviceRequest.getPushProvider())
                 .deviceID(deviceRequest.getDeviceID())
                 .user(user)
+                .name(deviceRequest.getName())
                 .build();
         return userMapper.mapToDeviceDTO(this.deviceRepository.save(device));
     }

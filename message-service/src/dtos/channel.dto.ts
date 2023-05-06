@@ -1,10 +1,4 @@
-import {
-  IsNumber,
-  IsOptional,
-  Min,
-  IsString,
-  IsArray,
-} from 'class-validator';
+import { IsNumber, IsOptional, Min, IsString, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Channel } from 'src/models/channel.model';
 import { UserDTO } from './user.dto';
@@ -34,7 +28,13 @@ export type ChannelMemberDTO = {
 
 export type ChannelInfo = Pick<
   Channel,
-  '_id' | 'avatar' | 'lastMessageAt' | 'name' | 'createdAt' | 'updatedAt' | 'createdBy'
+  | '_id'
+  | 'avatar'
+  | 'lastMessageAt'
+  | 'name'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'createdBy'
 > & {
   hiddenChannel?: boolean;
   activeNotify?: boolean;
