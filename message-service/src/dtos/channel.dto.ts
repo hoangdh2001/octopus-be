@@ -28,16 +28,11 @@ export type ChannelMemberDTO = {
 
 export type ChannelInfo = Pick<
   Channel,
-  | '_id'
-  | 'avatar'
-  | 'lastMessageAt'
-  | 'name'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'createdBy'
+  '_id' | 'avatar' | 'lastMessageAt' | 'name' | 'createdAt' | 'updatedAt'
 > & {
   hiddenChannel?: boolean;
   activeNotify?: boolean;
+  createdBy?: UserDTO;
 };
 
 export type ChannelDTO = {
