@@ -55,6 +55,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import FormData from 'form-data';
 import { createReadStream } from 'streamifier';
 import { EventDTO } from 'src/dtos/event.dto';
+import { UpdateQuery } from 'mongoose';
 
 @Controller('/channels')
 @UseInterceptors(FileInterceptor('file'))
@@ -181,6 +182,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       },
     });
   }
+
+  @Post('/:channelID')
+  async updateChannel(
+    @Param('channelID') channelID: string,
+    @Body() data: UpdateQuery<Channel>,
+  ) {}
 
   @Post('/:channelID/query')
   async queryChannelByID(

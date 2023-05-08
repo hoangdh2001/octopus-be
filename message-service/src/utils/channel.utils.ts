@@ -1,11 +1,7 @@
 import { ChannelDTO, ChannelMemberDTO } from 'src/dtos/channel.dto';
 import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Message } from 'src/models/message.model';
-import {
-  CallAttachment,
-  convertMessageDTO,
-  convertQuotedMessage,
-} from './message.util';
+import { CallAttachment, convertMessageDTO } from './message.util';
 import { UserDTO } from 'src/dtos/user.dto';
 import { AttachmentDTO, MessageDTO } from 'src/dtos/message.dto';
 
@@ -35,7 +31,10 @@ export const convertChannelDTO = async ({
         .hidden,
       activeNotify: channel.members.find((member) => member.userID == userID)
         .activeNotify,
-      createdBy: channel.createdAt ? await callUser(channel.createdBy) : null,
+      createdBy:
+        channel.createdBy != null && channel.createdBy != undefined
+          ? await callUser(channel.createdBy)
+          : null,
       avatar: channel.avatar,
     },
     messages: await Promise.all(
