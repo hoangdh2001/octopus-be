@@ -35,7 +35,7 @@ export const convertChannelDTO = async ({
         .hidden,
       activeNotify: channel.members.find((member) => member.userID == userID)
         .activeNotify,
-      createdBy: await callUser(channel.createdBy),
+      createdBy: channel.createdAt ? await callUser(channel.createdBy) : null,
       avatar: channel.avatar,
     },
     messages: await Promise.all(
