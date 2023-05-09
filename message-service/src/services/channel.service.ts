@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, UpdateQuery } from 'mongoose';
+import { FilterQuery, Model, SortOrder, UpdateQuery } from 'mongoose';
 import { ChannelDTO } from 'src/dtos/channel.dto';
 import { Message } from 'src/models/message.model';
-import { Channel, ChannelDocument } from '../models/channel.model';
+import {
+  Channel,
+  ChannelDocument,
+  ChannelMember,
+  ChannelMemberDocument,
+} from '../models/channel.model';
 
 @Injectable()
 export class ChannelService {
@@ -32,6 +37,26 @@ export class ChannelService {
     return channels;
   }
 
+  async search(
+    filter: FilterQuery<Channel>,
+    {
+      sort,
+      limit = 20,
+      offset = 0,
+    }: {
+      sort?: { [key: string]: SortOrder };
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    const channels: Channel[] = await this.channelModel
+      .find(filter)
+      .sort(sort)
+      .skip(offset)
+      .limit(limit);
+    return channels;
+  }
+
   async countByUserID(userID: string): Promise<number> {
     const count = await this.channelModel
       .find({
@@ -46,15 +71,34 @@ export class ChannelService {
     return await this.channelModel.findById(channelID);
   }
 
-  async updateChannel(messageID: string, update: UpdateQuery<Channel>) {
+  async updateChannel(channelID: string, update: UpdateQuery<Channel>) {
     const channel: Channel = await this.channelModel.findOneAndUpdate(
       {
-        _id: messageID,
+        _id: channelID,
       },
       update,
       {
         new: true,
       },
+    );
+    return channel;
+  }
+
+  async updateMember(
+    channelID: string,
+    memberID: string,
+    update: UpdateQuery<ChannelMember>,
+  ) {
+    const channel: Channel = await this.channelModel.findOneAndUpdate(
+      { _id: channelID, 'members.userID': memberID },
+      {
+        $set: {
+          'members.$.activeNotify': update.activeNotify,
+          'members.$.hidden': update.hidden,
+          'members.$.updatedAt': Date(),
+        },
+      },
+      { upsert: true, new: true },
     );
     return channel;
   }

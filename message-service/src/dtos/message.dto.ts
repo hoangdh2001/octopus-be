@@ -40,6 +40,7 @@ export type MessageDTO = Pick<
   | 'createdAt'
   | 'updatedAt'
   | 'ignoreUser'
+  | 'pinned'
 > & {
   sender?: UserDTO;
   senderID?: string;
@@ -48,6 +49,7 @@ export type MessageDTO = Pick<
   attachments?: AttachmentDTO[];
   quotedMessage?: QuotedMessageDTO;
   reactionCounts?: ReactionCount;
+  pinnedBy?: UserDTO;
 };
 
 export type QuotedMessageDTO = Omit<

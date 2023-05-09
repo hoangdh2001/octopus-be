@@ -79,6 +79,11 @@ export const convertMessageDTO = async ({
       : null,
     reactionCounts: reactionCounts,
     ignoreUser: message.ignoreUser,
+    pinned: message.pinned,
+    pinnedBy:
+      message.pinnedBy != null || message.pinnedBy != undefined
+        ? await callUser(message.pinnedBy)
+        : null,
   };
   return messageDTO;
 };

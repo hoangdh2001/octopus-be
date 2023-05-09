@@ -60,6 +60,12 @@ export class Message {
 
   @Prop({ type: [String] })
   ignoreUser?: [string];
+
+  @Prop({ type: Boolean, default: false })
+  pinned?: boolean;
+
+  @Prop({ type: String })
+  pinnedBy?: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

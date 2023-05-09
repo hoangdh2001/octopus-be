@@ -7,7 +7,7 @@ export type UserDTO = {
   birthday?: string;
   gender?: boolean;
   active?: boolean;
-  lastActive?: string;
+  lastActive?: Date;
   avatar?: string;
   enabled?: boolean;
   createdDate?: string;

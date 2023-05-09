@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { Attachment, AttachmentDocument } from 'src/models/attachment.model';
 
 @Injectable()
@@ -17,10 +17,17 @@ export class StorageService {
     return newAttachment;
   }
 
-  async findAttachmentID(attachmentID: string) {
-    const attachment: Attachment = await this.channelModel.findById(
-      attachmentID,
-    );
+  async findAttachmentID({
+    attachmentID,
+    filter,
+  }: {
+    attachmentID: string;
+    filter?: FilterQuery<Attachment>;
+  }) {
+    const attachment: Attachment = await this.channelModel.findOne({
+      _id: attachmentID,
+      ...filter,
+    });
     return attachment;
   }
 }

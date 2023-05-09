@@ -17,6 +17,8 @@ export class ChannelMember {
   updatedAt?: string;
 }
 
+export type ChannelMemberDocument = HydratedDocument<ChannelMember>;
+
 export const ChannelMemberSchema = SchemaFactory.createForClass(ChannelMember);
 
 @Schema({ _id: false, timestamps: true })
@@ -42,7 +44,7 @@ export class Channel {
   avatar?: string;
 
   @Prop({ type: String })
-  name: string;
+  name?: string;
 
   @Prop({
     type: [ChannelMemberSchema],

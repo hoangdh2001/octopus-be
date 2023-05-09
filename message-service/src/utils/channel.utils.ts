@@ -1,4 +1,8 @@
-import { ChannelDTO, ChannelMemberDTO } from 'src/dtos/channel.dto';
+import {
+  ChannelDTO,
+  ChannelInfo,
+  ChannelMemberDTO,
+} from 'src/dtos/channel.dto';
 import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Message } from 'src/models/message.model';
 import { CallAttachment, convertMessageDTO } from './message.util';
@@ -20,6 +24,21 @@ export const convertChannelDTO = async ({
   attachments?: AttachmentDTO[] | CallAttachment;
   callQuotedMessage?: (messageID: string) => Promise<Message>;
 }): Promise<ChannelDTO> => {
+  const messagesDTO = await Promise.all(
+    messages?.map(async (message) => {
+      const messageDTO = await convertMessageDTO({
+        userID,
+        message,
+        callUser,
+        attachments,
+        callQuotedMessage: callQuotedMessage,
+      });
+      return messageDTO;
+    }),
+  );
+
+  const pinnedMessages = messagesDTO.filter((message) => message.pinned);
+
   const channelDTO: ChannelDTO = {
     channel: {
       _id: channel._id,
@@ -37,18 +56,7 @@ export const convertChannelDTO = async ({
           : null,
       avatar: channel.avatar,
     },
-    messages: await Promise.all(
-      messages?.map(async (message) => {
-        const messageDTO = await convertMessageDTO({
-          userID,
-          message,
-          callUser,
-          attachments,
-          callQuotedMessage: callQuotedMessage,
-        });
-        return messageDTO;
-      }),
-    ),
+    messages: messagesDTO,
     members: await Promise.all(
       channel.members.map(async (member): Promise<ChannelMemberDTO> => {
         const user = await callUser(member.userID);
@@ -60,6 +68,34 @@ export const convertChannelDTO = async ({
         };
       }),
     ),
+    pinnedMessages: pinnedMessages,
   };
   return channelDTO;
+};
+
+export const convertChannelModel = async ({
+  userID,
+  channel,
+  callUser,
+}: {
+  userID: string;
+  channel: Channel;
+  callUser: (userID: string) => Promise<UserDTO>;
+}): Promise<ChannelInfo> => {
+  return {
+    _id: channel._id,
+    name: channel.name,
+    lastMessageAt: channel.lastMessageAt,
+    createdAt: channel.createdAt,
+    updatedAt: channel.updatedAt,
+    hiddenChannel: channel.members.find((member) => member.userID == userID)
+      .hidden,
+    activeNotify: channel.members.find((member) => member.userID == userID)
+      .activeNotify,
+    createdBy:
+      channel.createdBy != null && channel.createdBy != undefined
+        ? await callUser(channel.createdBy)
+        : null,
+    avatar: channel.avatar,
+  };
 };

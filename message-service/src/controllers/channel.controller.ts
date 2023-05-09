@@ -19,6 +19,7 @@ import {
   UploadedFile,
   Logger,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { ChannelService } from '../services/channel.service';
 import { JwtService } from '@nestjs/jwt';
@@ -26,12 +27,17 @@ import {
   ChannelDTO,
   ChannelPaginationParams,
   CreateChannelDTO,
+  Payload,
+  SortOption,
 } from 'src/dtos/channel.dto';
 import { ChannelExceptionFilter } from 'src/exceptions/channel.exception';
 import { v4 } from 'uuid';
 import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Pagination } from 'src/dtos/pagination.dto';
-import { convertChannelDTO } from 'src/utils/channel.utils';
+import {
+  convertChannelDTO,
+  convertChannelModel,
+} from 'src/utils/channel.utils';
 import { MessageServive } from 'src/services/message.service';
 import {
   AttachmentDTO,
@@ -55,7 +61,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import FormData from 'form-data';
 import { createReadStream } from 'streamifier';
 import { EventDTO } from 'src/dtos/event.dto';
-import { UpdateQuery } from 'mongoose';
+import { SortOrder, UpdateQuery } from 'mongoose';
+import { PaginationParam } from 'src/dtos/pagination_param';
 
 @Controller('/channels')
 @UseInterceptors(FileInterceptor('file'))
@@ -78,7 +85,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     await this.client.connect();
   }
 
-  @Get('/search')
+  @Get()
   @HttpCode(200)
   async findAllByUser(
     @Query() { userID, skip = 0, limit = 10 }: ChannelPaginationParams,
@@ -109,11 +116,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
             return response.data;
           },
           attachments: async (attachmentID) => {
-            const response = await this.httpService.axiosRef.get<AttachmentDTO>(
+            const response = await this.httpService.axiosRef.get<{
+              attachment: AttachmentDTO;
+            }>(
               `http://storage-service/api/storage/attachments/${attachmentID}`,
               { headers: { Authorization: token } },
             );
-            return response.data;
+            return response.data.attachment;
           },
           callQuotedMessage: async (messageID) => {
             const message = await this.messageService.findMessageById(
@@ -131,6 +140,113 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       totalItem,
       totalPage,
       data,
+    };
+  }
+
+  @Get('/search')
+  async search(
+    @Query('payload') payload: string,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id }: { id: string } = this.jwtService.decode(
+        token?.split(' ')[1] || '',
+      ) as any;
+      userID = id;
+    }
+    const payloadConvert: Payload = JSON.parse(payload);
+
+    const sort: { [key: string]: SortOrder } = {};
+
+    payloadConvert.sort.forEach((x) => {
+      sort[x.field] = x.direction;
+    });
+
+    const channels = await this.channelService.search(
+      payloadConvert.filter_conditions,
+      {},
+    );
+
+    let data: Message[] = [];
+
+    await Promise.all(
+      channels.map(async (channel) => {
+        const messages = await this.messageService.seachMessage(
+          channel._id,
+          payloadConvert.message_filter_conditions,
+          {
+            sort: sort,
+          },
+        );
+        data = [...data, ...messages];
+      }),
+    );
+
+    const getMessagesResponse = await Promise.all(
+      data.map(async (message) => {
+        const messageDTO = await convertMessageDTO({
+          userID,
+          message: message,
+          callUser: async (userID) => {
+            const response = await this.httpService.axiosRef.get<UserDTO>(
+              `http://auth-service/api/users/${userID}`,
+              { headers: { Authorization: token } },
+            );
+            return response.data;
+          },
+          attachments: async (attachmentID) => {
+            const response = await this.httpService.axiosRef.get<{
+              attachment: AttachmentDTO;
+            }>(
+              `http://storage-service/api/storage/attachments/${attachmentID}?filter=${JSON.stringify(
+                payloadConvert.attachment_filter_conditions,
+              )}`,
+              { headers: { Authorization: token } },
+            );
+            return response.data.attachment;
+          },
+          callQuotedMessage: async (messageID) => {
+            const message = await this.messageService.findMessageById(
+              messageID,
+            );
+            return message;
+          },
+        });
+
+        const channelModel = await convertChannelModel({
+          userID,
+          channel: channels.find(
+            (channel) => channel._id === message.channelID,
+          ),
+          callUser: async (userID) => {
+            const response = await this.httpService.axiosRef.get<UserDTO>(
+              `http://auth-service/api/users/${userID}`,
+              { headers: { Authorization: token } },
+            );
+            return response.data;
+          },
+        });
+
+        return {
+          message: messageDTO,
+          channel: channelModel,
+        };
+      }),
+    );
+
+    const messageNoEmptyAttachment = getMessagesResponse.filter(
+      (message) =>
+        message.message.attachments.length > 0 &&
+        !message.message.attachments.includes(null),
+    );
+
+    return {
+      results:
+        payloadConvert.attachment_filter_conditions != null &&
+        payloadConvert.attachment_filter_conditions != undefined
+          ? messageNoEmptyAttachment
+          : getMessagesResponse,
     };
   }
 
@@ -193,9 +309,17 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   async queryChannelByID(
     @Body()
     {
-      messages: { skip, limit = 30, id_gt, id_gte, id_lt, id_lte, id_around },
+      messages: {
+        offset = 0,
+        limit = 30,
+        id_gt,
+        id_gte,
+        id_lt,
+        id_lte,
+        id_around,
+      },
     }: {
-      messages: MessagePaginationParams;
+      messages: PaginationParam;
     },
     @Query('userID') userID: string,
     @Param('channelID') channelID: string,
@@ -248,7 +372,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     } else {
       messagesData = await this.messageService.findAllByChannel({
         channelID: channelID,
-        skip: skip,
+        skip: offset,
         limit: limit,
       });
     }
@@ -265,11 +389,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         return response.data;
       },
       attachments: async (attachmentID) => {
-        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
-          `http://storage-service/api/storage/attachments/${attachmentID}`,
-          { headers: { Authorization: token } },
-        );
-        return response.data;
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
       },
       callQuotedMessage: async (messageID) => {
         const message = await this.messageService.findMessageById(messageID);
@@ -316,11 +441,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       userID: userID,
       message: newMessage,
       attachments: async (attachmentID) => {
-        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
-          `http://storage-service/api/storage/attachments/${attachmentID}`,
-          { headers: { Authorization: token } },
-        );
-        return response.data;
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
       },
       callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
@@ -392,11 +518,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       userID: userID,
       message: deletedMessage,
       attachments: async (attachmentID) => {
-        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
-          `http://storage-service/api/storage/attachments/${attachmentID}`,
-          { headers: { Authorization: token } },
-        );
-        return response.data;
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
       },
       callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
@@ -536,11 +663,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       userID: userID,
       message: updatedMessage,
       attachments: async (attachmentID) => {
-        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
-          `http://storage-service/api/storage/attachments/${attachmentID}`,
-          { headers: { Authorization: token } },
-        );
-        return response.data;
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
       },
       callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
@@ -615,11 +743,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       userID: userID,
       message: updatedMessage,
       attachments: async (attachmentID) => {
-        const response = await this.httpService.axiosRef.get<AttachmentDTO>(
-          `http://storage-service/api/storage/attachments/${attachmentID}`,
-          { headers: { Authorization: token } },
-        );
-        return response.data;
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
       },
       callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
@@ -675,6 +804,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       channelID,
     );
 
+    const membersMute = channel.members
+      .filter((member) => member.activeNotify)
+      .map((x) => x.userID);
+
     const channelDTO: ChannelDTO = await convertChannelDTO({
       channel: channel,
       userID,
@@ -689,7 +822,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     });
 
     const otherMembers = channelDTO.members.filter(
-      (member) => member.userID != userID,
+      (member) =>
+        member.userID != userID && membersMute.includes(member.userID),
     );
 
     const deviceDTO: DeviceDTO[][] = await Promise.all(
@@ -710,7 +844,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     if (devices.length != 0) {
       var channelName = '';
-      if (channelDTO.channel.name.length) {
+      if (channelDTO.channel.name?.length ?? false) {
         channelName = channelDTO.channel.name;
       } else {
         if (otherMembers.length != 0) {
@@ -942,5 +1076,94 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       channelID: channelID,
       user: userDTO,
     });
+  }
+
+  @Put('/:channelID/messages/:messageID')
+  async updateMessage(
+    @Param('channelID') channelID: string,
+    @Param('messageID') messageID: string,
+    @Body() message: Partial<Message>,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    const updatedMessage = await this.messageService.updateMessage(messageID, {
+      ...message,
+      pinnedBy: userID,
+    });
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: updatedMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'message.updated',
+      message: messageDTO,
+      channelID: channelID,
+    });
+
+    return messageDTO;
+  }
+
+  @Post('/:channelID/mute')
+  async muteChannel(
+    @Param('channelID') channelID: string,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    await this.channelService.updateMember(channelID, userID, {
+      activeNotify: false,
+    });
+
+    return {};
+  }
+
+  @Post('/:channelID/unmute')
+  async unmuteChannel(
+    @Param('channelID') channelID: string,
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    await this.channelService.updateMember(channelID, userID, {
+      activeNotify: true,
+    });
+
+    return {};
   }
 }

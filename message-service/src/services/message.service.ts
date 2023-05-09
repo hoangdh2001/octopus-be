@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage, UpdateQuery } from 'mongoose';
+import {
+  FilterQuery,
+  Model,
+  PipelineStage,
+  SortOrder,
+  UpdateQuery,
+} from 'mongoose';
 import { Message, MessageDocument } from '../models/message.model';
 
 @Injectable()
@@ -43,6 +49,29 @@ export class MessageServive {
     params.concat({ $limit: limit });
 
     const messages: Message[] = await this.messageModel.aggregate(params);
+    return messages;
+  }
+
+  async seachMessage(
+    channelID: string,
+    filter: FilterQuery<Message>,
+    {
+      sort,
+      limit = 30,
+      offset = 0,
+    }: {
+      sort?: { [key: string]: SortOrder };
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    const messages: Message[] = await this.messageModel
+      .find({
+        channelID: channelID,
+        ...filter,
+      })
+      .sort(sort)
+      .exec();
     return messages;
   }
 

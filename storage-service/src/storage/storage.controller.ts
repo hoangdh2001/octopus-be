@@ -18,6 +18,7 @@ import { Attachment } from 'src/models/attachment.model';
 import { v4 } from 'uuid';
 import { StorageService } from './storage.service';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
+import { FilterQuery } from 'mongoose';
 
 @Controller('/storage')
 @UseInterceptors(FileInterceptor('file'))
@@ -44,11 +45,23 @@ export class StorageController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Get('/attachments/:attachmentID')
-  async getAttachmentByID(@Param('attachmentID') attachmentID: string) {
-    const attachment: Attachment = await this.storageService.findAttachmentID(
+  async getAttachmentByID(
+    @Param('attachmentID') attachmentID: string,
+    @Query('filter') filter?: string,
+  ) {
+    const filterConvert: FilterQuery<Attachment> =
+      filter != null && filter != undefined && filter.length > 0
+        ? JSON.parse(filter)
+        : null;
+    const attachment: Attachment = await this.storageService.findAttachmentID({
       attachmentID,
-    );
-    return attachment;
+      filter: filterConvert,
+    });
+    console.log(attachment);
+
+    return {
+      attachment: attachment,
+    };
   }
 
   async createAttachment({

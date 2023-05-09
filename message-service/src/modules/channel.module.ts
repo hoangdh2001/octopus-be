@@ -3,7 +3,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EurekaModule } from 'nestjs-eureka';
 import { ChannelController } from '../controllers/channel.controller';
-import { Channel, ChannelSchema } from '../models/channel.model';
+import {
+  Channel,
+  ChannelMember,
+  ChannelMemberSchema,
+  ChannelSchema,
+} from '../models/channel.model';
 import { ChannelService } from '../services/channel.service';
 import { MessageModule } from './message.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';

@@ -63,6 +63,7 @@ export class EventsGateway
     const user = firstRes.data;
 
     user.active = true;
+    user.lastActive = new Date();
     user.connections.push(client.id);
 
     const response = await this.httpService.axiosRef.put<OwnUserDTO>(
@@ -103,6 +104,7 @@ export class EventsGateway
     await this.unsubcribeAllChannel(user);
 
     user.active = false;
+    user.lastActive = new Date();
     user.connections = user.connections.filter(
       (connection) => connection != client.id,
     );

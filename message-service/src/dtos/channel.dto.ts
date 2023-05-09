@@ -2,7 +2,10 @@ import { IsNumber, IsOptional, Min, IsString, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Channel } from 'src/models/channel.model';
 import { UserDTO } from './user.dto';
-import { MessageDTO } from './message.dto';
+import { AttachmentDTO, MessageDTO } from './message.dto';
+import { FilterQuery } from 'mongoose';
+import { Message } from 'src/models/message.model';
+import { PaginationParam } from './pagination_param';
 
 export class CreateChannelDTO {
   @IsArray()
@@ -39,6 +42,7 @@ export type ChannelDTO = {
   channel: ChannelInfo;
   messages: MessageDTO[];
   members: ChannelMemberDTO[];
+  pinnedMessages: MessageDTO[];
 };
 
 export class ChannelPaginationParams {
@@ -58,3 +62,16 @@ export class ChannelPaginationParams {
   @Min(1)
   limit?: number;
 }
+
+export type SortOption = {
+  field: string;
+  direction: 1 | -1;
+};
+
+export type Payload = PaginationParam & {
+  filter_conditions: FilterQuery<Channel>;
+  sort?: SortOption[];
+  query?: string;
+  message_filter_conditions?: FilterQuery<Message>;
+  attachment_filter_conditions?: FilterQuery<AttachmentDTO>;
+};
