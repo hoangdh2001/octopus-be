@@ -8,20 +8,25 @@ import com.octopus.authservice.model.Device;
 import com.octopus.authservice.model.User;
 import com.octopus.authservice.repositories.DeviceRepository;
 import com.octopus.authservice.repositories.UserRepository;
+import com.octopus.authservice.specification.UserSpecification;
 import com.octopus.dtomodels.DeviceDTO;
 import com.octopus.dtomodels.OwnUserDTO;
+import com.octopus.dtomodels.Payload;
 import com.octopus.dtomodels.UserDTO;
 import com.octopus.exceptionutils.InvalidDataException;
 import com.octopus.exceptionutils.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -151,6 +156,22 @@ public class UserServiceImpl implements UserService {
         var user = this.userRepository.findById(UUID.fromString(id)).orElseThrow(() -> new NotFoundException("Not found user with id " + id));
         user.merge(userMapper.mapToUser(ownUserDTO));
         return userMapper.mapToOwnUserDTO(this.userRepository.save(user));
+    }
+
+    @Override
+    public List<OwnUserDTO> getOwners(String[] userIds) {
+        var userUUID = Arrays.stream(userIds).map(UUID::fromString).collect(Collectors.toList());
+        var users = this.userRepository.searchUser(userUUID);
+        return userMapper.mapToListOwnUserDTO(users);
+    }
+
+    @Override
+    public List<UserDTO> searchUser(Payload payload) {
+        UserSpecification spec = new UserSpecification(payload);
+        System.out.println(spec);
+        Pageable pageable = UserSpecification.getPageable(payload.getPage(), payload.getSize());
+        var users = userRepository.findAll(spec, pageable).getContent();
+        return userMapper.mapListUserToUserDTO(users);
     }
 }
 

@@ -27,6 +27,7 @@ export type ChannelMemberDTO = {
   userID?: string;
   createdAt?: string;
   updatedAt?: string;
+  addBy?: string;
 };
 
 export type ChannelInfo = Pick<

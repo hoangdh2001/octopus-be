@@ -37,8 +37,26 @@ export class Message {
   @Prop({ type: String })
   text?: string;
 
-  @Prop({ type: String, enum: ['SYSTEM_NOTIFICATION', 'NORMAL', 'DELETED'] })
-  type: 'SYSTEM_NOTIFICATION' | 'NORMAL' | 'DELETED';
+  @Prop({
+    type: String,
+    enum: [
+      'SYSTEM_NOTIFICATION',
+      'NORMAL',
+      'DELETED',
+      'SYSTEM_ADDED_MEMBER',
+      'SYSTEM_REMOVED_MEMBER',
+      'SYSTEM_MEMBER_LEFT',
+      'SYSTEM_CREATED_CHANNEL',
+    ],
+  })
+  type:
+    | 'SYSTEM_NOTIFICATION'
+    | 'NORMAL'
+    | 'DELETED'
+    | 'SYSTEM_ADDED_MEMBER'
+    | 'SYSTEM_REMOVED_MEMBER'
+    | 'SYSTEM_MEMBER_LEFT'
+    | 'SYSTEM_CREATED_CHANNEL';
 
   @Prop({ type: [String], default: [] })
   viewers?: string[];

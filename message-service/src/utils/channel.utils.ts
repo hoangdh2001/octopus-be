@@ -65,6 +65,7 @@ export const convertChannelDTO = async ({
           createdAt: member.createdAt,
           updatedAt: member.createdAt,
           userID: member.userID,
+          addBy: member.addBy,
         };
       }),
     ),
@@ -97,5 +98,22 @@ export const convertChannelModel = async ({
         ? await callUser(channel.createdBy)
         : null,
     avatar: channel.avatar,
+  };
+};
+
+export const convertMemberDTO = async ({
+  member,
+  callUser,
+}: {
+  member: ChannelMember;
+  callUser: (userID: string) => Promise<UserDTO>;
+}): Promise<ChannelMemberDTO> => {
+  const userDTO = await callUser(member.userID);
+  return {
+    user: userDTO,
+    createdAt: member.createdAt,
+    updatedAt: member.updatedAt,
+    userID: member.userID,
+    addBy: member.addBy,
   };
 };

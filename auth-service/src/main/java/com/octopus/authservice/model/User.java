@@ -23,15 +23,19 @@ public class User implements Serializable {
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(name = "id", columnDefinition = "BINARY(16)")
+    @Basic(optional = false)
     private UUID id;
 
     @Column(name = "first_name", length = 64)
+    @Basic()
     private String firstName;
 
     @Column(name = "last_name", length = 64)
+    @Basic()
     private String lastName;
 
     @Column(name = "email", length = 128, nullable = false, unique = true)
+    @Basic()
     private String email;
 
     @Column(name = "password", length = 64)
@@ -63,10 +67,12 @@ public class User implements Serializable {
 
     @Column(name = "created_date")
     @CreatedDate
+    @Basic()
     private Date createdDate;
 
     @Column(name = "updated_date")
     @LastModifiedDate
+    @Basic()
     private Date updatedDate;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)

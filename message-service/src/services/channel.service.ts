@@ -17,7 +17,7 @@ export class ChannelService {
     private channelModel: Model<ChannelDocument>,
   ) {}
 
-  async createChannel(channel: Channel) {
+  async saveChannel(channel: Channel) {
     const newChannel: Channel = await this.channelModel.create(channel);
     return newChannel;
   }

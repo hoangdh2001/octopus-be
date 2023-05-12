@@ -14,6 +14,7 @@ spring:
         current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
         id:
           new_generator_mappings: true
+        format_sql: true
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MySQL8Dialect

@@ -50,6 +50,9 @@ public interface UserMapper {
     @Mapping(target = "devices", expression = "java(mapDeviceDTOToListDevice(ownUserDTO.getDevices()))")
     User mapToUser(OwnUserDTO ownUserDTO);
 
+    @InheritConfiguration(name = "mapToOwnUserDTO")
+    List<OwnUserDTO> mapToListOwnUserDTO(List<User> users);
+
     default String convertIdToString(UUID id) {
         if (id == null) {
             return null;

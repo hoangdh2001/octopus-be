@@ -1,14 +1,21 @@
 package com.octopus.authservice.repositories;
 
 import com.octopus.authservice.model.User;
+import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
 //    @Query("SELECT u FROM User u WHERE u.email like %?1%")
 //    public User getUserByEmail(String email);
 //    public User findUserById(Integer id);
@@ -43,6 +50,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmailIgnoreCaseAndEnabledIsTrue(String email);
 
     boolean existsByEmailIgnoreCase(String email);
+
+    @Query("select u from User u where u.id in :ids")
+    List<User> searchUser(@Param("ids") List<UUID> ids);
+
 
 }
 

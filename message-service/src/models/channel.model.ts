@@ -15,6 +15,9 @@ export class ChannelMember {
   createdAt?: string;
 
   updatedAt?: string;
+
+  @Prop({ type: String })
+  addBy?: string;
 }
 
 export type ChannelMemberDocument = HydratedDocument<ChannelMember>;

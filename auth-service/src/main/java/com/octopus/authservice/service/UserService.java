@@ -8,7 +8,9 @@ import com.octopus.authservice.model.Device;
 import com.octopus.authservice.model.User;
 import com.octopus.dtomodels.DeviceDTO;
 import com.octopus.dtomodels.OwnUserDTO;
+import com.octopus.dtomodels.Payload;
 import com.octopus.dtomodels.UserDTO;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,5 +45,9 @@ public interface UserService {
     OwnUserDTO getMyInfo(String id);
 
     OwnUserDTO updateMyInfo(String id, OwnUserDTO ownUserDTO);
+
+    List<OwnUserDTO> getOwners(String[] users);
+
+    List<UserDTO> searchUser(Payload payload);
 }
 

@@ -71,6 +71,8 @@ export class MessageServive {
         ...filter,
       })
       .sort(sort)
+      .skip(offset)
+      .limit(limit)
       .exec();
     return messages;
   }

@@ -5,7 +5,6 @@ import {
   Post,
   Query,
   Headers,
-  UseFilters,
   HttpException,
   HttpStatus,
   Param,
@@ -14,10 +13,8 @@ import {
   OnModuleDestroy,
   HttpCode,
   UseInterceptors,
-  UploadedFiles,
   BadRequestException,
   UploadedFile,
-  Logger,
   Delete,
   Put,
 } from '@nestjs/common';
@@ -37,6 +34,7 @@ import { Pagination } from 'src/dtos/pagination.dto';
 import {
   convertChannelDTO,
   convertChannelModel,
+  convertMemberDTO,
 } from 'src/utils/channel.utils';
 import { MessageServive } from 'src/services/message.service';
 import {
@@ -55,7 +53,7 @@ import { Message, MessageReaction } from 'src/models/message.model';
 import { EventsGateway } from 'src/listeners/events.gateway';
 import { KafkaService } from '@rob3000/nestjs-kafka';
 import { HttpService } from '@nestjs/axios';
-import { DeviceDTO, UserDTO } from 'src/dtos/user.dto';
+import { DeviceDTO, OwnUserDTO, UserDTO } from 'src/dtos/user.dto';
 import { FirebaseMessagingService } from '@aginix/nestjs-firebase-admin';
 import { FileInterceptor } from '@nestjs/platform-express';
 import FormData from 'form-data';
@@ -88,16 +86,27 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   @Get()
   @HttpCode(200)
   async findAllByUser(
-    @Query() { userID, skip = 0, limit = 10 }: ChannelPaginationParams,
+    @Query('payload') payload: string,
+    @Query('userID') userID?: string,
     @Headers('Authorization') token?: string,
   ): Promise<Pagination> {
+    const { filter_conditions, sort, limit, offset }: Payload =
+      JSON.parse(payload);
     const totalItem = await this.channelService.countByUserID(userID);
     const totalPage = Math.floor(totalItem / limit) + 1;
-    const channels = await this.channelService.findAllByUser(
-      userID,
-      skip,
-      limit,
-    );
+    const sortConvert: { [key: string]: SortOrder } = {};
+
+    console.log(filter_conditions);
+
+    sort?.forEach((x) => {
+      sortConvert[x.field] = x.direction;
+    });
+
+    const channels = await this.channelService.search(filter_conditions, {
+      sort: sortConvert,
+      limit: limit,
+      offset: offset,
+    });
 
     const data = await Promise.all(
       channels.map(async (channel) => {
@@ -135,8 +144,8 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     );
 
     return {
-      skip: Number.parseInt(skip.toString()),
-      limit: Number.parseInt(limit.toString()),
+      skip: offset,
+      limit: limit,
       totalItem,
       totalPage,
       data,
@@ -263,9 +272,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       ) as any;
       userID = id;
     }
-    if (newMembers.length < 2) {
+    if (newMembers.length < 1) {
       throw new HttpException(
-        { message: 'Members must is equal 2 or longer than' },
+        { message: 'Members must is equal 1 or longer than' },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -278,9 +287,9 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       createdBy: userID,
     };
 
-    const newChannel = await this.channelService.createChannel(channel);
+    const newChannel = await this.channelService.saveChannel(channel);
 
-    return await convertChannelDTO({
+    const channelDTO = await convertChannelDTO({
       channel: newChannel,
       userID,
       messages: [],
@@ -297,6 +306,110 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         return message;
       },
     });
+
+    const response = await this.httpService.axiosRef.get<OwnUserDTO[]>(
+      `http://auth-service/api/users/ownUsers?users=${newMembers.join(',')}`,
+      {
+        headers: {
+          Authorization: token,
+        },
+      },
+    );
+
+    await this.eventsGateway.subcribeChannel(response.data);
+
+    this.eventsGateway.sendMessage({
+      type: 'channel.truncated',
+      channel: channelDTO,
+      channelID: channelDTO.channel._id,
+    });
+
+    if (newMembers.length > 2) {
+      const currentUser = channelDTO.members.find(
+        (member) => member.userID == userID,
+      ).user;
+
+      const messageCreated: Message = {
+        _id: v4(),
+        senderID: userID,
+        status: 'READY',
+        type: 'SYSTEM_CREATED_CHANNEL',
+        channelID: newChannel._id,
+      };
+
+      const messageAddMember: Message = {
+        _id: v4(),
+        senderID: userID,
+        status: 'READY',
+        type: 'SYSTEM_ADDED_MEMBER',
+        channelID: newChannel._id,
+        text: `${currentUser.firstName} ${currentUser.lastName}`,
+      };
+
+      const createdMessage = await this.messageService.createMessage(
+        channel._id,
+        messageCreated,
+      );
+
+      const addMembersMessage = await this.messageService.createMessage(
+        channel._id,
+        messageAddMember,
+      );
+
+      const createdMessageDTO = await convertMessageDTO({
+        userID: userID,
+        message: createdMessage,
+        callUser: async (userID) => {
+          const response = await this.httpService.axiosRef.get<UserDTO>(
+            `http://auth-service/api/users/${userID}`,
+            { headers: { Authorization: token } },
+          );
+          return response.data;
+        },
+      });
+
+      const addMembersMessageDTO = await convertMessageDTO({
+        userID: userID,
+        message: addMembersMessage,
+        callUser: async (userID) => {
+          const response = await this.httpService.axiosRef.get<UserDTO>(
+            `http://auth-service/api/users/${userID}`,
+            { headers: { Authorization: token } },
+          );
+          return response.data;
+        },
+      });
+
+      await this.notificationPushToDevice({
+        channelID: channelDTO.channel._id,
+        token,
+        userID,
+        type: 'message',
+        message: createdMessageDTO,
+      });
+
+      this.eventsGateway.sendMessage({
+        type: 'message.new',
+        message: createdMessageDTO,
+        channelID: channelDTO.channel._id,
+      });
+
+      await this.notificationPushToDevice({
+        channelID: channelDTO.channel._id,
+        token,
+        userID,
+        type: 'message',
+        message: addMembersMessageDTO,
+      });
+
+      this.eventsGateway.sendMessage({
+        type: 'message.new',
+        message: addMembersMessageDTO,
+        channelID: channelDTO.channel._id,
+      });
+    }
+
+    return channelDTO;
   }
 
   @Post('/:channelID')
@@ -877,7 +990,20 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           } ảnh`;
           break;
         case 'message':
-          body = `${isGroup ? `${senderName}: ` : ''}${message.text}`;
+          switch (message.type) {
+            case 'SYSTEM_ADDED_MEMBER':
+              body = `${senderName} đã thêm ${message.text} vào nhóm`;
+              break;
+            case 'SYSTEM_MEMBER_LEFT':
+              body = `${message.text} đã rời khỏi nhóm`;
+              break;
+            case 'SYSTEM_REMOVED_MEMBER':
+              body = `${senderName} đã xóa ${message.text} ra khỏi nhóm`;
+              break;
+            default:
+              body = `${isGroup ? `${senderName}: ` : ''}${message.text}`;
+              break;
+          }
           break;
         case 'reaction':
           body = `${isGroup ? `${senderName}: ` : ''}Đã phản ứng ${
@@ -1162,6 +1288,213 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     await this.channelService.updateMember(channelID, userID, {
       activeNotify: true,
+    });
+
+    return {};
+  }
+
+  @Post('/:channelID/members')
+  async addMembers(
+    @Param('channelID') channelID: string,
+    @Body() { members: newMembers }: { members: string[] },
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    const channel = await this.channelService.findChannelByID(channelID);
+    const newMembersOj: ChannelMember[] = newMembers.map((member) => ({
+      userID: member,
+      addBy: userID,
+    }));
+    const updatedMembers = [...channel.members, ...newMembersOj];
+    channel.members = updatedMembers;
+
+    const updatedChannel = await this.channelService.saveChannel(channel);
+
+    const newMembersUpdated = updatedChannel.members.filter((member) =>
+      newMembers.includes(member.userID),
+    );
+
+    const membersDTO = await Promise.all(
+      newMembersUpdated.map(async (member) => {
+        return await convertMemberDTO({
+          member,
+          callUser: async (userID) => {
+            const response = await this.httpService.axiosRef.get<UserDTO>(
+              `http://auth-service/api/users/${userID}`,
+              { headers: { Authorization: token } },
+            );
+            return response.data;
+          },
+        });
+      }),
+    );
+
+    const text = membersDTO
+      .map((member) => `${member.user.firstName} ${member.user.lastName}`)
+      .join(',');
+
+    const message: Message = {
+      _id: v4(),
+      senderID: userID,
+      status: 'READY',
+      type: 'SYSTEM_ADDED_MEMBER',
+      channelID: channelID,
+      text: text,
+    };
+
+    const newMessage = await this.messageService.createMessage(
+      channelID,
+      message,
+    );
+
+    await this.channelService.updateChannel(channelID, {
+      lastMessageAt: newMessage.createdAt,
+    });
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: newMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    await this.notificationPushToDevice({
+      channelID,
+      token,
+      userID,
+      type: 'message',
+      message: messageDTO,
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'member.added',
+      members: membersDTO,
+      channelID: channelID,
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'message.new',
+      channelID: channelID,
+      message: messageDTO,
+    });
+
+    return {};
+  }
+
+  @Delete('/:channelID/members/:memberID/:removeType')
+  async removeMember(
+    @Param('channelID') channelID: string,
+    @Param('memberID') memberID: string,
+    @Param('removeType') removeType: 'leave' | 'remove',
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    const channel = await this.channelService.findChannelByID(channelID);
+    channel.members = channel.members.filter(
+      (member) => memberID == member.userID,
+    );
+
+    const updatedChannel = await this.channelService.saveChannel(channel);
+
+    const response = await this.httpService.axiosRef.get<UserDTO>(
+      `http://auth-service/api/users/${userID}`,
+      { headers: { Authorization: token } },
+    );
+
+    const userRemoved = response.data;
+
+    const message: Message = {
+      _id: v4(),
+      senderID: userID,
+      status: 'READY',
+      type:
+        removeType === 'leave' ? 'SYSTEM_MEMBER_LEFT' : 'SYSTEM_REMOVED_MEMBER',
+      channelID: channelID,
+      text: `${userRemoved.firstName} ${userRemoved.lastName}`,
+    };
+
+    const newMessage = await this.messageService.createMessage(
+      channelID,
+      message,
+    );
+
+    await this.channelService.updateChannel(channelID, {
+      lastMessageAt: newMessage.createdAt,
+    });
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: newMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    await this.notificationPushToDevice({
+      channelID,
+      token,
+      userID,
+      type: 'message',
+      message: messageDTO,
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'member.removed',
+      channelID: channelID,
+      user: userRemoved,
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'message.new',
+      channelID: channelID,
+      message: messageDTO,
     });
 
     return {};

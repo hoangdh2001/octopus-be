@@ -1,8 +1,6 @@
 export const EVENT_MAP = {
   'health.check': true,
-  'channel.created': true,
   'channel.added': true,
-  'channel.removed': true, // Xóa thành viên
   'channel.deleted': true, // Xóa channel
   'channel.renamed': true, //Đổi tên channel
   'channel.avatar': true,
@@ -17,6 +15,9 @@ export const EVENT_MAP = {
   'call.accept': true,
   'call.decline': true,
   'call.end': true,
+  'member.added': true,
+  'member.removed': true,
+  'channel.truncated': true,
 };
 
 export type EventTypes = 'all' | keyof typeof EVENT_MAP;

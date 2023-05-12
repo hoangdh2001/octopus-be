@@ -145,6 +145,14 @@ export class EventsGateway
     }
   }
 
+  async subcribeChannel(ownUsers: OwnUserDTO[]) {
+    await Promise.all(
+      ownUsers.map(async (ownUser) => {
+        await this.subcribeAllChannel(ownUser);
+      }),
+    );
+  }
+
   private async unsubcribeAllChannel(user: OwnUserDTO) {
     try {
       const channels: Channel[] = await this.channelService.findAllByUser(

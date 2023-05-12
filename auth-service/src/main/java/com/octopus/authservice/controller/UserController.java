@@ -1,22 +1,18 @@
 package com.octopus.authservice.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octopus.authservice.dto.request.ChangePasswordRequest;
 import com.octopus.authservice.dto.request.DeviceRequest;
-import com.octopus.authservice.mapper.UserMapper;
-import com.octopus.authservice.model.Device;
-import com.octopus.authservice.model.User;
 import com.octopus.authservice.service.UserService;
 import com.octopus.dtomodels.DeviceDTO;
 import com.octopus.dtomodels.OwnUserDTO;
+import com.octopus.dtomodels.Payload;
 import com.octopus.dtomodels.UserDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -66,6 +62,13 @@ public class UserController {
         return ResponseEntity.ok().body(ownUser);
     }
 
+    @GetMapping("/ownUsers")
+    public ResponseEntity<List<OwnUserDTO>> getOwners(@RequestParam("users") String users) {
+        String[] userIDs = users.split(",");
+        var owners = this.userService.getOwners(userIDs);
+        return ResponseEntity.ok().body(owners);
+    }
+
     @GetMapping("/{id}/devices")
     public ResponseEntity<List<DeviceDTO>> getDevicesByUser(@PathVariable("id") String userID) {
         var devices = this.userService.findDevicesByUserId(userID);
@@ -86,6 +89,16 @@ public class UserController {
         } else {
             return ResponseEntity.status(410).build();
         }
+    }
+
+    @SneakyThrows
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchUser(@RequestParam("payload") String payloadString) {
+        log.info(payloadString);
+        ObjectMapper objectMapper = new ObjectMapper();
+        var payload = objectMapper.readValue(payloadString, Payload.class);
+        var users = this.userService.searchUser(payload);
+        return ResponseEntity.ok().body(users);
     }
 
 }
