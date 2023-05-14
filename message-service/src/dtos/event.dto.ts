@@ -2,8 +2,7 @@ export const EVENT_MAP = {
   'health.check': true,
   'channel.added': true,
   'channel.deleted': true, // Xóa channel
-  'channel.renamed': true, //Đổi tên channel
-  'channel.avatar': true,
+  'channel.updated': true,
   'message.deleted': true,
   'message.new': true,
   'message.updated': true,

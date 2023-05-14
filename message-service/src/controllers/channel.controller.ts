@@ -412,11 +412,53 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     return channelDTO;
   }
 
-  @Post('/:channelID')
+  @Put('/:channelID')
   async updateChannel(
     @Param('channelID') channelID: string,
     @Body() data: UpdateQuery<Channel>,
-  ) {}
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id }: { id: string } = this.jwtService.decode(
+        token?.split(' ')[1] || '',
+      ) as any;
+      userID = id;
+    }
+    const channel = await this.channelService.updateChannel(channelID, data);
+
+    const channelDTO = await convertChannelDTO({
+      channel,
+      userID,
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
+      },
+      callQuotedMessage: async (messageID) => {
+        const message = await this.messageService.findMessageById(messageID);
+        return message;
+      },
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'channel.updated',
+      channel: channelDTO,
+      channelID: channelDTO.channel._id,
+    });
+
+    return channelDTO;
+  }
 
   @Post('/:channelID/query')
   async queryChannelByID(

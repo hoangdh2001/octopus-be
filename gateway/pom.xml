@@ -40,6 +40,13 @@
             <groupId>com.octopus</groupId>
             <artifactId>auth-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <scope>runtime</scope>
+            <classifier>osx-aarch_64</classifier>
+            <version>4.1.92.Final</version>
+        </dependency>
     </dependencies>
 
 </project>
