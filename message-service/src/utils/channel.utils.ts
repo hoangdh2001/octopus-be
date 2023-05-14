@@ -34,7 +34,7 @@ export const convertChannelDTO = async ({
         callQuotedMessage: callQuotedMessage,
       });
       return messageDTO;
-    }),
+    }) ?? [],
   );
 
   const pinnedMessages = messagesDTO.filter((message) => message.pinned);

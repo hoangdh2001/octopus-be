@@ -1,7 +1,7 @@
 import { OwnUserDTO, UserDTO } from './user.dto';
 import { IsNumber, IsOptional, Min, IsString, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ChannelDTO, ChannelMemberDTO } from './channel.dto';
+import { ChannelDTO, ChannelInfo, ChannelMemberDTO } from './channel.dto';
 import { Message, MessageReaction } from '../models/message.model';
 import { EventTypes } from './event.dto';
 
@@ -61,6 +61,7 @@ export type MessageEvent = {
   type: EventTypes;
   message?: MessageDTO | object;
   channel?: ChannelDTO;
+  channelModel?: ChannelInfo;
   dataUpdate?: object;
   channelID?: string;
   user?: UserDTO;

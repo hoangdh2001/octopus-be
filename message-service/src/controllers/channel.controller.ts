@@ -427,9 +427,25 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     }
     const channel = await this.channelService.updateChannel(channelID, data);
 
-    const channelDTO = await convertChannelDTO({
-      channel,
+    const isChangeName = data.name != null && data.name != undefined;
+
+    const message: Message = {
+      _id: v4(),
+      senderID: userID,
+      status: 'READY',
+      type: isChangeName ? 'SYSTEM_CHANGED_NAME' : 'SYSTEM_CHANGED_AVATAR',
+      channelID: channelID,
+      text: isChangeName ? data.name : data.avatar,
+    };
+
+    const newMessage = await this.messageService.createMessage(
+      channel._id,
+      message,
+    );
+
+    const channelDTO = await convertChannelModel({
       userID,
+      channel,
       callUser: async (userID) => {
         const response = await this.httpService.axiosRef.get<UserDTO>(
           `http://auth-service/api/users/${userID}`,
@@ -437,24 +453,30 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         );
         return response.data;
       },
-      attachments: async (attachmentID) => {
-        const response = await this.httpService.axiosRef.get<{
-          attachment: AttachmentDTO;
-        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
-          headers: { Authorization: token },
-        });
-        return response.data.attachment;
-      },
-      callQuotedMessage: async (messageID) => {
-        const message = await this.messageService.findMessageById(messageID);
-        return message;
+    });
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: newMessage,
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
       },
     });
 
     this.eventsGateway.sendMessage({
       type: 'channel.updated',
-      channel: channelDTO,
-      channelID: channelDTO.channel._id,
+      channelModel: channelDTO,
+      channelID: channelDTO._id,
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'message.new',
+      message: messageDTO,
+      channelID: channelDTO._id,
     });
 
     return channelDTO;
@@ -735,10 +757,12 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   @Post('/:channelID/image')
   @HttpCode(201)
   async uploadImage(
-    @Body() { attachmentID }: { attachmentID: string },
+    @Body() { attachmentID }: { attachmentID?: string },
     @UploadedFile() file: Express.Multer.File,
     @Headers('Authorization') token?: string,
   ) {
+    console.log(file);
+
     if (file) {
       const formData = new FormData();
       formData.append('file', createReadStream(file.buffer), {
@@ -746,7 +770,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         contentType: file.mimetype,
         filepath: file.path,
       });
-      formData.append('attachmentID', attachmentID);
+      if (attachmentID) formData.append('attachmentID', attachmentID);
       const response = await this.httpService.axiosRef.post<AttachmentDTO[]>(
         `http://storage-service/api/storage/upload`,
         formData,

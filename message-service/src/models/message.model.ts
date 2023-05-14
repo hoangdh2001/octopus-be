@@ -47,6 +47,8 @@ export class Message {
       'SYSTEM_REMOVED_MEMBER',
       'SYSTEM_MEMBER_LEFT',
       'SYSTEM_CREATED_CHANNEL',
+      'SYSTEM_CHANGED_NAME',
+      'SYSTEM_CHANGED_AVATAR',
     ],
   })
   type:
@@ -56,7 +58,9 @@ export class Message {
     | 'SYSTEM_ADDED_MEMBER'
     | 'SYSTEM_REMOVED_MEMBER'
     | 'SYSTEM_MEMBER_LEFT'
-    | 'SYSTEM_CREATED_CHANNEL';
+    | 'SYSTEM_CREATED_CHANNEL'
+    | 'SYSTEM_CHANGED_NAME'
+    | 'SYSTEM_CHANGED_AVATAR';
 
   @Prop({ type: [String], default: [] })
   viewers?: string[];
