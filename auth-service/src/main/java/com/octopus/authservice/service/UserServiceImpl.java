@@ -80,6 +80,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO createUserTemp(String email) {
         var user = User.builder()
                 .email(email)
+                .enabled(false)
                 .build();
         return userMapper.mapToUserDTO(this.userRepository.save(user));
     }

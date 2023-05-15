@@ -6,6 +6,7 @@ export const EVENT_MAP = {
   'message.deleted': true,
   'message.new': true,
   'message.updated': true,
+  'message.read': true,
   'reaction.deleted': true,
   'reaction.new': true,
   'reaction.updated': true,

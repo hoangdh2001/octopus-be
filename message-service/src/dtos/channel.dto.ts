@@ -30,6 +30,12 @@ export type ChannelMemberDTO = {
   addBy?: string;
 };
 
+export type ReadDTO = {
+  user: UserDTO;
+  lastRead: string;
+  unreadMessage?: number;
+};
+
 export type ChannelInfo = Pick<
   Channel,
   '_id' | 'avatar' | 'lastMessageAt' | 'name' | 'createdAt' | 'updatedAt'
@@ -44,6 +50,7 @@ export type ChannelDTO = {
   messages: MessageDTO[];
   members: ChannelMemberDTO[];
   pinnedMessages: MessageDTO[];
+  read?: ReadDTO[];
 };
 
 export class ChannelPaginationParams {

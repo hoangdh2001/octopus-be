@@ -35,6 +35,7 @@ import {
   convertChannelDTO,
   convertChannelModel,
   convertMemberDTO,
+  convertReadDTO,
 } from 'src/utils/channel.utils';
 import { MessageServive } from 'src/services/message.service';
 import {
@@ -283,7 +284,10 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     const channel: Channel = {
       _id: v4(),
       name: name,
-      members: newMembers.map((member) => ({ userID: member })),
+      members: newMembers.map((member) => ({
+        userID: member,
+        lastRead: Date().toString(),
+      })),
       createdBy: userID,
     };
 
@@ -335,6 +339,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
         status: 'READY',
         type: 'SYSTEM_CREATED_CHANNEL',
         channelID: newChannel._id,
+        text: `${currentUser.firstName} ${currentUser.lastName}`,
       };
 
       const messageAddMember: Message = {
@@ -610,8 +615,18 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       message,
     );
 
+    const channel = await this.channelService.findChannelByID(channelID);
+
+    channel.members.forEach((member) => {
+      if (member.userID !== userID) {
+        member.lastRead = newMessage.createdAt;
+        member.unreadMessage = member.unreadMessage + 1;
+      }
+    });
+
     await this.channelService.updateChannel(channelID, {
       lastMessageAt: newMessage.createdAt,
+      members: channel.members,
     });
 
     const messageDTO = await convertMessageDTO({
@@ -955,7 +970,124 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
   async markRead(
     @Param('channelID') channelID: string,
     @Body() { messageID }: { messageID: string },
-  ) {}
+    @Query('userID') userID?: string,
+    @Headers('Authorization') token?: string,
+  ) {
+    if (!userID || userID.trim().length === 0) {
+      const { id } = this.jwtService.decode(token?.split(' ')[1] || '') as any;
+      userID = id;
+    }
+
+    let oldMessage = await this.messageService.findMessageLastRead(
+      userID,
+      channelID,
+    );
+
+    if (oldMessage) {
+      const oldMessageIndex = oldMessage.viewers.indexOf(userID);
+      if (oldMessageIndex > -1) {
+        oldMessage.viewers.splice(oldMessageIndex, 1);
+      }
+      oldMessage = await this.messageService.updateMessage(oldMessage._id, {
+        viewers: oldMessage.viewers,
+      });
+    }
+
+    const message = await this.messageService.findMessageById(messageID);
+
+    message.viewers.push(userID);
+
+    const updatedMessage = await this.messageService.updateMessage(messageID, {
+      viewers: message.viewers,
+    });
+
+    let updateChannel: Channel;
+    if (oldMessage) {
+      const remainMessage = await this.messageService.findMessageUnread(
+        userID,
+        new Date(oldMessage.createdAt),
+      );
+
+      const channel = await this.channelService.findChannelByID(channelID);
+      channel.members.find((member) => member.userID == userID).unreadMessage =
+        remainMessage.length;
+      updateChannel = await this.channelService.updateChannel(channelID, {
+        members: channel.members,
+      });
+    }
+
+    const messageDTO = await convertMessageDTO({
+      userID: userID,
+      message: updatedMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    const oldMessageDTO = await convertMessageDTO({
+      userID: userID,
+      message: oldMessage,
+      attachments: async (attachmentID) => {
+        const response = await this.httpService.axiosRef.get<{
+          attachment: AttachmentDTO;
+        }>(`http://storage-service/api/storage/attachments/${attachmentID}`, {
+          headers: { Authorization: token },
+        });
+        return response.data.attachment;
+      },
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+      callQuotedMessage: async (messageID) => {
+        const quotedMessage = await this.messageService.findMessageById(
+          messageID,
+        );
+        return quotedMessage;
+      },
+    });
+
+    const read = await convertReadDTO({
+      userID: userID,
+      channel: updateChannel,
+      callUser: async (userID) => {
+        const response = await this.httpService.axiosRef.get<UserDTO>(
+          `http://auth-service/api/users/${userID}`,
+          { headers: { Authorization: token } },
+        );
+        return response.data;
+      },
+    });
+
+    this.eventsGateway.sendMessage({
+      type: 'message.read',
+      channelID: channelID,
+      message: messageDTO,
+      oldMessage: oldMessageDTO,
+      read: read,
+    });
+  }
 
   async notificationPushToDevice({
     channelID,
@@ -1375,6 +1507,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     const newMembersOj: ChannelMember[] = newMembers.map((member) => ({
       userID: member,
       addBy: userID,
+      lastRead: Date().toString(),
     }));
     const updatedMembers = [...channel.members, ...newMembersOj];
     channel.members = updatedMembers;

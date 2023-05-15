@@ -7,7 +7,6 @@ import {
   Channel,
   ChannelDocument,
   ChannelMember,
-  ChannelMemberDocument,
 } from '../models/channel.model';
 
 @Injectable()

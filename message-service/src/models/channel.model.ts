@@ -18,23 +18,15 @@ export class ChannelMember {
 
   @Prop({ type: String })
   addBy?: string;
-}
 
-export type ChannelMemberDocument = HydratedDocument<ChannelMember>;
-
-export const ChannelMemberSchema = SchemaFactory.createForClass(ChannelMember);
-
-@Schema({ _id: false, timestamps: true })
-export class Read {
   @Prop({ type: Date })
   lastRead: string;
-  @Prop({ type: String })
-  userID: string;
+
   @Prop({ type: Number, default: 0 })
   unreadMessage?: number;
 }
 
-export const ReadSchema = SchemaFactory.createForClass(Read);
+export const ChannelMemberSchema = SchemaFactory.createForClass(ChannelMember);
 
 export type ChannelDocument = HydratedDocument<Channel>;
 
@@ -53,9 +45,6 @@ export class Channel {
     type: [ChannelMemberSchema],
   })
   members: ChannelMember[];
-
-  @Prop({ type: [ReadSchema] })
-  read?: Read[];
 
   @Prop({ type: Date, default: Date.now() })
   lastMessageAt?: string;

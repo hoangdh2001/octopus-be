@@ -135,4 +135,27 @@ export class MessageServive {
   async deleteMessage(messageID: string) {
     await this.messageModel.findOneAndDelete({ _id: messageID });
   }
+
+  async findMessageLastRead(userID: string, channelID: string) {
+    const message: Message[] = await this.messageModel
+      .find({
+        viewers: { $elemMatch: { userID: userID } },
+        channelID: channelID,
+      })
+      .sort({ createdAt: -1 })
+      .limit(1)
+      .exec();
+    return message.length > 0 ? message[0] : null;
+  }
+
+  async findMessageUnread(channelID: string, date: Date) {
+    const messages: Message[] = await this.messageModel
+      .find({
+        channelID: channelID,
+        createdAt: { $gte: date },
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+    return messages;
+  }
 }

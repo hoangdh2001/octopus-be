@@ -2,6 +2,7 @@ import {
   ChannelDTO,
   ChannelInfo,
   ChannelMemberDTO,
+  ReadDTO,
 } from 'src/dtos/channel.dto';
 import { Channel, ChannelMember } from 'src/models/channel.model';
 import { Message } from 'src/models/message.model';
@@ -39,6 +40,8 @@ export const convertChannelDTO = async ({
 
   const pinnedMessages = messagesDTO.filter((message) => message.pinned);
 
+  const member = channel.members.find((member) => member.userID == userID);
+
   const channelDTO: ChannelDTO = {
     channel: {
       _id: channel._id,
@@ -46,10 +49,8 @@ export const convertChannelDTO = async ({
       lastMessageAt: channel.lastMessageAt,
       createdAt: channel.createdAt,
       updatedAt: channel.updatedAt,
-      hiddenChannel: channel.members.find((member) => member.userID == userID)
-        .hidden,
-      activeNotify: channel.members.find((member) => member.userID == userID)
-        .activeNotify,
+      hiddenChannel: member.hidden,
+      activeNotify: member.activeNotify,
       createdBy:
         channel.createdBy != null && channel.createdBy != undefined
           ? await callUser(channel.createdBy)
@@ -67,6 +68,16 @@ export const convertChannelDTO = async ({
           userID: member.userID,
           addBy: member.addBy,
         };
+      }),
+    ),
+    read: await Promise.all(
+      channel.members.map(async (member) => {
+        const read: ReadDTO = {
+          lastRead: member.lastRead,
+          unreadMessage: member.unreadMessage,
+          user: await callUser(member.userID),
+        };
+        return read;
       }),
     ),
     pinnedMessages: pinnedMessages,
@@ -115,5 +126,22 @@ export const convertMemberDTO = async ({
     updatedAt: member.updatedAt,
     userID: member.userID,
     addBy: member.addBy,
+  };
+};
+
+export const convertReadDTO = async ({
+  userID,
+  channel,
+  callUser,
+}: {
+  userID: string;
+  channel: Channel;
+  callUser: (userID: string) => Promise<UserDTO>;
+}): Promise<ReadDTO> => {
+  const member = channel.members.find((member) => member.userID == userID);
+  return {
+    user: await callUser(member.userID),
+    lastRead: member.lastRead,
+    unreadMessage: member.unreadMessage,
   };
 };
