@@ -74,4 +74,50 @@ public class SendMailServiceImpl implements SendMailService{
         helper.setText(htmlContent, true);
         mailSender.send(message);
     }
+
+    @Override
+    public void sendEmailAddMemberWorkspace(Code code) throws MessagingException {
+        JavaMailSenderImpl mailSender = Utility.prepareMailSender();
+
+        Locale locale = LocaleContextHolder.getLocale();
+
+        Context ctx = new Context(locale);
+
+        String verifyURL = String.format("http://%s/workspace/addmember?type=%s&code=%s&email=%s", domain, code.getVerificationType().getType(), code.getVerificationCode(), code.getEmail());
+        ctx.setVariable("url", verifyURL);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new  MimeMessageHelper(message, false, "utf-8");
+
+        helper.setTo(code.getEmail());
+        helper.setSubject("Octopus Team");
+
+        String s = "authmails/addmemberworkspace.html";
+        String htmlContent = templateEngine.process(s, ctx);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
+    }
+
+    @Override
+    public void sendEmailAddMemberProject(Code code) throws MessagingException {
+        JavaMailSenderImpl mailSender = Utility.prepareMailSender();
+
+        Locale locale = LocaleContextHolder.getLocale();
+
+        Context ctx = new Context(locale);
+
+        String verifyURL = String.format("http://%s/project/addmember?type=%s&code=%s&email=%s", domain, code.getVerificationType().getType(), code.getVerificationCode(), code.getEmail());
+        ctx.setVariable("url", verifyURL);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new  MimeMessageHelper(message, false, "utf-8");
+
+        helper.setTo(code.getEmail());
+        helper.setSubject("Octopus Team");
+
+        String s = "authmails/addmemberproject.html";
+        String htmlContent = templateEngine.process(s, ctx);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
+    }
 }

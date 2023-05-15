@@ -1,7 +1,7 @@
 package com.octopus.workspaceservice.dtos.request;
 
-import com.octopus.workspaceservice.dtos.response.WorkspaceResponse;
-import com.octopus.workspaceservice.models.Workspace;
+import com.octopus.workspaceservice.models.Project;
+import com.octopus.workspaceservice.models.WorkspaceMember;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,8 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorkspaceMemberRequest {
-    private Workspace workspace;
+public class ProjectMemberRequest {
+    private Project project;
     private UUID userId;
+    private WorkspaceMember workspaceMember;
 }
