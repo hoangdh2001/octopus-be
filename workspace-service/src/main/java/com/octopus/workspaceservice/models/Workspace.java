@@ -4,12 +4,14 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 @Entity
 @Table(name = "workspaces")
@@ -17,6 +19,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Workspace implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -28,7 +33,7 @@ public class Workspace implements Serializable {
     private String name;
 
     @javax.persistence.Column(name="status")
-    private boolean status;
+    private boolean status = true;
 
     @javax.persistence.Column(name="avatar")
     private String avatar;
@@ -42,13 +47,12 @@ public class Workspace implements Serializable {
     private Date updatedDate;
 
     @javax.persistence.Column(name="deleted_date")
-    @LastModifiedDate
     private Date deletedDate;
 
     @OneToMany(mappedBy = "workspace",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WorkspaceMember> workspaceMembers;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = WorkspaceMember.class, orphanRemoval = true)
     @JoinColumn(name = "workspace_id")
     private List<Project> projects;
 }

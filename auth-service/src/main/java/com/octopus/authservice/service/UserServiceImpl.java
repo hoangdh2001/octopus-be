@@ -169,7 +169,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDTO> searchUser(Payload payload) {
         UserSpecification spec = new UserSpecification(payload);
-        System.out.println(spec);
         Pageable pageable = UserSpecification.getPageable(payload.getPage(), payload.getSize());
         var users = userRepository.findAll(spec, pageable).getContent();
         return userMapper.mapListUserToUserDTO(users);

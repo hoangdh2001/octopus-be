@@ -19,28 +19,28 @@ import java.util.UUID;
 public class ProjectMemberServiceIpml implements ProjectMemberService {
     private  final ProjectMemberRepository projectMemberRepository;
 
-    @Override
-    public ProjectMember addMember(ProjectMember member) {
-        return this.projectMemberRepository.save(member);
-    }
-
-    @Override
-    public void deleteMember(UUID id) {
-        this.projectMemberRepository.deleteById(id);
-    }
-
-    @Override
-    public ProjectMember updateMember(ProjectMember member) {
-        return this.projectMemberRepository.save(member);
-    }
-
-    @Override
-    public Optional<ProjectMember> findMemberById(UUID id) {
-        return this.projectMemberRepository.findById(id);
-    }
-
-    @Override
-    public List<ProjectMember> getAllWorkspaceMember() {
-        return this.projectMemberRepository.findAll();
-    }
+//    @Override
+//    public ProjectMember addMember(ProjectMember member) {
+//        return this.projectMemberRepository.save(member);
+//    }
+//
+//    @Override
+//    public void deleteMember(UUID id) {
+//        this.projectMemberRepository.deleteById(id);
+//    }
+//
+//    @Override
+//    public ProjectMember updateMember(ProjectMember member) {
+//        return this.projectMemberRepository.save(member);
+//    }
+//
+//    @Override
+//    public Optional<ProjectMember> findMemberById(UUID id) {
+//        return this.projectMemberRepository.findById(id);
+//    }
+//
+//    @Override
+//    public List<ProjectMember> getAllWorkspaceMember() {
+//        return this.projectMemberRepository.findAll();
+//    }
 }

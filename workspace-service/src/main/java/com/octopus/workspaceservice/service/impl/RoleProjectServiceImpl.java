@@ -18,28 +18,28 @@ public class RoleProjectServiceImpl implements RoleProjectService {
 
     private final RoleProjectRepository roleProjectRepository;
 
-    @Override
-    public RoleProject addRoleProject(RoleProject roleProject) {
-        return this.roleProjectRepository.save(roleProject);
-    }
-
-    @Override
-    public RoleProject updateRoleProject(RoleProject roleProject) {
-        return this.roleProjectRepository.save(roleProject);
-    }
-
-    @Override
-    public void deleteRoleProject(UUID id) {
-        this.roleProjectRepository.deleteById(id);
-    }
-
-    @Override
-    public Optional<RoleProject> findRoleProjectById(UUID id) {
-        return this.roleProjectRepository.findById(id);
-    }
-
-    @Override
-    public List<RoleProject> getAllRoleProject() {
-        return this.roleProjectRepository.findAll();
-    }
+//    @Override
+//    public RoleProject addRoleProject(RoleProject roleProject) {
+//        return this.roleProjectRepository.save(roleProject);
+//    }
+//
+//    @Override
+//    public RoleProject updateRoleProject(RoleProject roleProject) {
+//        return this.roleProjectRepository.save(roleProject);
+//    }
+//
+//    @Override
+//    public void deleteRoleProject(UUID id) {
+//        this.roleProjectRepository.deleteById(id);
+//    }
+//
+//    @Override
+//    public Optional<RoleProject> findRoleProjectById(UUID id) {
+//        return this.roleProjectRepository.findById(id);
+//    }
+//
+//    @Override
+//    public List<RoleProject> getAllRoleProject() {
+//        return this.roleProjectRepository.findAll();
+//    }
 }

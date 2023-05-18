@@ -1,17 +1,16 @@
 package com.octopus.workspaceservice.dtos.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.Date;
 import java.util.List;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorkspaceRequest {
-    private String name;
+public class AddMembersRequest {
+    private List<String> members;
 }

@@ -17,34 +17,34 @@ import java.util.UUID;
 public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
 
-    @Override
-    public Project createProject(Project project) {
-        return this.projectRepository.save(project);
-    }
-
-    @Override
-    public void deleteProject(UUID id) {
-        this.projectRepository.findById(id).get().setStatus(false);
-        //this.projectRepository.deleteById(id);
-    }
-
-    @Override
-    public Project updateProject(Project project) {
-        return this.projectRepository.save(project);
-    }
-
-    @Override
-    public Optional<Project> findById(UUID id) {
-        return this.projectRepository.findById(id);
-    }
-
-    @Override
-    public Project searchProject(String key) {
-        return this.projectRepository.findByKeyword(key);
-    }
-
-    @Override
-    public List<Project> getAllProject() {
-        return this.projectRepository.findAllProject();
-    }
+//    @Override
+//    public Project createProject(Project project) {
+//        return this.projectRepository.save(project);
+//    }
+//
+//    @Override
+//    public void deleteProject(UUID id) {
+//        this.projectRepository.findById(id).get().setStatus(false);
+//        //this.projectRepository.deleteById(id);
+//    }
+//
+//    @Override
+//    public Project updateProject(Project project) {
+//        return this.projectRepository.save(project);
+//    }
+//
+//    @Override
+//    public Optional<Project> findById(UUID id) {
+//        return this.projectRepository.findById(id);
+//    }
+//
+//    @Override
+//    public Project searchProject(String key) {
+//        return this.projectRepository.findByKeyword(key);
+//    }
+//
+//    @Override
+//    public List<Project> getAllProject() {
+//        return this.projectRepository.findAllProject();
+//    }
 }

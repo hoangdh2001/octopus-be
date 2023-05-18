@@ -14,9 +14,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class WorkspaceMember implements Serializable {
     @Id
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER, optional = false, targetEntity = Workspace.class)
     @JoinColumn(name = "workspace_id")
     private Workspace workspace;
     @Id

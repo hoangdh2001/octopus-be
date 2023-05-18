@@ -18,28 +18,28 @@ public class RoleWorkspaceServiceImpl implements RoleWorkspaceService {
 
     private final RoleWorkspaceRepository roleWorkspaceRepository;
 
-    @Override
-    public RoleWorkSpace addRoleWorkspace(RoleWorkSpace roleWorkSpace) {
-        return this.roleWorkspaceRepository.save(roleWorkSpace);
-    }
-
-    @Override
-    public RoleWorkSpace updateRoleWorkspace(RoleWorkSpace roleWorkSpace) {
-        return this.roleWorkspaceRepository.save(roleWorkSpace);
-    }
-
-    @Override
-    public void deleteRoleWorkspace(UUID id) {
-        this.roleWorkspaceRepository.deleteById(id);
-    }
-
-    @Override
-    public Optional<RoleWorkSpace> findRoleWorkspaceById(UUID id) {
-        return this.roleWorkspaceRepository.findById(id);
-    }
-
-    @Override
-    public List<RoleWorkSpace> getAllRoleWorkspace() {
-        return this.roleWorkspaceRepository.findAll();
-    }
+//    @Override
+//    public RoleWorkSpace addRoleWorkspace(RoleWorkSpace roleWorkSpace) {
+//        return this.roleWorkspaceRepository.save(roleWorkSpace);
+//    }
+//
+//    @Override
+//    public RoleWorkSpace updateRoleWorkspace(RoleWorkSpace roleWorkSpace) {
+//        return this.roleWorkspaceRepository.save(roleWorkSpace);
+//    }
+//
+//    @Override
+//    public void deleteRoleWorkspace(UUID id) {
+//        this.roleWorkspaceRepository.deleteById(id);
+//    }
+//
+//    @Override
+//    public Optional<RoleWorkSpace> findRoleWorkspaceById(UUID id) {
+//        return this.roleWorkspaceRepository.findById(id);
+//    }
+//
+//    @Override
+//    public List<RoleWorkSpace> getAllRoleWorkspace() {
+//        return this.roleWorkspaceRepository.findAll();
+//    }
 }

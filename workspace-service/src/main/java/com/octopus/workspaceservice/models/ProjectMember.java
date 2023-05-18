@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "project_member")
-@IdClass(WorkspaceMemberPK.class)
+@IdClass(ProjectMemberPK.class)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -23,8 +23,4 @@ public class ProjectMember {
     @Id
     @javax.persistence.Column(name = "member_id", columnDefinition = "BINARY(16)")
     private UUID memberID;
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "workspavemember_id")
-    private WorkspaceMember workspaceMember;
 }
