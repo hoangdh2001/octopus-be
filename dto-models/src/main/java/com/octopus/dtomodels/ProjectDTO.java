@@ -3,6 +3,7 @@ package com.octopus.dtomodels;
 import lombok.*;
 
 import java.util.Date;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,4 +18,5 @@ public class ProjectDTO {
     private Date createdDate;
     private Date updatedDate;
     private Date deletedDate;
+    private Set<SpaceDTO> spaces;
 }

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -15,14 +16,6 @@ import java.util.Date;
 @AllArgsConstructor
 public class ProjectRequest {
     private String name;
-    private boolean status;
     private String avatar;
-    @CreatedDate
-    private Date createDate;
-    @LastModifiedDate
-    private Date updateDate;
-    @LastModifiedDate
-    private Date deleteDate;
-    private int workspaceId;
-    private int memberId;
+    private List<String> members;
 }

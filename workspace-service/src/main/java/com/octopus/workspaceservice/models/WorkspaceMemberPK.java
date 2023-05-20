@@ -8,9 +8,9 @@ import java.util.UUID;
 @Embeddable
 public class WorkspaceMemberPK implements Serializable {
     private UUID workspace;
-    private UUID memberID;
+    private String memberID;
 
-    public WorkspaceMemberPK(UUID workspace, UUID memberID) {
+    public WorkspaceMemberPK(UUID workspace, String memberID) {
         this.workspace = workspace;
         this.memberID = memberID;
     }
@@ -26,11 +26,11 @@ public class WorkspaceMemberPK implements Serializable {
         this.workspace = workspace;
     }
 
-    public UUID getMemberID() {
+    public String getMemberID() {
         return memberID;
     }
 
-    public void setMemberID(UUID memberID) {
+    public void setMemberID(String memberID) {
         this.memberID = memberID;
     }
 

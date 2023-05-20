@@ -14,4 +14,5 @@ import java.util.List;
 @AllArgsConstructor
 public class WorkspaceRequest {
     private String name;
+    private List<String> members;
 }

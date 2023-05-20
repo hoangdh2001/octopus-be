@@ -8,9 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Entity
@@ -49,10 +47,11 @@ public class Workspace implements Serializable {
     @javax.persistence.Column(name="deleted_date")
     private Date deletedDate;
 
-    @OneToMany(mappedBy = "workspace",cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WorkspaceMember> workspaceMembers;
-
-    @OneToMany(cascade = CascadeType.ALL, targetEntity = WorkspaceMember.class, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "workspace_id")
-    private List<Project> projects;
+    private Set<WorkspaceMember> members = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_id")
+    private Set<Project> projects = new HashSet<>();
 }

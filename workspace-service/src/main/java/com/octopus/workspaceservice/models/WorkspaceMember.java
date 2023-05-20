@@ -17,10 +17,10 @@ import java.util.UUID;
 @Builder
 public class WorkspaceMember implements Serializable {
     @Id
-    @ManyToOne(fetch = FetchType.EAGER, optional = false, targetEntity = Workspace.class)
-    @JoinColumn(name = "workspace_id")
+    @ManyToOne
+    @JoinColumn(name = "workspace_id", columnDefinition = "BINARY(16)")
     private Workspace workspace;
     @Id
-    @javax.persistence.Column(name = "member_id", columnDefinition = "BINARY(16)")
-    private UUID memberID;
+    @javax.persistence.Column(name = "member_id")
+    private String memberID;
 }

@@ -27,7 +27,7 @@ public class UserSpecification implements Specification<User> {
     public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         Predicate predicate = null;
 
-        predicate = payload.getFilterConditions().getOperator().build(root, criteriaBuilder, payload.getFilterConditions(), predicate);
+        predicate = payload.getFilterConditions().getOperator().build(root, criteriaBuilder, payload.getFilterConditions(), predicate, null);
 
         List<Order> orders = new ArrayList<>();
         for (SortRequest sort : this.payload.getSort()) {

@@ -1,14 +1,20 @@
 package com.octopus.workspaceservice.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octopus.dtomodels.Payload;
+import com.octopus.dtomodels.ProjectDTO;
 import com.octopus.dtomodels.UserDTO;
 import com.octopus.dtomodels.WorkspaceDTO;
 import com.octopus.workspaceservice.dtos.request.AddMembersRequest;
+import com.octopus.workspaceservice.dtos.request.ProjectRequest;
 import com.octopus.workspaceservice.dtos.request.WorkspaceRequest;
 import com.octopus.workspaceservice.kafka.KafkaProducer;
 import com.octopus.workspaceservice.service.RoleWorkspaceService;
 import com.octopus.workspaceservice.service.WorkspaceMemberService;
 import com.octopus.workspaceservice.service.WorkspaceService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -90,15 +96,7 @@ public class WorkspaceController {
 //        return ResponseEntity.ok().body(workspaceService.searchWorkspace(key));
 //    }
 //
-//    @Operation(summary = "Get all data workspace", description = "Get all data workspace")
-//    @GetMapping("/")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "209", description = "Get all data workspace"),
-//            @ApiResponse(responseCode = "411", description = "Not find member")
-//    })
-//    public ResponseEntity<List<Workspace>> getAllWorkspace(){
-//        return ResponseEntity.ok().body(workspaceService.getAllWorkspace());
-//    }
+
 //
 //    @Operation(summary = "Add Workspace member", description = "Add Workspace member")
 //    @PostMapping("/member/add")
@@ -232,34 +230,59 @@ public class WorkspaceController {
 //        return ResponseEntity.ok().body(roleWorkspaceService.getAllRoleWorkspace());
 //    }
 //
-//    @SneakyThrows
-//    @GetMapping("/search")
-//    public ResponseEntity<List<WorkspaceDTO>> findWorkspaceByID(@RequestParam("payload") String payloadString) {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        var payload = objectMapper.readValue(payloadString, Payload.class);
-//        var workspace = this.workspaceService.search(payload);
-//        return ResponseEntity.ok().body(workspace);
-//    }
 
     @PostMapping
-    public ResponseEntity<WorkspaceDTO> createNewWorkspace(@RequestBody() WorkspaceRequest workspaceRequest) {
-        var workspace = this.workspaceService.createNewWorkspace(workspaceRequest);
+    public ResponseEntity<WorkspaceDTO> createNewWorkspace(@RequestBody() WorkspaceRequest workspaceRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var workspace = this.workspaceService.createNewWorkspace(workspaceRequest, token);
         return ResponseEntity.ok().body(workspace);
     }
 
     @PostMapping("{workspace_id}/members")
-    public ResponseEntity<List<UserDTO>> addMembers(@PathVariable("workspace_id") String workspaceID, @RequestBody() AddMembersRequest membersRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+    public ResponseEntity<Set<UserDTO>> addMembers(@PathVariable("workspace_id") String workspaceID, @RequestBody() AddMembersRequest membersRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         var members = this.workspaceService.addMembers(workspaceID, membersRequest.getMembers(), token);
         return ResponseEntity.ok().body(members);
     }
 
     @SneakyThrows
-    @PostMapping("/search")
-    public ResponseEntity<List<WorkspaceDTO>> findWorkspace(@RequestBody() Payload payload) {
-        var workspaces = this.workspaceService.searchWorkspace(payload);
+    @GetMapping("/search")
+    public ResponseEntity<List<WorkspaceDTO>> findWorkspace(@RequestParam("payload") String payloadString, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var objectMapper = new ObjectMapper();
+        var payload = objectMapper.readValue(payloadString, Payload.class);
+        var workspaces = this.workspaceService.searchWorkspace(payload, token);
         return ResponseEntity.ok().body(workspaces);
     }
+    @Operation(summary = "Get all data workspace", description = "Get all data workspace")
+    @GetMapping("/")
+    @ApiResponses({
+            @ApiResponse(responseCode = "209", description = "Get all data workspace"),
+            @ApiResponse(responseCode = "411", description = "Not find member")
+    })
+    public ResponseEntity<List<WorkspaceDTO>> getAllWorkspace(){
+        var workspace = workspaceService.getAllWorkspace();
+        return ResponseEntity.ok().body(workspace);
+    }
 
+    @GetMapping("/users")
+    public ResponseEntity<List<WorkspaceDTO>> getWorkspaceByUser(@RequestParam("userID") String userID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var workspace = workspaceService.getWorkspaceByUser(userID, token);
+        return ResponseEntity.ok().body(workspace);
+    }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<WorkspaceDTO> getWorkspaceByID(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var workspace = workspaceService.findWorkspaceByID(id, token);
+        return ResponseEntity.ok().body(workspace);
+    }
 
+    @PostMapping("/{id}/projects")
+    public ResponseEntity<WorkspaceDTO> createProject(@RequestBody() ProjectRequest projectRequest, @PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var workspace = workspaceService.createProject(id, projectRequest, token);
+        return ResponseEntity.ok().body(workspace);
+    }
+
+//    @GetMapping("/{id}/projects")
+//    public ResponseEntity<ProjectDTO> getProjectsByWorkspace(@PathVariable("id") String workspaceID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+//        var projects = workspaceService.getProjectsByWorkspace(workspaceID, token);
+//        return ResponseEntity.ok().body(projects);
+//    }
 }

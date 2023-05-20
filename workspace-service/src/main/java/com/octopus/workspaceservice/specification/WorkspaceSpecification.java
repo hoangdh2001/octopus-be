@@ -27,7 +27,7 @@ public class WorkspaceSpecification implements Specification<Workspace> {
         Predicate predicate = null;
 
         if (payload.getFilterConditions() != null) {
-            predicate = payload.getFilterConditions().getOperator().build(root, criteriaBuilder, payload.getFilterConditions(), predicate);
+            predicate = payload.getFilterConditions().getOperator().build(root, criteriaBuilder, payload.getFilterConditions(), predicate, null);
         }
 
         List<Order> orders = new ArrayList<>();
