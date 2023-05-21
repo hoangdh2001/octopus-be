@@ -1,21 +1,21 @@
 package com.octopus.dtomodels;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.util.Date;
-import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SpaceDTO {
+public class TaskDTO {
     private String id;
     private String name;
-    private Boolean status;
+    private String description;
     private Date createdDate;
     private Date updatedDate;
     private Date deletedDate;
-    private Set<TaskDTO> tasks;
 }

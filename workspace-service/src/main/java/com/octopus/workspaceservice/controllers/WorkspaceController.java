@@ -1,13 +1,8 @@
 package com.octopus.workspaceservice.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.octopus.dtomodels.Payload;
-import com.octopus.dtomodels.ProjectDTO;
-import com.octopus.dtomodels.UserDTO;
-import com.octopus.dtomodels.WorkspaceDTO;
-import com.octopus.workspaceservice.dtos.request.AddMembersRequest;
-import com.octopus.workspaceservice.dtos.request.ProjectRequest;
-import com.octopus.workspaceservice.dtos.request.WorkspaceRequest;
+import com.octopus.dtomodels.*;
+import com.octopus.workspaceservice.dtos.request.*;
 import com.octopus.workspaceservice.kafka.KafkaProducer;
 import com.octopus.workspaceservice.service.RoleWorkspaceService;
 import com.octopus.workspaceservice.service.WorkspaceMemberService;
@@ -280,9 +275,16 @@ public class WorkspaceController {
         return ResponseEntity.ok().body(workspace);
     }
 
-//    @GetMapping("/{id}/projects")
-//    public ResponseEntity<ProjectDTO> getProjectsByWorkspace(@PathVariable("id") String workspaceID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-//        var projects = workspaceService.getProjectsByWorkspace(workspaceID, token);
-//        return ResponseEntity.ok().body(projects);
-//    }
+    @PostMapping("{id}/projects/{project_id}/spaces")
+    public ResponseEntity<ProjectDTO> createSpace(@RequestBody() AddSpaceRequest spaceRequest, @PathVariable("id") String id, @PathVariable("project_id") String projectID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var project = workspaceService.createSpace(id, projectID, spaceRequest, token);
+        return ResponseEntity.ok().body(project);
+    }
+
+    @PostMapping("{id}/projects/{project_id}/spaces/{space_id}/tasks")
+    public ResponseEntity<ProjectDTO> addTask(@RequestBody() AddTaskRequest addTaskRequest, @PathVariable("id") String id, @PathVariable("project_id") String projectID, @PathVariable("space_id") String spaceID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.addTask(projectID, spaceID, addTaskRequest, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
 }

@@ -47,6 +47,6 @@ public class Project implements Serializable {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
-    private Set<Space> spaces;
+    private Set<Space> spaces = new HashSet<>();
 
 }

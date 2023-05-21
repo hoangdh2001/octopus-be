@@ -1,15 +1,14 @@
 package com.octopus.workspaceservice.service.impl;
 
-import com.octopus.dtomodels.Payload;
-import com.octopus.dtomodels.UserDTO;
-import com.octopus.dtomodels.WorkspaceDTO;
+import com.octopus.dtomodels.*;
+import com.octopus.workspaceservice.dtos.request.AddSpaceRequest;
+import com.octopus.workspaceservice.dtos.request.AddTaskRequest;
 import com.octopus.workspaceservice.dtos.request.ProjectRequest;
 import com.octopus.workspaceservice.dtos.request.WorkspaceRequest;
 import com.octopus.workspaceservice.mapper.WorkspaceMapper;
-import com.octopus.workspaceservice.models.Project;
-import com.octopus.workspaceservice.models.Workspace;
-import com.octopus.workspaceservice.models.WorkspaceMember;
+import com.octopus.workspaceservice.models.*;
 import com.octopus.workspaceservice.repository.ProjectRepository;
+import com.octopus.workspaceservice.repository.SpaceRepository;
 import com.octopus.workspaceservice.repository.WorkspaceMemberRepository;
 import com.octopus.workspaceservice.repository.WorkspaceRepository;
 import com.octopus.workspaceservice.service.WorkspaceService;
@@ -37,6 +36,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final ProjectRepository projectRepository;
+    private final SpaceRepository spaceRepository;
     private final WorkspaceMapper workspaceMapper;
     private final WebClient.Builder webClientBuilder;
 
@@ -145,6 +145,32 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
         workspaceDTO.setMembers(members);
         return workspaceDTO;
+    }
+
+    @Override
+    public ProjectDTO createSpace(String workspaceID, String projectID, AddSpaceRequest addSpaceRequest, String token) {
+        var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
+        var space = Space.builder()
+                .name(addSpaceRequest.getName())
+                .status(true)
+                .build();
+        project.getSpaces().add(space);
+        var updatedProject = this.projectRepository.save(project);
+        return this.workspaceMapper.mapToProjectDTO(updatedProject);
+    }
+
+    @Override
+    public ProjectDTO addTask(String projectID, String spaceID, AddTaskRequest taskRequest, String token) {
+        var space = this.spaceRepository.findById(UUID.fromString(spaceID)).get();
+        var task = Task.builder()
+                .name(taskRequest.getName())
+                .description(taskRequest.getDescription())
+                .status(true)
+                .build();
+        space.getTasks().add(task);
+        var updatedSpace = this.spaceRepository.save(space);
+        var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
+        return this.workspaceMapper.mapToProjectDTO(project);
     }
 
     //    @Override

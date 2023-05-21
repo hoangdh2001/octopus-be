@@ -15,6 +15,7 @@ import java.util.*;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class Task implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -22,15 +23,14 @@ public class Task implements Serializable {
     @javax.persistence.Column(name = "id",columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @javax.persistence.Column(name = "name")
+    private String name;
+
     @javax.persistence.Column(name="description")
     private String description;
 
     @javax.persistence.Column(name="status")
     private boolean status;
-
-    @javax.persistence.Column(name="create_time")
-    @CreatedDate
-    private Date createTime;
 
     @javax.persistence.Column(name = "created_date")
     @CreatedDate

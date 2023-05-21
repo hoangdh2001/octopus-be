@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,7 +16,9 @@ import java.util.*;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Space implements Serializable {
+@Builder
+@EntityListeners(AuditingEntityListener.class)
+public class  Space implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -47,8 +50,8 @@ public class Space implements Serializable {
     @JoinColumn(name = "space_id")
     private Space spaceRoot;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "space_id")
-    private List<Task> tasks;
+    private Set<Task> tasks = new HashSet<>();
 
 }
