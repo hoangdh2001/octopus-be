@@ -26,6 +26,15 @@ public class Task implements Serializable {
     @javax.persistence.Column(name = "name")
     private String name;
 
+    @javax.persistence.Column(name = "start_date")
+    private Date startDate;
+
+    @javax.persistence.Column(name = "due_date")
+    private Date dueDate;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Assignee> assignees;
+
     @javax.persistence.Column(name="description")
     private String description;
 

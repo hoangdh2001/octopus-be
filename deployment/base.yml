@@ -69,10 +69,10 @@ include:
     - .k8s-vault
   variables:
     HELM_VALUES_APP: deployment/helm/env_values/$ENVIRONMENT.yaml
-    K8S_NAMESPACE: octopus-backend
+    K8S_NAMESPACE: -backend
   stage: deploy
   script:
     - apk add bash
     - kubectl get namespace $K8S_NAMESPACE || kubectl create namespace $K8S_NAMESPACE
     - set -x
-    - !reference [ .deploy-app, script ]
+    - !reference [.deploy-app, script]
