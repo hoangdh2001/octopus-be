@@ -49,4 +49,10 @@ public class Project implements Serializable {
     @JoinColumn(name = "project_id")
     private Set<Space> spaces = new HashSet<>();
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<TaskStatus> taskStatuses = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "setting_id")
+    private Setting setting;
 }

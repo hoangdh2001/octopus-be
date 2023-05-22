@@ -33,7 +33,7 @@ public class Task implements Serializable {
     private Date dueDate;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Assignee> assignees;
+    private Set<Assignee> assignees;
 
     @javax.persistence.Column(name="description")
     private String description;

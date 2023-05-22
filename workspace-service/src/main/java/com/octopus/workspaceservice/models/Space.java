@@ -54,4 +54,8 @@ public class  Space implements Serializable {
     @JoinColumn(name = "space_id")
     private Set<Task> tasks = new HashSet<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "setting_id")
+    private Setting setting;
+
 }

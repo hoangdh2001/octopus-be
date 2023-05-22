@@ -134,10 +134,14 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public WorkspaceDTO createProject(String workspaceID, ProjectRequest projectRequest, String token) {
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var setting = Setting.builder()
+                .taskStatuses(projectRequest.getStatusList())
+                .build();
         var newProject = Project.builder()
                 .name(projectRequest.getName())
                 .avatar(projectRequest.getAvatar())
                 .status(true)
+                .setting(setting)
                 .build();
         workspace.getProjects().add(newProject);
         var updatedWorkspace = this.workspaceRepository.save(workspace);
@@ -153,6 +157,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var space = Space.builder()
                 .name(addSpaceRequest.getName())
                 .status(true)
+                .setting(addSpaceRequest.getSetting())
                 .build();
         project.getSpaces().add(space);
         var updatedProject = this.projectRepository.save(project);
@@ -167,6 +172,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .description(taskRequest.getDescription())
                 .status(true)
                 .build();
+        var assignees = taskRequest.getAssignees().stream().map(s -> Assignee.builder()
+                .userID(s)
+                .task(task)
+                .build()).collect(Collectors.toSet());
+        task.getAssignees().addAll(assignees);
         space.getTasks().add(task);
         var updatedSpace = this.spaceRepository.save(space);
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();

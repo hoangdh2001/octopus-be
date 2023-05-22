@@ -10,13 +10,10 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SpaceDTO {
+public class SettingDTO {
     private String id;
-    private String name;
-    private Boolean status;
+    private Set<TaskStatusDTO> statuses;
+
     private Date createdDate;
     private Date updatedDate;
-    private Date deletedDate;
-    private Set<TaskDTO> tasks;
-    private SettingDTO setting;
 }

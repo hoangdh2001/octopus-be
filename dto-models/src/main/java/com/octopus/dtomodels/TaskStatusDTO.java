@@ -1,22 +1,19 @@
 package com.octopus.dtomodels;
 
 import lombok.*;
-
 import java.util.Date;
-import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SpaceDTO {
+public class TaskStatusDTO {
     private String id;
-    private String name;
-    private Boolean status;
+    private String color;
     private Date createdDate;
     private Date updatedDate;
     private Date deletedDate;
-    private Set<TaskDTO> tasks;
-    private SettingDTO setting;
+    private String name;
+    private Boolean closeStatus;
 }

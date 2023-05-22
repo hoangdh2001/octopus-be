@@ -1,33 +1,34 @@
 package com.octopus.workspaceservice.models;
 
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-@Entity
-@Table(name = "workspace_member")
-@IdClass(WorkspaceMemberPK.class)
-@AllArgsConstructor
-@NoArgsConstructor
+@Entity(name = "settings")
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class WorkspaceMember implements Serializable {
+@Builder
+public class Setting {
     @Id
-    @ManyToOne
-    @JoinColumn(name = "workspace_id", columnDefinition = "BINARY(16)")
-    private Workspace workspace;
-    @Id
-    @javax.persistence.Column(name = "member_id")
-    private String memberID;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @javax.persistence.Column(name = "id", columnDefinition = "BINARY(16)")
+    private UUID id;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "setting_id")
+    private Set<TaskStatus> taskStatuses = new HashSet<>();
 
     @javax.persistence.Column(name = "created_date")
     @CreatedDate

@@ -1,9 +1,6 @@
 package com.octopus.workspaceservice.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.persistence.Column;
@@ -14,6 +11,7 @@ import javax.persistence.Column;
 @NoArgsConstructor
 @AllArgsConstructor
 @IdClass(AssigneePK.class)
+@Builder
 public class Assignee {
     @Id
     @Column(name = "user_id")
