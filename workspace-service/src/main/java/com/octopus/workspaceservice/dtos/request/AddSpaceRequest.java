@@ -14,4 +14,5 @@ import java.util.List;
 public class AddSpaceRequest {
     private String name;
     private Setting setting;
+    private List<TaskStatus> statusList;
 }
