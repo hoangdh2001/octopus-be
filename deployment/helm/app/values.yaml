@@ -12,8 +12,7 @@ eurekaDesc:
 
 authDesc:
   # image: <image>
-  replicaCount: 2
-  minReadySeconds: 3
+  replicaCount: 1
   pullPolicy: Always
   serviceType: ClusterIP
   # coreProfiles: <profiles>
@@ -25,7 +24,7 @@ authDesc:
 
 gatewayDesc:
   # image: <image>
-  replicaCount: 2
+  replicaCount: 1
   pullPolicy: Always
   serviceType: LoadBalancer
   # coreProfiles: <profiles>
@@ -37,7 +36,7 @@ gatewayDesc:
 
 messageDesc:
   #  image: <image>
-  replicaCount: 2
+  replicaCount: 1
   pullPolicy: Always
   serviceType: ClusterIP
   basicAuth: true
@@ -49,7 +48,7 @@ messageDesc:
 
 mailDesc:
   #  image: <image>
-  replicaCount: 2
+  replicaCount: 1
   pullPolicy: Always
   serviceType: ClusterIP
   basicAuth: true
@@ -60,7 +59,7 @@ mailDesc:
       memory: 64Mi
 
 workspaceDesc:
-  replicaCount: 2
+  replicaCount: 1
   minReadySeconds: 3
   pullPolicy: Always
   serviceType: ClusterIP
@@ -72,7 +71,7 @@ workspaceDesc:
 
 storageDesc:
   #  image: <image>
-  replicaCount: 2
+  replicaCount: 1
   pullPolicy: Always
   serviceType: ClusterIP
   basicAuth: true
