@@ -37,7 +37,7 @@ public interface WorkspaceMapper {
     Set<SpaceDTO> mapListSpaceToSpaceDTO(Set<Space> spaces);
 
     @Mapping(target = "id", expression = "java(convertIdToString(task.getId()))")
-    @Mapping(target = "assignees", expression = "java(task.getAssignees().stream().map(this::convertAssigneeToString).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "assignees", expression = "java(mapAssigneeToString(task.getAssignees()))")
     TaskDTO mapToTaskDTO(Task task);
 
     @InheritConfiguration(name = "mapToTaskDTO")
@@ -65,5 +65,13 @@ public interface WorkspaceMapper {
             return null;
         }
         return assignee.getUserID();
+    }
+
+    default List<String> mapAssigneeToString(Set<Assignee> assignees) {
+        if (assignees == null)  {
+            return null;
+        }
+
+        return assignees.stream().map(this::convertAssigneeToString).collect(java.util.stream.Collectors.toList());
     }
 }

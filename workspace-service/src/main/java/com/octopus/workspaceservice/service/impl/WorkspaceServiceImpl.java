@@ -7,10 +7,7 @@ import com.octopus.workspaceservice.dtos.request.ProjectRequest;
 import com.octopus.workspaceservice.dtos.request.WorkspaceRequest;
 import com.octopus.workspaceservice.mapper.WorkspaceMapper;
 import com.octopus.workspaceservice.models.*;
-import com.octopus.workspaceservice.repository.ProjectRepository;
-import com.octopus.workspaceservice.repository.SpaceRepository;
-import com.octopus.workspaceservice.repository.WorkspaceMemberRepository;
-import com.octopus.workspaceservice.repository.WorkspaceRepository;
+import com.octopus.workspaceservice.repository.*;
 import com.octopus.workspaceservice.service.WorkspaceService;
 import com.octopus.workspaceservice.specification.WorkspaceSpecification;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +33,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final ProjectRepository projectRepository;
+    private final SettingRepository settingRepository;
     private final SpaceRepository spaceRepository;
     private final WorkspaceMapper workspaceMapper;
     private final WebClient.Builder webClientBuilder;
@@ -137,14 +135,15 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var setting = Setting.builder()
                 .taskStatuses(projectRequest.getStatusList())
                 .build();
+        var newSetting = this.settingRepository.save(setting);
         var newProject = Project.builder()
                 .name(projectRequest.getName())
                 .avatar(projectRequest.getAvatar())
                 .status(true)
-                .setting(setting)
+                .setting(newSetting)
                 .build();
         workspace.getProjects().add(newProject);
-        var updatedWorkspace = this.workspaceRepository.save(workspace);
+        var updatedWorkspace = this.workspaceRepository.saveAndFlush(workspace);
         var workspaceDTO = workspaceMapper.mapToWorkspaceDTO(updatedWorkspace);
         var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
         workspaceDTO.setMembers(members);
@@ -172,11 +171,14 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .description(taskRequest.getDescription())
                 .status(true)
                 .build();
-        var assignees = taskRequest.getAssignees().stream().map(s -> Assignee.builder()
-                .userID(s)
-                .task(task)
-                .build()).collect(Collectors.toSet());
-        task.getAssignees().addAll(assignees);
+        if (taskRequest.getAssignees() != null) {
+            var assignees = taskRequest.getAssignees().stream().map(s -> Assignee.builder()
+                    .userID(s)
+                    .task(task)
+                    .build()).collect(Collectors.toSet());
+            log.info(assignees.toString());
+            task.getAssignees().addAll(assignees);
+        }
         space.getTasks().add(task);
         var updatedSpace = this.spaceRepository.save(space);
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
