@@ -37,11 +37,15 @@ public interface WorkspaceMapper {
     Set<SpaceDTO> mapListSpaceToSpaceDTO(Set<Space> spaces);
 
     @Mapping(target = "id", expression = "java(convertIdToString(task.getId()))")
-    @Mapping(target = "assignees", expression = "java(mapAssigneeToString(task.getAssignees()))")
+    @Mapping(target = "taskStatus", expression = "java(mapToTaskStatusDTO(task.getTaskStatus()))")
     TaskDTO mapToTaskDTO(Task task);
 
     @InheritConfiguration(name = "mapToTaskDTO")
     Set<TaskDTO> mapTaskListToTaskDTO(Set<Task> tasks);
+
+    @Mapping(target = "id", expression = "java(convertStringToId(taskDTO.getId()))")
+    @Mapping(target = "taskStatus", expression = "java(mapTaskStatusDTOToTaskStatus(taskDTO.getTaskStatus()))")
+    Task mapTaskDTOToTask(TaskDTO taskDTO);
 
     @Mapping(target = "id", expression = "java(convertIdToString(setting.getId()))")
     @Mapping(target = "statuses", expression = "java(mapTaskStatusListToTaskStatusDTO(setting.getTaskStatuses()))")
@@ -53,6 +57,10 @@ public interface WorkspaceMapper {
     @InheritConfiguration(name = "mapToTaskStatusDTO")
     Set<TaskStatusDTO> mapTaskStatusListToTaskStatusDTO(Set<TaskStatus> taskStatuses);
 
+    @Mapping(target = "id", expression = "java(convertStringToId(taskStatusDTO.getId()))")
+
+    TaskStatus mapTaskStatusDTOToTaskStatus(TaskStatusDTO taskStatusDTO);
+
     default String convertIdToString(UUID id) {
         if (id == null) {
             return null;
@@ -60,18 +68,10 @@ public interface WorkspaceMapper {
         return id.toString();
     }
 
-    default String convertAssigneeToString(Assignee assignee) {
-        if (assignee == null) {
+    default UUID convertStringToId(String id) {
+        if (id == null) {
             return null;
         }
-        return assignee.getUserID();
-    }
-
-    default List<String> mapAssigneeToString(Set<Assignee> assignees) {
-        if (assignees == null)  {
-            return null;
-        }
-
-        return assignees.stream().map(this::convertAssigneeToString).collect(java.util.stream.Collectors.toList());
+        return UUID.fromString(id);
     }
 }

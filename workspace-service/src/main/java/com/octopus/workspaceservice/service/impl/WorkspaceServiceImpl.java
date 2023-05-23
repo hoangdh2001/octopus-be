@@ -35,6 +35,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private final ProjectRepository projectRepository;
     private final SettingRepository settingRepository;
     private final SpaceRepository spaceRepository;
+    private final TaskRepository taskRepository;
     private final WorkspaceMapper workspaceMapper;
     private final WebClient.Builder webClientBuilder;
 
@@ -166,26 +167,32 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public ProjectDTO addTask(String projectID, String spaceID, AddTaskRequest taskRequest, String token) {
         var space = this.spaceRepository.findById(UUID.fromString(spaceID)).get();
+        var id = UUID.randomUUID();
+        log.info(id.toString());
         var task = Task.builder()
                 .name(taskRequest.getName())
                 .description(taskRequest.getDescription())
                 .status(true)
+                .taskStatus(taskRequest.getTaskStatus())
+                .assignees(taskRequest.getAssignees())
+                .startDate(taskRequest.getStartDate())
+                .dueDate(taskRequest.getDueDate())
                 .build();
-        if (taskRequest.getAssignees() != null) {
-            var assignees = taskRequest.getAssignees().stream().map(s -> Assignee.builder()
-                    .userID(s)
-                    .task(task)
-                    .build()).collect(Collectors.toSet());
-            log.info(assignees.toString());
-            task.getAssignees().addAll(assignees);
-        }
         space.getTasks().add(task);
-        var updatedSpace = this.spaceRepository.save(space);
+        this.spaceRepository.save(space);
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
         return this.workspaceMapper.mapToProjectDTO(project);
     }
 
-    //    @Override
+    @Override
+    public ProjectDTO updateTask(TaskDTO taskDTO, String token) {
+        var task = this.workspaceMapper.mapTaskDTOToTask(taskDTO);
+        var updatedTask = this.taskRepository.save(task);
+        var project = this.projectRepository.findById(UUID.fromString("043fc600-bd32-45b5-b3fe-35a1653bc1b8")).get();
+        return this.workspaceMapper.mapToProjectDTO(project);
+    }
+
+//    @Override
 //    public Workspace createWorkspace(Workspace workSpace) {
 //        return this.workspaceRepository.save(workSpace);
 //    }

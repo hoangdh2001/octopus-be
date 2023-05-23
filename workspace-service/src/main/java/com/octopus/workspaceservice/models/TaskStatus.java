@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @Entity
-@Table(name = "task_status")
+@Table(name = "task_statuses")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -25,8 +25,12 @@ public class TaskStatus implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @javax.persistence.Column(name = "id",columnDefinition = "BINARY(16)")
+    @javax.persistence.Column(name = "id", columnDefinition = "BINARY(16)")
     private UUID id;
+
+    @javax.persistence.Column(name = "num_order")
+    private Integer numOrder;
+
     @javax.persistence.Column(name = "color")
     private String color;
 

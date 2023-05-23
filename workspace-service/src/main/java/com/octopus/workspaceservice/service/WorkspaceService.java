@@ -26,4 +26,6 @@ public interface WorkspaceService {
 
     public ProjectDTO addTask(String projectID, String spaceID, AddTaskRequest taskRequest, String token);
 
+    public ProjectDTO updateTask(TaskDTO taskDTO, String token);
+
 }

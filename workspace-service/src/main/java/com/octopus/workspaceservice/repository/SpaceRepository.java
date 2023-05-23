@@ -1,11 +1,13 @@
 package com.octopus.workspaceservice.repository;
 
 import com.octopus.workspaceservice.models.Space;
+import com.octopus.workspaceservice.models.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -18,4 +20,7 @@ public interface SpaceRepository extends JpaRepository<Space, UUID> {
 //
 //    @Query("select s from Space s where s.status = true")
 //    public List<Space> findAllSpace();
+
+    @Query("SELECT s FROM Space s where s.tasks in (?1)")
+    public Space findSpaceByTask(Task task);
 }

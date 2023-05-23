@@ -32,8 +32,10 @@ public class Task implements Serializable {
     @javax.persistence.Column(name = "due_date")
     private Date dueDate;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Assignee> assignees = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "assignees", joinColumns = @JoinColumn(name = "task_id"))
+    @javax.persistence.Column(name = "assignee_id", nullable = false)
+    private List<String> assignees = new ArrayList<>();
 
     @javax.persistence.Column(name="description")
     private String description;
@@ -53,10 +55,7 @@ public class Task implements Serializable {
     @LastModifiedDate
     private Date deletedDate;
 
-    @OneToMany(mappedBy = "taskRoot", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Task> tasks;
-
-    @ManyToOne
-    @JoinColumn(name = "task_id")
-    private Task taskRoot;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_status_id")
+    private TaskStatus taskStatus;
 }

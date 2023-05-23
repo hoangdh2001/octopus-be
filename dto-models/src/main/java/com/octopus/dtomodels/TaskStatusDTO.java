@@ -10,6 +10,7 @@ import java.util.Date;
 @Builder
 public class TaskStatusDTO {
     private String id;
+    private Integer numOrder;
     private String color;
     private Date createdDate;
     private Date updatedDate;

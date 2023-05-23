@@ -287,4 +287,10 @@ public class WorkspaceController {
         return ResponseEntity.ok().body(projectDTO);
     }
 
+    @PutMapping("{id}/tasks/{task_id}")
+    public ResponseEntity<ProjectDTO> updateTask(@RequestBody() TaskDTO data, @PathVariable("id") String id, @PathVariable("task_id") String taskID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.updateTask(data, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
 }

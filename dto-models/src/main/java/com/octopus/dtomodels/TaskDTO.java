@@ -22,4 +22,5 @@ public class TaskDTO {
     private Date createdDate;
     private Date updatedDate;
     private Date deletedDate;
+    private TaskStatusDTO taskStatus;
 }

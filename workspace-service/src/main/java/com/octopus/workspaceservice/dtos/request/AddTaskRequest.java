@@ -1,5 +1,6 @@
 package com.octopus.workspaceservice.dtos.request;
 
+import com.octopus.workspaceservice.models.TaskStatus;
 import lombok.*;
 
 import java.util.Date;
@@ -16,4 +17,5 @@ public class AddTaskRequest {
     private Date startDate;
     private Date dueDate;
     private List<String> assignees;
+    private TaskStatus taskStatus;
 }
