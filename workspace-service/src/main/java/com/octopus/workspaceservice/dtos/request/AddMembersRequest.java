@@ -13,4 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 public class AddMembersRequest {
     private List<String> members;
+    private String email;
 }

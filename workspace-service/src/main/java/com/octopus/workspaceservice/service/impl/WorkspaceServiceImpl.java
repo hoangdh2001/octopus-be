@@ -1,10 +1,8 @@
 package com.octopus.workspaceservice.service.impl;
 
 import com.octopus.dtomodels.*;
-import com.octopus.workspaceservice.dtos.request.AddSpaceRequest;
-import com.octopus.workspaceservice.dtos.request.AddTaskRequest;
-import com.octopus.workspaceservice.dtos.request.ProjectRequest;
-import com.octopus.workspaceservice.dtos.request.WorkspaceRequest;
+import com.octopus.workspaceservice.dtos.request.*;
+import com.octopus.workspaceservice.kafka.KafkaProducer;
 import com.octopus.workspaceservice.mapper.WorkspaceMapper;
 import com.octopus.workspaceservice.models.*;
 import com.octopus.workspaceservice.repository.*;
@@ -38,6 +36,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private final TaskRepository taskRepository;
     private final WorkspaceMapper workspaceMapper;
     private final WebClient.Builder webClientBuilder;
+    private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
@@ -64,16 +63,32 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     @Transactional
-    public Set<UserDTO> addMembers(String workspaceID, List<String> members, String token) {
-        var workspace = Workspace.builder()
-                .id(UUID.fromString(workspaceID))
-                .build();
-        var workspaceMembers = members.stream().map(s -> WorkspaceMember.builder()
-                .memberID(s)
-                .workspace(workspace)
-                .build()).collect(Collectors.toSet());
-        this.workspaceMemberRepository.saveAll(workspaceMembers);
-        return workspaceMembers.stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
+    public Set<UserDTO> addMembers(String workspaceID, AddMembersRequest members, String token) {
+        if (members.getMembers() != null) {
+            var workspace = Workspace.builder()
+                    .id(UUID.fromString(workspaceID))
+                    .build();
+            var workspaceMembers = members.getMembers().stream().map(s -> WorkspaceMember.builder()
+                    .memberID(s)
+                    .workspace(workspace)
+                    .build()).collect(Collectors.toSet());
+            this.workspaceMemberRepository.saveAll(workspaceMembers);
+            return workspaceMembers.stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
+        } else {
+            var workspace = Workspace.builder()
+                    .id(UUID.fromString(workspaceID))
+                    .build();
+            var user = createUserTemp(members.getEmail(), token);
+            var workspaceMember = WorkspaceMember.builder()
+                    .memberID(user.getId())
+                    .workspace(workspace)
+                    .build();
+            this.workspaceMemberRepository.save(workspaceMember);
+            kafkaProducer.sendEmailAddMemberWorkspace(Code.builder()
+                    .email(members.getEmail())
+                    .build());
+            return Collections.singleton(user);
+        }
     }
 
     private UserDTO findUserByID(String id, String token) {
@@ -85,6 +100,18 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .retrieve()
                 .bodyToFlux(UserDTO.class)
                 .blockFirst();
+    }
+
+    private UserDTO createUserTemp(String email, String token) {
+        return webClientBuilder
+                .build()
+                .post().uri("http://auth-service/api/users/createUserTemp")
+                .body(Mono.just(CreateMemberTempRequest.builder().email(email).build()), CreateMemberTempRequest.class)
+                .header("Authorization", token)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(UserDTO.class)
+                .block();
     }
 
     @Override

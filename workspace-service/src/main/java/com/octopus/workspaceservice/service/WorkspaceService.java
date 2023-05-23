@@ -1,10 +1,7 @@
 package com.octopus.workspaceservice.service;
 
 import com.octopus.dtomodels.*;
-import com.octopus.workspaceservice.dtos.request.AddSpaceRequest;
-import com.octopus.workspaceservice.dtos.request.AddTaskRequest;
-import com.octopus.workspaceservice.dtos.request.ProjectRequest;
-import com.octopus.workspaceservice.dtos.request.WorkspaceRequest;
+import com.octopus.workspaceservice.dtos.request.*;
 
 import java.util.List;
 import java.util.Set;
@@ -12,7 +9,7 @@ import java.util.Set;
 public interface WorkspaceService {
     public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, String token);
 
-    public Set<UserDTO> addMembers(String workspaceID, List<String> members, String token);
+    public Set<UserDTO> addMembers(String workspaceID, AddMembersRequest members, String token);
     public List<WorkspaceDTO> getAllWorkspace();
     public List<WorkspaceDTO> searchWorkspace(Payload payload, String token);
 

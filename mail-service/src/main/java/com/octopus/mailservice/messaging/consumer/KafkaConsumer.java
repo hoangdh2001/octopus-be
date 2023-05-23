@@ -47,19 +47,7 @@ public class KafkaConsumer {
     )
     public void consumeAddMemberWorkspace(Code code) {
         try {
-            this.mailService.sendResetPasswordEmail(code);
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @KafkaListener(
-            topics = "mail.sendEmailAddMemberProject",
-            groupId = "${spring.kafka.consumer.group-id}"
-    )
-    public void consumeAddMemberProject(Code code) {
-        try {
-            this.mailService.sendResetPasswordEmail(code);
+            this.mailService.sendEmailAddMemberWorkspace(code);
         } catch (MessagingException e) {
             e.printStackTrace();
         }

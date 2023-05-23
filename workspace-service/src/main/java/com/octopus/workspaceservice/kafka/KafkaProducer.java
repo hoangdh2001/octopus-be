@@ -22,12 +22,4 @@ public class KafkaProducer {
                 .build();
         template.send(message);
     }
-
-    public void sendEmailAddMemberProject(Code code) {
-        Message<Code> message = MessageBuilder
-                .withPayload(code)
-                .setHeader(KafkaHeaders.TOPIC, "mail.sendEmailAddMemberProject")
-                .build();
-        template.send(message);
-    }
 }

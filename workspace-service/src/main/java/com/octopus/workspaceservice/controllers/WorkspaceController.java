@@ -234,7 +234,7 @@ public class WorkspaceController {
 
     @PostMapping("{workspace_id}/members")
     public ResponseEntity<Set<UserDTO>> addMembers(@PathVariable("workspace_id") String workspaceID, @RequestBody() AddMembersRequest membersRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        var members = this.workspaceService.addMembers(workspaceID, membersRequest.getMembers(), token);
+        var members = this.workspaceService.addMembers(workspaceID, membersRequest, token);
         return ResponseEntity.ok().body(members);
     }
 

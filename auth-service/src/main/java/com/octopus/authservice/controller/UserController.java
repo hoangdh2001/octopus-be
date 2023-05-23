@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octopus.authservice.dto.request.ChangePasswordRequest;
 import com.octopus.authservice.dto.request.DeviceRequest;
 import com.octopus.authservice.service.UserService;
-import com.octopus.dtomodels.DeviceDTO;
-import com.octopus.dtomodels.OwnUserDTO;
-import com.octopus.dtomodels.Payload;
-import com.octopus.dtomodels.UserDTO;
+import com.octopus.dtomodels.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +96,16 @@ public class UserController {
         var payload = objectMapper.readValue(payloadString, Payload.class);
         var users = this.userService.searchUser(payload);
         return ResponseEntity.ok().body(users);
+    }
+
+    @PostMapping("/createUserTemp")
+    public ResponseEntity<UserDTO> createUserTemp(@RequestBody() CreateMemberTempRequest userDTO) {
+        if (this.userService.existByEmail(userDTO.getEmail())) {
+            var user = this.userService.findUserByEmail(userDTO.getEmail());
+            return ResponseEntity.ok().body(user);
+        }
+        var user = this.userService.createUserTemp(userDTO.getEmail());
+        return ResponseEntity.ok().body(user);
     }
 
 }

@@ -83,7 +83,7 @@ public class SendMailServiceImpl implements SendMailService{
 
         Context ctx = new Context(locale);
 
-        String verifyURL = String.format("http://%s/workspace/addmember?type=%s&code=%s&email=%s", domain, code.getVerificationType().getType(), code.getVerificationCode(), code.getEmail());
+        String verifyURL = String.format("http://%s/workspace/addmember?email=%s", domain, code.getEmail());
         ctx.setVariable("url", verifyURL);
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -92,7 +92,7 @@ public class SendMailServiceImpl implements SendMailService{
         helper.setTo(code.getEmail());
         helper.setSubject("Octopus Team");
 
-        String s = "authmails/addmemberworkspace.html";
+        String s = "authmails/email_addmemberworkspace.html";
         String htmlContent = templateEngine.process(s, ctx);
         helper.setText(htmlContent, true);
         mailSender.send(message);
