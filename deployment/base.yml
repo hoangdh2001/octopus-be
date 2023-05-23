@@ -43,6 +43,7 @@ include:
 .deploy-app:
   script:
     - helm upgrade app deployment/helm/app/
+      --force
       --install
       --namespace $K8S_NAMESPACE
       --reset-values
