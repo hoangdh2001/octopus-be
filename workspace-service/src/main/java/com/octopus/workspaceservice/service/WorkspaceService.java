@@ -30,4 +30,10 @@ public interface WorkspaceService {
 
     public GetTaskResponse getTaskToday(String workspaceID, String token);
 
+    public GetTaskResponse getTaskExpirationDate(String workspaceID, String token);
+
+    public GetTaskResponse getTaskNotStartDay(String workspaceID, String token);
+
+    public GetTaskResponse getTaskDateInTerm(String workspaceID, String token);
+
 }

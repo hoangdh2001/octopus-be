@@ -203,6 +203,39 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return new GetTaskResponse(taskDTO, workspaceDTO);
     }
 
+    @Override
+    public GetTaskResponse getTaskExpirationDate(String workspaceID, String token) {
+        var task = this.taskRepository.findTaskExpirationDate(UUID.fromString(workspaceID));
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
+        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
+        workspaceDTO.setMembers(members);
+        var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
+        return new GetTaskResponse(taskDTO, workspaceDTO);
+    }
+
+    @Override
+    public GetTaskResponse getTaskNotStartDay(String workspaceID, String token) {
+        var task = this.taskRepository.findTaskNotStartDay(UUID.fromString(workspaceID));
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
+        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
+        workspaceDTO.setMembers(members);
+        var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
+        return new GetTaskResponse(taskDTO, workspaceDTO);
+    }
+
+    @Override
+    public GetTaskResponse getTaskDateInTerm(String workspaceID, String token) {
+        var task = this.taskRepository.findTaskDateInTerm(UUID.fromString(workspaceID));
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
+        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
+        workspaceDTO.setMembers(members);
+        var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
+        return new GetTaskResponse(taskDTO, workspaceDTO);
+    }
+
     //    @Override
 //    public Workspace createWorkspace(Workspace workSpace) {
 //        return this.workspaceRepository.save(workSpace);

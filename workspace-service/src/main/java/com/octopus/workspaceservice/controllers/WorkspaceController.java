@@ -299,4 +299,22 @@ public class WorkspaceController {
         return ResponseEntity.ok().body(projectDTO);
     }
 
+    @GetMapping("{id}/tasks/expirationdate")
+    public ResponseEntity<GetTaskResponse> getTaskExpirationDate(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.getTaskExpirationDate(id, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
+    @GetMapping("{id}/tasks/notstartday")
+    public ResponseEntity<GetTaskResponse> getTaskNotStartDay(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.getTaskNotStartDay(id, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
+    @GetMapping("{id}/tasks/dateinterm")
+    public ResponseEntity<GetTaskResponse> getTaskDateInTerm(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.getTaskDateInTerm(id, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
 }
