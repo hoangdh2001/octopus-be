@@ -22,4 +22,5 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, UUID>, Jpa
     public List<Workspace> findWorkspacesByMemberID(@Param("userID") String userID);
 
     Workspace findWorkspaceById(UUID id);
+
 }

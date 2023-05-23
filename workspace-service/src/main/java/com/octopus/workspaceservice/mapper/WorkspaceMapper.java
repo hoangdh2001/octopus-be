@@ -5,6 +5,7 @@ import com.octopus.workspaceservice.models.*;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,10 @@ public interface WorkspaceMapper {
     @Mapping(target = "members", ignore = true)
     @Mapping(target = "projects", expression = "java(mapListProjectToProjectDTO(workspace.getProjects()))")
     WorkspaceDTO mapToWorkspaceDTO(Workspace workspace);
+
+    @Named(value = "projects")
+    @Mapping(target = "projects", ignore = true)
+    WorkspaceDTO mapToWorkspaceDTOIgnoreProject(Workspace workspace);
 
     @InheritConfiguration(name = "mapToWorkspaceDTO")
     List<WorkspaceDTO> mapListWorkspaceToWorkspaceDTO(List<Workspace> workspaces);

@@ -40,8 +40,6 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 8082
-            initialDelaySeconds: 300
-            periodSeconds: 30
           env:
             {{- include "eureka.envVars" . | nindent 10 }}
             {{- include "redis.envVars" . | nindent 10 }}

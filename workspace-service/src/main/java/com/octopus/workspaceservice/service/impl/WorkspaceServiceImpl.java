@@ -192,7 +192,18 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return this.workspaceMapper.mapToProjectDTO(project);
     }
 
-//    @Override
+    @Override
+    public GetTaskResponse getTaskToday(String workspaceID, String token) {
+        var task = this.taskRepository.findTaskToday(UUID.fromString(workspaceID));
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
+        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
+        workspaceDTO.setMembers(members);
+        var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
+        return new GetTaskResponse(taskDTO, workspaceDTO);
+    }
+
+    //    @Override
 //    public Workspace createWorkspace(Workspace workSpace) {
 //        return this.workspaceRepository.save(workSpace);
 //    }

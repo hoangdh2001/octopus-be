@@ -28,4 +28,6 @@ public interface WorkspaceService {
 
     public ProjectDTO updateTask(TaskDTO taskDTO, String token);
 
+    public GetTaskResponse getTaskToday(String workspaceID, String token);
+
 }

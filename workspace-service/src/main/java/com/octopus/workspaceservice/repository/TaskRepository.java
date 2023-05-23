@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -18,4 +19,7 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
 //
 //    @Query("SELECT t from Task t where day(t.createTime) = ?1 and month(t.createTime) = ?2 and year(t.createTime) = ?3")
 //    public List<Task> findByDay(int day, int month, int year);
+
+    @Query("select t from Workspace w join w.projects p join p.spaces s join s.tasks t where w.id = ?1 and CURRENT_TIMESTAMP between t.startDate and t.dueDate")
+    Set<Task> findTaskToday(UUID workspaceID);
 }

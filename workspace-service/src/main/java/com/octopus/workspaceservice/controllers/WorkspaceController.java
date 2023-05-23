@@ -293,4 +293,10 @@ public class WorkspaceController {
         return ResponseEntity.ok().body(projectDTO);
     }
 
+    @GetMapping("{id}/tasks/today")
+    public ResponseEntity<GetTaskResponse> getTaskToday(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.getTaskToday(id, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
 }
