@@ -21,6 +21,6 @@ public interface SpaceRepository extends JpaRepository<Space, UUID> {
 //    @Query("select s from Space s where s.status = true")
 //    public List<Space> findAllSpace();
 
-    @Query("SELECT s FROM Space s where s.tasks in (?1)")
-    public Space findSpaceByTask(Task task);
+    @Query("SELECT s FROM Space s join s.tasks t WHERE t.id = ?1")
+    public Space findSpaceByTask(UUID id);
 }

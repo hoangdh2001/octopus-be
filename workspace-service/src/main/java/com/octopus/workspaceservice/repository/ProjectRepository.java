@@ -18,6 +18,6 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     @Query("select p from Project p where p.status = true")
     public List<Project> findAllProject();
 
-    @Query("select p from Project p where p.spaces in (?1)")
-    public Project findProjectBySpace(Space space);
+    @Query("select p from Project p join p.spaces s where s.id = ?1")
+    public Project findProjectBySpace(UUID id);
 }

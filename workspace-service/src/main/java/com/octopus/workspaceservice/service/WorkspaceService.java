@@ -36,4 +36,12 @@ public interface WorkspaceService {
 
     public GetTaskResponse getTaskDateInTerm(String workspaceID, String token);
 
+    public GetTaskResponse getTaskNotDueDate(String workspaceID, String token);
+
+    public GetTaskResponse getTaskDone(String workspaceID, String token);
+
+    public ProjectDTO deleteTask(String projectID, String taskID, String token);
+
+    public ProjectDTO deleteSpace(String projectID, String spaceID, String token);
+
 }

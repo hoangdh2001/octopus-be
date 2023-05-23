@@ -299,7 +299,7 @@ public class WorkspaceController {
         return ResponseEntity.ok().body(projectDTO);
     }
 
-    @GetMapping("{id}/tasks/expirationdate")
+    @GetMapping("{id}/tasks/overdue")
     public ResponseEntity<GetTaskResponse> getTaskExpirationDate(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         var projectDTO = workspaceService.getTaskExpirationDate(id, token);
         return ResponseEntity.ok().body(projectDTO);
@@ -314,6 +314,30 @@ public class WorkspaceController {
     @GetMapping("{id}/tasks/dateinterm")
     public ResponseEntity<GetTaskResponse> getTaskDateInTerm(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         var projectDTO = workspaceService.getTaskDateInTerm(id, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
+    @GetMapping("{id}/tasks/notduedate")
+    public ResponseEntity<GetTaskResponse> getTaskNotDueDate(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.getTaskNotDueDate(id, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
+    @GetMapping("{id}/tasks/done")
+    public ResponseEntity<GetTaskResponse> getTaskDone(@PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.getTaskDone(id, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
+    @DeleteMapping("{id}/projects/{project_id}/tasks/{task_id}")
+    public ResponseEntity<ProjectDTO> deleteTask(@PathVariable("id") String id, @PathVariable("project_id") String projectID, @PathVariable("task_id") String taskID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.deleteTask(projectID, taskID, token);
+        return ResponseEntity.ok().body(projectDTO);
+    }
+
+    @DeleteMapping("{id}/projects/{project_id}/spaces/{space_id}")
+    public ResponseEntity<ProjectDTO> deleteSpace(@PathVariable("id") String id, @PathVariable("project_id") String projectID, @PathVariable("space_id") String spaceID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var projectDTO = workspaceService.deleteSpace(projectID, spaceID, token);
         return ResponseEntity.ok().body(projectDTO);
     }
 

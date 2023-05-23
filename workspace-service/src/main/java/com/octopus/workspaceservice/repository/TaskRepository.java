@@ -31,4 +31,11 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     @Query("select t from Workspace w join w.projects p join p.spaces s join s.tasks t where w.id = ?1 and t.startDate <= CURRENT_DATE and t.dueDate >= CURRENT_DATE")
     Set<Task> findTaskDateInTerm(UUID workspaceID);
+
+    @Query("select t from Workspace w join w.projects p join p.spaces s join s.tasks t where w.id = ?1 and t.dueDate is null")
+    Set<Task> findTaskNotDueDate(UUID workspaceID);
+
+    @Query("select t from Workspace w join w.projects p join p.spaces s join s.tasks t join t.taskStatus ts where w.id = ?1 and ts.closeStatus = true")
+    Set<Task> findTaskDone(UUID workspaceID);
+
 }

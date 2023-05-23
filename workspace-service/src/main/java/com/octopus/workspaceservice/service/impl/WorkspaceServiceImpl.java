@@ -188,7 +188,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     public ProjectDTO updateTask(TaskDTO taskDTO, String token) {
         var task = this.workspaceMapper.mapTaskDTOToTask(taskDTO);
         var updatedTask = this.taskRepository.save(task);
-        var project = this.projectRepository.findById(UUID.fromString("043fc600-bd32-45b5-b3fe-35a1653bc1b8")).get();
+        var space = this.spaceRepository.findSpaceByTask(updatedTask.getId());
+        var project = this.projectRepository.findProjectBySpace(space.getId());
         return this.workspaceMapper.mapToProjectDTO(project);
     }
 
@@ -234,6 +235,42 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         workspaceDTO.setMembers(members);
         var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
         return new GetTaskResponse(taskDTO, workspaceDTO);
+    }
+
+    @Override
+    public GetTaskResponse getTaskNotDueDate(String workspaceID, String token) {
+        var task = this.taskRepository.findTaskNotDueDate(UUID.fromString(workspaceID));
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
+        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
+        workspaceDTO.setMembers(members);
+        var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
+        return new GetTaskResponse(taskDTO, workspaceDTO);
+    }
+
+    @Override
+    public GetTaskResponse getTaskDone(String workspaceID, String token) {
+        var task = this.taskRepository.findTaskDone(UUID.fromString(workspaceID));
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
+        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
+        workspaceDTO.setMembers(members);
+        var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
+        return new GetTaskResponse(taskDTO, workspaceDTO);
+    }
+
+    @Override
+    public ProjectDTO deleteTask(String projectID, String taskID, String token) {
+        this.taskRepository.deleteById(UUID.fromString(taskID));
+        var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
+        return this.workspaceMapper.mapToProjectDTO(project);
+    }
+
+    @Override
+    public ProjectDTO deleteSpace(String projectID, String spaceID, String token) {
+        this.spaceRepository.deleteById(UUID.fromString(spaceID));
+        var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
+        return this.workspaceMapper.mapToProjectDTO(project);
     }
 
     //    @Override
