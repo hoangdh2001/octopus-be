@@ -49,8 +49,8 @@ export const convertChannelDTO = async ({
       lastMessageAt: channel.lastMessageAt,
       createdAt: channel.createdAt,
       updatedAt: channel.updatedAt,
-      hiddenChannel: member.hidden,
-      activeNotify: member.activeNotify,
+      hiddenChannel: member === undefined ? false : member.hidden,
+      activeNotify: member === undefined ? false : member.activeNotify,
       createdBy:
         channel.createdBy != null && channel.createdBy != undefined
           ? await callUser(channel.createdBy)
