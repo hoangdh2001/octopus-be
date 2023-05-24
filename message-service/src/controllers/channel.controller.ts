@@ -1619,13 +1619,13 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     const channel = await this.channelService.findChannelByID(channelID);
     channel.members = channel.members.filter(
-      (member) => memberID == member.userID,
+      (member) => member.userID != memberID,
     );
 
     const updatedChannel = await this.channelService.saveChannel(channel);
 
     const response = await this.httpService.axiosRef.get<UserDTO>(
-      `http://auth-service/api/users/${userID}`,
+      `http://auth-service/api/users/${memberID}`,
       { headers: { Authorization: token } },
     );
 
