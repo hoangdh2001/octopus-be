@@ -2,6 +2,7 @@ package com.octopus.workspaceservice.models;
 
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -47,6 +48,9 @@ public class Workspace implements Serializable {
     @javax.persistence.Column(name="deleted_date")
     private Date deletedDate;
 
+    @javax.persistence.Column(name = "created_by")
+    private String createdBy;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "workspace_id")
     private Set<WorkspaceMember> members = new HashSet<>();
@@ -54,4 +58,16 @@ public class Workspace implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "workspace_id")
     private Set<Project> projects = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "workspace_id")
+    private Set<WorkspaceRole> workspaceRoles = new HashSet<>();
+
+
+    public void addMember(WorkspaceMember workspaceMember) {
+        if (members == null) {
+            this.members = new HashSet<>();
+        }
+        this.members.add(workspaceMember);
+    }
 }

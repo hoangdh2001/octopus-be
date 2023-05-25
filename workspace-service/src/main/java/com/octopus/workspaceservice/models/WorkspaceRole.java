@@ -6,16 +6,19 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import javax.persistence.Column;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "role_work_space")
+@Table(name = "workspace_roles")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Getter
 @Setter
-public class RoleWorkSpace implements Serializable {
+@Builder
+public class WorkspaceRole implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -28,6 +31,12 @@ public class RoleWorkSpace implements Serializable {
     @javax.persistence.Column(name="description")
     private String description;
 
-    @Column(name="user_id")
-    private UUID userId;
+    @javax.persistence.Column(name = "is_role_default")
+    private boolean roleDefault;
+
+    @ElementCollection(targetClass = WorkspaceOwnCapability.class, fetch = FetchType.LAZY)
+    @JoinTable(name = "workspace_own_capabilities", joinColumns = @JoinColumn(name = "workspace_role_id"))
+    @Column(name = "workspace_role_capabilities", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<WorkspaceOwnCapability> ownCapabilities = new HashSet<>();
 }

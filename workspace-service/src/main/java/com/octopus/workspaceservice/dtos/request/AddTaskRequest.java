@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,6 +17,6 @@ public class AddTaskRequest {
     private String description;
     private Date startDate;
     private Date dueDate;
-    private List<String> assignees;
+    private Set<String> assignees;
     private TaskStatus taskStatus;
 }

@@ -1,6 +1,7 @@
 package com.octopus.workspaceservice.service.impl;
 
 import com.octopus.dtomodels.*;
+import com.octopus.workspaceservice.Utils;
 import com.octopus.workspaceservice.dtos.request.*;
 import com.octopus.workspaceservice.kafka.KafkaProducer;
 import com.octopus.workspaceservice.mapper.WorkspaceMapper;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 public class WorkspaceServiceImpl implements WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
+
+    private final WorkspaceRoleRepository workspaceRoleRepository;
     private final ProjectRepository projectRepository;
     private final SettingRepository settingRepository;
     private final SpaceRepository spaceRepository;
@@ -40,34 +43,38 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     @Transactional
-    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, String token) {
-        var newWorkspace = Workspace.builder()
+    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, Set<WorkspaceRole> workspaceRoles, String token, String userID) {
+        var workspace = Workspace.builder()
                 .name(workspaceRequest.getName())
                 .status(true)
+                .createdBy(userID)
+                .workspaceRoles(Utils.defaultListWorkspaceRole())
                 .build();
-        if (workspaceRequest.getMembers() != null) {
-            var workspaceMembers = workspaceRequest.getMembers().stream().map(s -> WorkspaceMember.builder()
-                    .memberID(s)
-                    .workspace(newWorkspace)
-                    .build()).collect(Collectors.toSet());
-            newWorkspace.setMembers(workspaceMembers);
-        }
-        var workspace = this.workspaceRepository.save(newWorkspace);
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTO(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
+        var newWorkspace = this.workspaceRepository.save(workspace);
+        return this.workspaceMapper.mapToWorkspaceDTO(newWorkspace);
+    }
+
+    @Override
+    public WorkspaceDTO addMember(String workspaceID, WorkspaceMember workspaceMember, String token) {
+        var workspace = Workspace.builder()
+                .id(UUID.fromString(workspaceID))
+                .build();
+        workspaceMember.setWorkspace(workspace);
+        this.workspaceMemberRepository.save(workspaceMember);
+        var updatedWorkspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTO(updatedWorkspace);
+        var members = updatedWorkspace.getMembers().stream().map(member -> findUserByID(member.getMemberID(), token)).collect(Collectors.toSet());
         workspaceDTO.setMembers(members);
         return workspaceDTO;
     }
 
-
-
     @Override
     @Transactional
     public Set<UserDTO> addMembers(String workspaceID, AddMembersRequest members, String token) {
+        var workspace = Workspace.builder()
+                .id(UUID.fromString(workspaceID))
+                .build();
         if (members.getMembers() != null) {
-            var workspace = Workspace.builder()
-                    .id(UUID.fromString(workspaceID))
-                    .build();
             var workspaceMembers = members.getMembers().stream().map(s -> WorkspaceMember.builder()
                     .memberID(s)
                     .workspace(workspace)
@@ -75,9 +82,6 @@ public class WorkspaceServiceImpl implements WorkspaceService {
             this.workspaceMemberRepository.saveAll(workspaceMembers);
             return workspaceMembers.stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
         } else {
-            var workspace = Workspace.builder()
-                    .id(UUID.fromString(workspaceID))
-                    .build();
             var user = createUserTemp(members.getEmail(), token);
             var workspaceMember = WorkspaceMember.builder()
                     .memberID(user.getId())

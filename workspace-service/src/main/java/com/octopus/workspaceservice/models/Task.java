@@ -32,10 +32,10 @@ public class Task implements Serializable {
     @javax.persistence.Column(name = "due_date")
     private Date dueDate;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "assignees", joinColumns = @JoinColumn(name = "task_id"))
+    @ElementCollection(fetch = FetchType.LAZY)
+    @JoinTable(name = "assignees", joinColumns = @JoinColumn(name = "task_id"))
     @javax.persistence.Column(name = "assignee_id", nullable = false)
-    private List<String> assignees = new ArrayList<>();
+    private Set<String> assignees = new HashSet<>();
 
     @javax.persistence.Column(name="description")
     private String description;

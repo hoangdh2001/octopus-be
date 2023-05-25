@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -36,4 +37,8 @@ public class WorkspaceMember implements Serializable {
     @javax.persistence.Column(name = "updated_date")
     @LastModifiedDate
     private Date updatedDate;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_role_id")
+    private WorkspaceRole workspaceRole;
 }
