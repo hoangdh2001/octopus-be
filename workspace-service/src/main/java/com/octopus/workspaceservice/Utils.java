@@ -1,5 +1,6 @@
 package com.octopus.workspaceservice;
 
+import com.octopus.workspaceservice.models.ProjectRole;
 import com.octopus.workspaceservice.models.WorkspaceOwnCapability;
 import com.octopus.workspaceservice.models.WorkspaceRole;
 
@@ -16,6 +17,7 @@ public class Utils {
 
     public static WorkspaceRole defaultOwnerRole() {
         return WorkspaceRole.builder()
+                .id(UUID.randomUUID())
                 .roleDefault(true)
                 .ownCapabilities(Set.of(WorkspaceOwnCapability.ALL_CAPABILITIES))
                 .name("Owner")
@@ -24,6 +26,7 @@ public class Utils {
 
     public static WorkspaceRole defaultGuestRole() {
         return WorkspaceRole.builder()
+                .id(UUID.randomUUID())
                 .roleDefault(true)
                 .name("Guest")
                 .build();
@@ -31,6 +34,7 @@ public class Utils {
 
     public static WorkspaceRole defaultMemberRole() {
         return WorkspaceRole.builder()
+                .id(UUID.randomUUID())
                 .name("Member")
                 .ownCapabilities(Set.of(WorkspaceOwnCapability.CREATE_PROJECT, WorkspaceOwnCapability.CREATE_LIST, WorkspaceOwnCapability.ADD_MEMBER))
                 .build();

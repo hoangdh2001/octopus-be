@@ -1,6 +1,8 @@
 package com.octopus.workspaceservice.models;
 
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsExclude;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -18,6 +20,7 @@ import java.util.*;
 @Setter
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@ToString
 public class  Space implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -44,6 +47,7 @@ public class  Space implements Serializable {
     private Date deletedDate;
 
     @OneToMany(mappedBy = "spaceRoot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private List<Space> spaces;
 
     @ManyToOne
@@ -52,6 +56,7 @@ public class  Space implements Serializable {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "space_id")
+    @ToString.Exclude
     private Set<Task> tasks = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

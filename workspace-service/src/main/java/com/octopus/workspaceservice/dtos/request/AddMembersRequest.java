@@ -9,6 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddMembersRequest {
-    private List<String> members;
     private String email;
+    private String role;
+    private String group;
 }

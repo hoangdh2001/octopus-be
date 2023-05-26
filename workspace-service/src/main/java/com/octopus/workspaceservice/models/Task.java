@@ -1,6 +1,8 @@
 package com.octopus.workspaceservice.models;
 
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsExclude;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -16,6 +18,7 @@ import java.util.*;
 @Getter
 @Setter
 @Builder
+@ToString
 public class Task implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -35,6 +38,7 @@ public class Task implements Serializable {
     @ElementCollection(fetch = FetchType.LAZY)
     @JoinTable(name = "assignees", joinColumns = @JoinColumn(name = "task_id"))
     @javax.persistence.Column(name = "assignee_id", nullable = false)
+    @ToString.Exclude
     private Set<String> assignees = new HashSet<>();
 
     @javax.persistence.Column(name="description")

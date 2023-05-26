@@ -7,8 +7,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 
 import javax.persistence.*;
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,7 +40,18 @@ public class WorkspaceMember implements Serializable {
     @LastModifiedDate
     private Date updatedDate;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_role_id")
-    private WorkspaceRole workspaceRole;
+    @javax.persistence.Column(name="workspace_role_id", columnDefinition = "binary(16)")
+    private UUID workspaceRoleID;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @JoinTable(name = "member_groups", joinColumns = {@JoinColumn(name = "member_id", columnDefinition = "varchar(255)"), @JoinColumn(name = "workspace_id", columnDefinition = "BINARY(16)")})
+    @Column(name = "`group`", nullable = false)
+    @ToString.Exclude
+    private Set<UUID> groups = new HashSet<>();
+
+    public void addGroup(UUID id) {
+        if (this.groups == null)
+            this.groups = new HashSet<>();
+        this.groups.add(id);
+    }
 }

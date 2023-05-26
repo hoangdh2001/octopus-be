@@ -16,10 +16,13 @@ public interface WorkspaceMapper {
     @Mapping(target = "id", expression = "java(convertIdToString(workspace.getId()))")
     @Mapping(target = "members", ignore = true)
     @Mapping(target = "projects", expression = "java(mapListProjectToProjectDTO(workspace.getProjects()))")
+    @Mapping(target = "workspaceRoles", expression = "java(mapListWorkspaceRoleToWorkspaceRoleDTO(workspace.getWorkspaceRoles()))")
+    @Mapping(target = "workspaceGroups", expression = "java(mapListWorkspaceGroupToWorkspaceGroupDTO(workspace.getWorkspaceGroups()))")
     WorkspaceDTO mapToWorkspaceDTO(Workspace workspace);
 
     @Named(value = "projects")
     @Mapping(target = "projects", ignore = true)
+    @Mapping(target = "members", ignore = true)
     WorkspaceDTO mapToWorkspaceDTOIgnoreProject(Workspace workspace);
 
     @InheritConfiguration(name = "mapToWorkspaceDTO")
@@ -63,8 +66,25 @@ public interface WorkspaceMapper {
     Set<TaskStatusDTO> mapTaskStatusListToTaskStatusDTO(Set<TaskStatus> taskStatuses);
 
     @Mapping(target = "id", expression = "java(convertStringToId(taskStatusDTO.getId()))")
-
     TaskStatus mapTaskStatusDTOToTaskStatus(TaskStatusDTO taskStatusDTO);
+
+    @Mapping(target = "id", expression = "java(convertIdToString(workspaceRole.getId()))")
+    @Mapping(target = "ownCapabilities", expression = "java(mapListWorkspaceOwnCapabilityToWorkspaceOwnCapabilityDTO(workspaceRole.getOwnCapabilities()))")
+    WorkspaceRoleDTO mapToWorkspaceRoleDTO(WorkspaceRole workspaceRole);
+
+    @InheritConfiguration(name = "mapToWorkspaceRoleDTO")
+    Set<WorkspaceRoleDTO> mapListWorkspaceRoleToWorkspaceRoleDTO(Set<WorkspaceRole> workspaceRoles);
+
+    WorkspaceOwnCapability mapToWorkspaceOwnCapability(WorkspaceOwnCapabilityDTO workspaceOwnCapabilityDTO);
+
+    @InheritConfiguration(name = "mapToWorkspaceOwnCapability")
+    Set<WorkspaceOwnCapabilityDTO> mapListWorkspaceOwnCapabilityToWorkspaceOwnCapabilityDTO(Set<WorkspaceOwnCapability> workspaceOwnCapabilities);
+
+    @Mapping(target = "id", expression = "java(convertIdToString(workspaceGroup.getId()))")
+    WorkspaceGroupDTO mapToWorkspaceGroupDTO(WorkspaceGroup workspaceGroup);
+
+    @InheritConfiguration(name = "mapToWorkspaceGroupDTO")
+    Set<WorkspaceGroupDTO> mapListWorkspaceGroupToWorkspaceGroupDTO(Set<WorkspaceGroup> workspaceGroups);
 
     default String convertIdToString(UUID id) {
         if (id == null) {

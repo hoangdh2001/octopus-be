@@ -1,29 +1,11 @@
 package com.octopus.workspaceservice.controllers;
 
-import com.octopus.authutils.SecurityUtils;
-import com.octopus.workspaceservice.dtos.request.ProjectMemberRequest;
-import com.octopus.workspaceservice.dtos.request.ProjectRequest;
-import com.octopus.workspaceservice.dtos.request.RoleProjectRequest;
-import com.octopus.workspaceservice.models.Project;
-import com.octopus.workspaceservice.models.ProjectMember;
-import com.octopus.workspaceservice.models.RoleProject;
-import com.octopus.workspaceservice.models.WorkspaceMember;
 import com.octopus.workspaceservice.service.ProjectMemberService;
 import com.octopus.workspaceservice.service.ProjectService;
 import com.octopus.workspaceservice.service.RoleProjectService;
 import com.octopus.workspaceservice.service.WorkspaceService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/projects")

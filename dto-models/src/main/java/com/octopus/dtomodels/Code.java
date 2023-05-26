@@ -45,4 +45,6 @@ public class Code implements Serializable {
     private String verificationCode;
     private String email;
     private VerificationType verificationType;
+    private String name;
+    private String workspaceName;
 }

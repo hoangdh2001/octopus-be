@@ -1,6 +1,8 @@
 package com.octopus.workspaceservice.models;
 
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsExclude;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -53,21 +55,50 @@ public class Workspace implements Serializable {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "workspace_id")
+    @ToString.Exclude
     private Set<WorkspaceMember> members = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "workspace_id")
+    @ToString.Exclude
     private Set<Project> projects = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "workspace_id")
+    @ToString.Exclude
     private Set<WorkspaceRole> workspaceRoles = new HashSet<>();
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "workspace_id")
+    @ToString.Exclude
+    private Set<WorkspaceGroup> workspaceGroups = new HashSet<>();
 
-    public void addMember(WorkspaceMember workspaceMember) {
-        if (members == null) {
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "workspace_id")
+    @ToString.Exclude
+    private Set<ProjectRole> projectRoles = new HashSet<>();
+
+    public void addMember(WorkspaceMember member) {
+        if (this.members == null)
             this.members = new HashSet<>();
-        }
-        this.members.add(workspaceMember);
+        this.members.add(member);
+    }
+
+    public void addGroup(WorkspaceGroup group) {
+        if (this.workspaceGroups == null)
+            this.workspaceGroups = new HashSet<>();
+        this.workspaceGroups.add(group);
+    }
+
+    public void addRole(WorkspaceRole role) {
+        if (this.workspaceRoles == null)
+            this.workspaceGroups = new HashSet<>();
+        this.workspaceRoles.add(role);
+    }
+
+    public void addProjectRole(ProjectRole role) {
+        if (this.projectRoles == null)
+            this.projectRoles = new HashSet<>();
+        this.projectRoles.add(role);
     }
 }

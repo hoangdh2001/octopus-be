@@ -9,9 +9,13 @@ import java.util.List;
 import java.util.Set;
 
 public interface WorkspaceService {
-    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, Set<WorkspaceRole> workspaceRoles, String token, String userID);
+    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, String token, String userID);
 
-    public Set<UserDTO> addMembers(String workspaceID, AddMembersRequest members, String token);
+    public WorkspaceMemberDTO addMember(String workspaceID, AddMembersRequest members, String token, String userID);
+
+    public WorkspaceDTO addRole(String workspaceID, AddRoleRequest roleRequest, String token);
+
+    public WorkspaceDTO addGroup(String workspaceID, AddGroupRequest groupRequest, String token);
     public List<WorkspaceDTO> getAllWorkspace();
     public List<WorkspaceDTO> searchWorkspace(Payload payload, String token);
 
@@ -42,7 +46,5 @@ public interface WorkspaceService {
     public ProjectDTO deleteTask(String projectID, String taskID, String token);
 
     public ProjectDTO deleteSpace(String projectID, String spaceID, String token);
-
-    public WorkspaceDTO addMember(String workspaceID, WorkspaceMember workspaceMember, String token);
 
 }
