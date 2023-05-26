@@ -2,11 +2,8 @@ package com.octopus.workspaceservice.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octopus.dtomodels.*;
-import com.octopus.workspaceservice.Utils;
 import com.octopus.workspaceservice.dtos.request.*;
 import com.octopus.workspaceservice.kafka.KafkaProducer;
-import com.octopus.workspaceservice.models.WorkspaceMember;
-import com.octopus.workspaceservice.service.RoleWorkspaceService;
 import com.octopus.workspaceservice.service.WorkspaceMemberService;
 import com.octopus.workspaceservice.service.WorkspaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +27,6 @@ public class WorkspaceController {
 
     private final WorkspaceService workspaceService;
     private final WorkspaceMemberService workspaceMemberService;
-    private final RoleWorkspaceService roleWorkspaceService;
 
     private final KafkaProducer kafkaProducer;
 

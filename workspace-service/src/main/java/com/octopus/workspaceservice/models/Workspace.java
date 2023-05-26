@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
@@ -73,8 +74,10 @@ public class Workspace implements Serializable {
     @ToString.Exclude
     private Set<WorkspaceGroup> workspaceGroups = new HashSet<>();
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "workspace_id")
+    @ElementCollection(targetClass = ProjectRole.class, fetch = FetchType.LAZY)
+    @JoinTable(name = "project_role", joinColumns = @JoinColumn(name = "workspace_id"))
+    @Column(name = "project_role", nullable = false)
+    @Enumerated(EnumType.STRING)
     @ToString.Exclude
     private Set<ProjectRole> projectRoles = new HashSet<>();
 

@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 public class WorkspaceServiceImpl implements WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
-
     private final WorkspaceRoleRepository workspaceRoleRepository;
     private final ProjectRepository projectRepository;
     private final SettingRepository settingRepository;
