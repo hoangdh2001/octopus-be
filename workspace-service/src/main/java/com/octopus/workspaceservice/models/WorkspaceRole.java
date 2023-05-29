@@ -9,30 +9,36 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.persistence.Column;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
-@Table(name = "spaces")
+@Table(name = "workspace_roles")
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @Getter
 @Setter
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 @ToString
-public class  Space implements Serializable {
+@EntityListeners(AuditingEntityListener.class)
+public class WorkspaceRole implements Serializable {
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @javax.persistence.Column(name = "id",columnDefinition = "BINARY(16)")
     private UUID id;
 
     @javax.persistence.Column(name="name")
     private String name;
 
-    @javax.persistence.Column(name="status")
-    private boolean status;
+    @javax.persistence.Column(name="description")
+    private String description;
+
+    @javax.persistence.Column(name = "is_role_default")
+    private boolean roleDefault;
 
     @javax.persistence.Column(name = "created_date")
     @CreatedDate
@@ -42,25 +48,10 @@ public class  Space implements Serializable {
     @LastModifiedDate
     private Date updatedDate;
 
-    @javax.persistence.Column(name="deleted_date")
-    @LastModifiedDate
-    private Date deletedDate;
-
-    @OneToMany(mappedBy = "spaceRoot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ElementCollection(targetClass = WorkspaceOwnCapability.class, fetch = FetchType.LAZY)
+    @JoinTable(name = "workspace_own_capabilities", joinColumns = @JoinColumn(name = "workspace_role_id"))
+    @Column(name = "workspace_role_capabilities", nullable = false)
+    @Enumerated(EnumType.STRING)
     @ToString.Exclude
-    private List<Space> spaces;
-
-    @ManyToOne
-    @JoinColumn(name = "space_id")
-    private Space spaceRoot;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "space_id")
-    @ToString.Exclude
-    private Set<Task> tasks = new HashSet<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "setting_id")
-    private Setting setting;
-
+    private Set<WorkspaceOwnCapability> ownCapabilities = new HashSet<>();
 }

@@ -23,7 +23,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-cloud.version>2021.0.2</spring-cloud.version>
+        <spring-cloud.version>2021.0.7</spring-cloud.version>
         <auth-utils.version>1.0-SNAPSHOT</auth-utils.version>
         <lombok.version>1.18.26</lombok.version>
         <commons-lang3.version>3.11</commons-lang3.version>

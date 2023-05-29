@@ -18,6 +18,7 @@ import java.util.*;
 @Setter
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@ToString
 public class Project implements Serializable {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -47,6 +48,7 @@ public class Project implements Serializable {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
+    @ToString.Exclude
     private Set<Space> spaces = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

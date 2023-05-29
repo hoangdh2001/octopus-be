@@ -1,6 +1,8 @@
 package com.octopus.workspaceservice.models;
 
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsExclude;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Builder
+@ToString
 public class Setting {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -28,6 +31,7 @@ public class Setting {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "setting_id")
+    @ToString.Exclude
     private Set<TaskStatus> taskStatuses = new HashSet<>();
 
     @javax.persistence.Column(name = "created_date")

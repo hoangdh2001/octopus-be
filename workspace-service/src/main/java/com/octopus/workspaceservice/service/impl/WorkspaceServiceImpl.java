@@ -1,6 +1,7 @@
 package com.octopus.workspaceservice.service.impl;
 
 import com.octopus.dtomodels.*;
+import com.octopus.workspaceservice.Utils;
 import com.octopus.workspaceservice.dtos.request.*;
 import com.octopus.workspaceservice.kafka.KafkaProducer;
 import com.octopus.workspaceservice.mapper.WorkspaceMapper;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 public class WorkspaceServiceImpl implements WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
+    private final WorkspaceRoleRepository workspaceRoleRepository;
     private final ProjectRepository projectRepository;
     private final SettingRepository settingRepository;
     private final SpaceRepository spaceRepository;
@@ -40,78 +42,70 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     @Transactional
-    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, String token) {
-        var newWorkspace = Workspace.builder()
-                .name(workspaceRequest.getName())
-                .status(true)
-                .build();
-        if (workspaceRequest.getMembers() != null) {
-            var workspaceMembers = workspaceRequest.getMembers().stream().map(s -> WorkspaceMember.builder()
-                    .memberID(s)
-                    .workspace(newWorkspace)
-                    .build()).collect(Collectors.toSet());
-            newWorkspace.setMembers(workspaceMembers);
-        }
-        var workspace = this.workspaceRepository.save(newWorkspace);
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTO(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
-        return workspaceDTO;
+    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, String token, String userID) {
+        var ownerRole = Utils.defaultOwnerRole();
+        var workspace = Workspace.builder().name(workspaceRequest.getName()).status(true).createdBy(userID).workspaceRoles(Set.of(ownerRole, Utils.defaultGuestRole(), Utils.defaultMemberRole())).build();
+        workspace.addMember(WorkspaceMember.builder().memberID(userID).workspace(workspace).workspaceRoleID(ownerRole.getId()).build());
+        var newWorkspace = this.workspaceRepository.save(workspace);
+        return convertToWorkspaceDTO(newWorkspace, token);
     }
-
-
 
     @Override
     @Transactional
-    public Set<UserDTO> addMembers(String workspaceID, AddMembersRequest members, String token) {
-        if (members.getMembers() != null) {
-            var workspace = Workspace.builder()
-                    .id(UUID.fromString(workspaceID))
-                    .build();
-            var workspaceMembers = members.getMembers().stream().map(s -> WorkspaceMember.builder()
-                    .memberID(s)
-                    .workspace(workspace)
-                    .build()).collect(Collectors.toSet());
-            this.workspaceMemberRepository.saveAll(workspaceMembers);
-            return workspaceMembers.stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
-        } else {
-            var workspace = Workspace.builder()
-                    .id(UUID.fromString(workspaceID))
-                    .build();
-            var user = createUserTemp(members.getEmail(), token);
-            var workspaceMember = WorkspaceMember.builder()
-                    .memberID(user.getId())
-                    .workspace(workspace)
-                    .build();
-            this.workspaceMemberRepository.save(workspaceMember);
-            kafkaProducer.sendEmailAddMemberWorkspace(Code.builder()
-                    .email(members.getEmail())
-                    .build());
-            return Collections.singleton(user);
+    public WorkspaceMemberDTO addMember(String workspaceID, AddMembersRequest members, String token, String userID) {
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var adder = this.findUserByID(userID, token);
+        var user = createUserTemp(members.getEmail(), token);
+        var workspaceMember = WorkspaceMember.builder().memberID(user.getId()).workspace(workspace).workspaceRoleID(UUID.fromString(members.getRole())).build();
+        if (members.getGroup() != null) {
+            workspaceMember.addGroup(UUID.fromString(members.getGroup()));
         }
+        var newWorkspaceMember = this.workspaceMemberRepository.save(workspaceMember);
+        kafkaProducer.sendEmailAddMemberWorkspace(Code.builder().email(members.getEmail()).name(adder.getFirstName() + " " + adder.getLastName()).workspaceName(workspace.getName()).build());
+        return convertToWorkspaceMemberDTO(newWorkspaceMember, workspace, token);
+    }
+
+    @Override
+    public WorkspaceDTO addRole(String workspaceID, AddRoleRequest roleRequest, String token) {
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var role = WorkspaceRole.builder()
+                .id(UUID.randomUUID())
+                .name(roleRequest.getName())
+                .description(roleRequest.getDescription())
+                .ownCapabilities(roleRequest.getOwnCapabilities())
+                .build();
+        workspace.addRole(role);
+        var newWorkspace = this.workspaceRepository.save(workspace);
+        return convertToWorkspaceDTO(newWorkspace, token);
+    }
+
+    @Override
+    public WorkspaceDTO addGroup(String workspaceID, AddGroupRequest groupRequest, String token) {
+        var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
+        var groupID = UUID.randomUUID();
+        var group = WorkspaceGroup.builder()
+                .id(groupID)
+                .name(groupRequest.getName())
+                .description(groupRequest.getDescription())
+                .build();
+        workspace.addGroup(group);
+        if (groupRequest.getMemberID() != null) {
+            workspace.getMembers().forEach(member -> {
+                if (groupRequest.getMemberID().contains(member.getMemberID())) {
+                    member.addGroup(groupID);
+                }
+            });
+        }
+        var newWorkspace = this.workspaceRepository.save(workspace);
+        return convertToWorkspaceDTO(newWorkspace, token);
     }
 
     private UserDTO findUserByID(String id, String token) {
-        return webClientBuilder
-                .build()
-                .get().uri("http://auth-service/api/users", uriBuilder -> uriBuilder.path("/{id}").build(id))
-                .header("Authorization", token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToFlux(UserDTO.class)
-                .blockFirst();
+        return webClientBuilder.build().get().uri("http://auth-service/api/users", uriBuilder -> uriBuilder.path("/{id}").build(id)).header("Authorization", token).accept(MediaType.APPLICATION_JSON).retrieve().bodyToFlux(UserDTO.class).blockFirst();
     }
 
     private UserDTO createUserTemp(String email, String token) {
-        return webClientBuilder
-                .build()
-                .post().uri("http://auth-service/api/users/createUserTemp")
-                .body(Mono.just(CreateMemberTempRequest.builder().email(email).build()), CreateMemberTempRequest.class)
-                .header("Authorization", token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(UserDTO.class)
-                .block();
+        return webClientBuilder.build().post().uri("http://auth-service/api/users/createUserTemp").body(Mono.just(CreateMemberTempRequest.builder().email(email).build()), CreateMemberTempRequest.class).header("Authorization", token).accept(MediaType.APPLICATION_JSON).retrieve().bodyToMono(UserDTO.class).block();
     }
 
     @Override
@@ -119,14 +113,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var spec = new WorkspaceSpecification(payload);
         var pageable = WorkspaceSpecification.getPageable(payload.getPage(), payload.getSize());
         var workspaces = this.workspaceRepository.findAll(spec, pageable);
-        var workspaceDTOList = workspaceMapper.mapListWorkspaceToWorkspaceDTO(workspaces.getContent());
-        for (int i = 0; i < workspaces.getContent().size(); i++) {
-            var workspace = workspaces.getContent().get(i);
-            var workspaceDTO = workspaceDTOList.get(i);
-            var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
-            workspaceDTO.setMembers(members);
-        }
-        return workspaceDTOList;
+        return workspaces.stream().map(workspace -> convertToWorkspaceDTO(workspace, token)).collect(Collectors.toList());
     }
 
     @Override
@@ -138,54 +125,30 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public List<WorkspaceDTO> getWorkspaceByUser(String userID, String token) {
         var workspaces = this.workspaceRepository.findWorkspacesByMemberID(userID);
-        var workspaceDTOList = workspaceMapper.mapListWorkspaceToWorkspaceDTO(workspaces);
-        for (int i = 0; i < workspaces.size(); i++) {
-            var workspace = workspaces.get(i);
-            var workspaceDTO = workspaceDTOList.get(i);
-            var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
-            workspaceDTO.setMembers(members);
-        }
-        return workspaceDTOList;
+        return workspaces.stream().map(workspace -> convertToWorkspaceDTO(workspace, token)).collect(Collectors.toList());
     }
 
     @Override
     public WorkspaceDTO findWorkspaceByID(String id, String token) {
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(id));
-        var workspaceDTO = workspaceMapper.mapToWorkspaceDTO(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID().toString(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
-        return workspaceDTO;
+        return convertToWorkspaceDTO(workspace, token);
     }
 
     @Override
     public WorkspaceDTO createProject(String workspaceID, ProjectRequest projectRequest, String token) {
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
-        var setting = Setting.builder()
-                .taskStatuses(projectRequest.getStatusList())
-                .build();
+        var setting = Setting.builder().taskStatuses(projectRequest.getStatusList()).build();
         var newSetting = this.settingRepository.save(setting);
-        var newProject = Project.builder()
-                .name(projectRequest.getName())
-                .avatar(projectRequest.getAvatar())
-                .status(true)
-                .setting(newSetting)
-                .build();
+        var newProject = Project.builder().name(projectRequest.getName()).avatar(projectRequest.getAvatar()).status(true).setting(newSetting).build();
         workspace.getProjects().add(newProject);
         var updatedWorkspace = this.workspaceRepository.saveAndFlush(workspace);
-        var workspaceDTO = workspaceMapper.mapToWorkspaceDTO(updatedWorkspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
-        return workspaceDTO;
+        return convertToWorkspaceDTO(updatedWorkspace, token);
     }
 
     @Override
     public ProjectDTO createSpace(String workspaceID, String projectID, AddSpaceRequest addSpaceRequest, String token) {
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
-        var space = Space.builder()
-                .name(addSpaceRequest.getName())
-                .status(true)
-                .setting(addSpaceRequest.getSetting())
-                .build();
+        var space = Space.builder().name(addSpaceRequest.getName()).status(true).setting(addSpaceRequest.getSetting()).build();
         project.getSpaces().add(space);
         var updatedProject = this.projectRepository.save(project);
         return this.workspaceMapper.mapToProjectDTO(updatedProject);
@@ -196,15 +159,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var space = this.spaceRepository.findById(UUID.fromString(spaceID)).get();
         var id = UUID.randomUUID();
         log.info(id.toString());
-        var task = Task.builder()
-                .name(taskRequest.getName())
-                .description(taskRequest.getDescription())
-                .status(true)
-                .taskStatus(taskRequest.getTaskStatus())
-                .assignees(taskRequest.getAssignees())
-                .startDate(taskRequest.getStartDate())
-                .dueDate(taskRequest.getDueDate())
-                .build();
+        var task = Task.builder().name(taskRequest.getName()).description(taskRequest.getDescription()).status(true).taskStatus(taskRequest.getTaskStatus()).assignees(taskRequest.getAssignees()).startDate(taskRequest.getStartDate()).dueDate(taskRequest.getDueDate()).build();
         space.getTasks().add(task);
         this.spaceRepository.save(space);
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
@@ -224,66 +179,48 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     public GetTaskResponse getTaskToday(String workspaceID, String token) {
         var task = this.taskRepository.findTaskToday(UUID.fromString(workspaceID));
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
         var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
-        return new GetTaskResponse(taskDTO, workspaceDTO);
+        return new GetTaskResponse(taskDTO, convertToWorkspaceDTO(workspace, token));
     }
 
     @Override
     public GetTaskResponse getTaskExpirationDate(String workspaceID, String token) {
         var task = this.taskRepository.findTaskExpirationDate(UUID.fromString(workspaceID));
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
         var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
-        return new GetTaskResponse(taskDTO, workspaceDTO);
+        return new GetTaskResponse(taskDTO, convertToWorkspaceDTO(workspace, token));
     }
 
     @Override
     public GetTaskResponse getTaskNotStartDay(String workspaceID, String token) {
         var task = this.taskRepository.findTaskNotStartDay(UUID.fromString(workspaceID));
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
         var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
-        return new GetTaskResponse(taskDTO, workspaceDTO);
+        return new GetTaskResponse(taskDTO, convertToWorkspaceDTO(workspace, token));
     }
 
     @Override
     public GetTaskResponse getTaskDateInTerm(String workspaceID, String token) {
         var task = this.taskRepository.findTaskDateInTerm(UUID.fromString(workspaceID));
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
         var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
-        return new GetTaskResponse(taskDTO, workspaceDTO);
+        return new GetTaskResponse(taskDTO, convertToWorkspaceDTO(workspace, token));
     }
 
     @Override
     public GetTaskResponse getTaskNotDueDate(String workspaceID, String token) {
         var task = this.taskRepository.findTaskNotDueDate(UUID.fromString(workspaceID));
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
         var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
-        return new GetTaskResponse(taskDTO, workspaceDTO);
+        return new GetTaskResponse(taskDTO, convertToWorkspaceDTO(workspace, token));
     }
 
     @Override
     public GetTaskResponse getTaskDone(String workspaceID, String token) {
         var task = this.taskRepository.findTaskDone(UUID.fromString(workspaceID));
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
-        var workspaceDTO = this.workspaceMapper.mapToWorkspaceDTOIgnoreProject(workspace);
-        var members = workspace.getMembers().stream().map(workspaceMember -> findUserByID(workspaceMember.getMemberID(), token)).collect(Collectors.toSet());
-        workspaceDTO.setMembers(members);
         var taskDTO = this.workspaceMapper.mapTaskListToTaskDTO(task);
-        return new GetTaskResponse(taskDTO, workspaceDTO);
+        return new GetTaskResponse(taskDTO, convertToWorkspaceDTO(workspace, token));
     }
 
     @Override
@@ -298,6 +235,26 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         this.spaceRepository.deleteById(UUID.fromString(spaceID));
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
         return this.workspaceMapper.mapToProjectDTO(project);
+    }
+
+    private WorkspaceDTO convertToWorkspaceDTO(Workspace workspace, String token) {
+        var workspaceDTO = workspaceMapper.mapToWorkspaceDTO(workspace);
+        var members = workspace.getMembers().stream().map(workspaceMember ->
+                        convertToWorkspaceMemberDTO(workspaceMember, workspace, token))
+                .collect(Collectors.toSet());
+        workspaceDTO.setMembers(members);
+        return workspaceDTO;
+    }
+
+    private WorkspaceMemberDTO convertToWorkspaceMemberDTO(WorkspaceMember workspaceMember, Workspace workspace, String token) {
+        return WorkspaceMemberDTO.builder()
+                .user(findUserByID(workspaceMember.getMemberID(), token))
+                .createdDate(workspaceMember.getCreatedDate())
+                .updatedDate(workspaceMember.getUpdatedDate())
+                .role(workspaceMapper.mapToWorkspaceRoleDTO(workspace.getWorkspaceRoles().stream().filter(workspaceRole -> workspaceRole.getId().equals(workspaceMember.getWorkspaceRoleID()))
+                        .findFirst().orElse(null)))
+                .groups(workspaceMapper.mapListWorkspaceGroupToWorkspaceGroupDTO(workspace.getWorkspaceGroups().stream().filter(workspaceGroup -> workspaceMember.getGroups().contains(workspaceGroup.getId())).collect(Collectors.toSet())))
+                .build();
     }
 
     //    @Override

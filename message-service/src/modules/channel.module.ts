@@ -20,6 +20,7 @@ import { DiscoveryInterceptor } from 'src/providers/discovery.interceptor';
 import { EventsGateway } from 'src/listeners/events.gateway';
 import { FirebaseAdminModule } from '@aginix/nestjs-firebase-admin';
 import * as admin from 'firebase-admin';
+import { MulterModule } from '@nestjs/platform-express';
 const serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-7d430b6962.json');
 @Module({
   imports: [
@@ -138,6 +139,7 @@ const serviceAccount = require('../../octopus-40-firebase-adminsdk-pdtjk-7d430b6
         };
       },
     }),
+    MulterModule,
   ],
   controllers: [ChannelController],
   providers: [

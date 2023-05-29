@@ -83,8 +83,8 @@ public class SendMailServiceImpl implements SendMailService{
 
         Context ctx = new Context(locale);
 
-        String verifyURL = String.format("http://%s/workspace/addmember?email=%s", domain, code.getEmail());
-        ctx.setVariable("url", verifyURL);
+        ctx.setVariable("name", code.getName());
+        ctx.setVariable("workspace_name", code.getWorkspaceName());
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new  MimeMessageHelper(message, false, "utf-8");

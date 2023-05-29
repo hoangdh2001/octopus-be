@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.UUID;
 @Repository
-public interface WorkspaceRepository extends JpaRepository<Workspace, UUID>, JpaSpecificationExecutor<Workspace> {
+public interface WorkspaceRepository  extends JpaRepository<Workspace, UUID>, JpaSpecificationExecutor<Workspace> {
     //public WorkSpace createWorkSpace(WorkSpace workSpace);
 //    @Query("SELECT ws FROM Workspace ws WHERE ws.name like '%?1' ")
 //    public Workspace fillWorkspaceByKeywords(String key);

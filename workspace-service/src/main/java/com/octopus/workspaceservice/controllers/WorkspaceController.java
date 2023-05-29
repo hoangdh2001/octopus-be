@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octopus.dtomodels.*;
 import com.octopus.workspaceservice.dtos.request.*;
 import com.octopus.workspaceservice.kafka.KafkaProducer;
-import com.octopus.workspaceservice.service.RoleWorkspaceService;
 import com.octopus.workspaceservice.service.WorkspaceMemberService;
 import com.octopus.workspaceservice.service.WorkspaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +27,6 @@ public class WorkspaceController {
 
     private final WorkspaceService workspaceService;
     private final WorkspaceMemberService workspaceMemberService;
-    private final RoleWorkspaceService roleWorkspaceService;
 
     private final KafkaProducer kafkaProducer;
 
@@ -227,14 +225,26 @@ public class WorkspaceController {
 //
 
     @PostMapping
-    public ResponseEntity<WorkspaceDTO> createNewWorkspace(@RequestBody() WorkspaceRequest workspaceRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        var workspace = this.workspaceService.createNewWorkspace(workspaceRequest, token);
-        return ResponseEntity.ok().body(workspace);
+    public ResponseEntity<WorkspaceDTO> createNewWorkspace(@RequestBody() WorkspaceRequest workspaceRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestParam("userID") String userID) {
+        var newWorkspace = this.workspaceService.createNewWorkspace(workspaceRequest, token, userID);
+        return ResponseEntity.ok().body(newWorkspace);
+    }
+
+    @PostMapping("{workspace_id}/roles")
+    public ResponseEntity<WorkspaceDTO> addRole(@RequestBody AddRoleRequest addRoleRequest, @PathVariable("workspace_id") String workspaceID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var updatedWorkspace = this.workspaceService.addRole(workspaceID, addRoleRequest, token);
+        return ResponseEntity.ok().body(updatedWorkspace);
+    }
+
+    @PostMapping("{workspace_id}/groups")
+    public ResponseEntity<WorkspaceDTO> addGroup(@RequestBody AddGroupRequest addGroupRequest, @PathVariable("workspace_id") String workspaceID, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        var updatedWorkspace = this.workspaceService.addGroup(workspaceID, addGroupRequest, token);
+        return ResponseEntity.ok().body(updatedWorkspace);
     }
 
     @PostMapping("{workspace_id}/members")
-    public ResponseEntity<Set<UserDTO>> addMembers(@PathVariable("workspace_id") String workspaceID, @RequestBody() AddMembersRequest membersRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        var members = this.workspaceService.addMembers(workspaceID, membersRequest, token);
+    public ResponseEntity<WorkspaceMemberDTO> addMembers(@PathVariable("workspace_id") String workspaceID, @RequestBody() AddMembersRequest membersRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestParam("userID") String userID) {
+        var members = this.workspaceService.addMember(workspaceID, membersRequest, token, userID);
         return ResponseEntity.ok().body(members);
     }
 

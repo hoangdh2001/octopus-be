@@ -19,6 +19,8 @@ public class WorkspaceDTO {
     private Date createdDate;
     private Date updatedDate;
     private Date deletedDate;
-    private Set<UserDTO> members;
+    private Set<WorkspaceMemberDTO> members;
     private Set<ProjectDTO> projects;
+    private Set<WorkspaceRoleDTO>  workspaceRoles;
+    private Set<WorkspaceGroupDTO> workspaceGroups;
 }

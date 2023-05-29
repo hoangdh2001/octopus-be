@@ -2,14 +2,20 @@ package com.octopus.workspaceservice.service;
 
 import com.octopus.dtomodels.*;
 import com.octopus.workspaceservice.dtos.request.*;
+import com.octopus.workspaceservice.models.WorkspaceMember;
+import com.octopus.workspaceservice.models.WorkspaceRole;
 
 import java.util.List;
 import java.util.Set;
 
 public interface WorkspaceService {
-    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, String token);
+    public WorkspaceDTO createNewWorkspace(WorkspaceRequest workspaceRequest, String token, String userID);
 
-    public Set<UserDTO> addMembers(String workspaceID, AddMembersRequest members, String token);
+    public WorkspaceMemberDTO addMember(String workspaceID, AddMembersRequest members, String token, String userID);
+
+    public WorkspaceDTO addRole(String workspaceID, AddRoleRequest roleRequest, String token);
+
+    public WorkspaceDTO addGroup(String workspaceID, AddGroupRequest groupRequest, String token);
     public List<WorkspaceDTO> getAllWorkspace();
     public List<WorkspaceDTO> searchWorkspace(Payload payload, String token);
 
