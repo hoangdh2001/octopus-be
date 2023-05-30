@@ -18,6 +18,7 @@ public class ProjectDTO {
     private Date createdDate;
     private Date updatedDate;
     private Date deletedDate;
+    private Boolean workspaceAccess;
     private Set<SpaceDTO> spaces;
     private SettingDTO setting;
     private Set<ProjectMemberDTO> members;

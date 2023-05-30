@@ -181,7 +181,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var updatedProject = this.projectRepository.save(project);
         var projectDTO = this.workspaceMapper.mapToProjectDTO(updatedProject);
         projectDTO.getMembers().forEach(member -> {
-            member.setUser(findUserByID(member.getUser().getId(), token));
+            member.setUser(findUserByID(member.getMemberID(), token));
         });
         return projectDTO;
     }
@@ -197,7 +197,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
         var projectDTO = this.workspaceMapper.mapToProjectDTO(project);
         projectDTO.getMembers().forEach(member -> {
-            member.setUser(findUserByID(member.getUser().getId(), token));
+            member.setUser(findUserByID(member.getMemberID(), token));
         });
         return projectDTO;
     }
@@ -210,7 +210,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var project = this.projectRepository.findProjectBySpace(space.getId());
         var projectDTO = this.workspaceMapper.mapToProjectDTO(project);
         projectDTO.getMembers().forEach(member -> {
-            member.setUser(findUserByID(member.getUser().getId(), token));
+            member.setUser(findUserByID(member.getMemberID(), token));
         });
         return projectDTO;
     }

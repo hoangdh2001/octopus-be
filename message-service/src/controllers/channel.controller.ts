@@ -280,6 +280,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       );
     }
     newMembers = [userID, ...newMembers];
+    newMembers = [...new Set(newMembers)];
 
     const channel: Channel = {
       _id: v4(),
