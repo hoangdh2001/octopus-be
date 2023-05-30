@@ -21,4 +21,6 @@ public class ProjectRequest {
     private String avatar;
     private List<String> members;
     private Set<TaskStatus> statusList;
+    private Boolean createChannel;
+    private Boolean workspaceAccess;
 }

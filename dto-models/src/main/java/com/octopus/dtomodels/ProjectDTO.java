@@ -20,4 +20,5 @@ public class ProjectDTO {
     private Date deletedDate;
     private Set<SpaceDTO> spaces;
     private SettingDTO setting;
+    private Set<ProjectMemberDTO> members;
 }

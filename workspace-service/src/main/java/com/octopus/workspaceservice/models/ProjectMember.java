@@ -18,14 +18,15 @@ import java.util.UUID;
 @Setter
 @EntityListeners(AuditingEntityListener.class)
 @ToString
+@Builder
 public class ProjectMember {
     @Id
-    @ManyToOne
-    @JoinColumn(name = "project_id")
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", columnDefinition = "BINARY(16)")
     private Project project;
     @Id
-    @javax.persistence.Column(name = "member_id", columnDefinition = "BINARY(16)")
-    private UUID memberID;
+    @javax.persistence.Column(name = "member_id")
+    private String memberID;
 
     @javax.persistence.Column(name = "created_date")
     @CreatedDate

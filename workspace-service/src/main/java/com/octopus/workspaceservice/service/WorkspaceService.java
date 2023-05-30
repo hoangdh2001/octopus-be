@@ -2,9 +2,12 @@ package com.octopus.workspaceservice.service;
 
 import com.octopus.dtomodels.*;
 import com.octopus.workspaceservice.dtos.request.*;
+import com.octopus.workspaceservice.dtos.response.ProjectAddResponse;
+import com.octopus.workspaceservice.models.Project;
 import com.octopus.workspaceservice.models.WorkspaceMember;
 import com.octopus.workspaceservice.models.WorkspaceRole;
 
+import java.lang.reflect.Member;
 import java.util.List;
 import java.util.Set;
 
@@ -23,7 +26,7 @@ public interface WorkspaceService {
 
     public WorkspaceDTO findWorkspaceByID(String id, String token);
 
-    public WorkspaceDTO createProject(String workspaceID, ProjectRequest projectRequest, String token);
+    public WorkspaceDTO createProject(String workspaceID, ProjectRequest projectRequest, String token, String userID);
 
     public ProjectDTO createSpace(String workspaceID, String projectID, AddSpaceRequest addSpaceRequest, String token);
 

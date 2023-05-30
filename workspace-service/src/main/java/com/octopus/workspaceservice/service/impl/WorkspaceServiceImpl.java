@@ -3,6 +3,7 @@ package com.octopus.workspaceservice.service.impl;
 import com.octopus.dtomodels.*;
 import com.octopus.workspaceservice.Utils;
 import com.octopus.workspaceservice.dtos.request.*;
+import com.octopus.workspaceservice.dtos.response.ProjectAddResponse;
 import com.octopus.workspaceservice.kafka.KafkaProducer;
 import com.octopus.workspaceservice.mapper.WorkspaceMapper;
 import com.octopus.workspaceservice.models.*;
@@ -135,14 +136,41 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public WorkspaceDTO createProject(String workspaceID, ProjectRequest projectRequest, String token) {
+    @Transactional
+    public WorkspaceDTO createProject(String workspaceID, ProjectRequest projectRequest, String token, String userID) {
         var workspace = this.workspaceRepository.findWorkspaceById(UUID.fromString(workspaceID));
         var setting = Setting.builder().taskStatuses(projectRequest.getStatusList()).build();
         var newSetting = this.settingRepository.save(setting);
-        var newProject = Project.builder().name(projectRequest.getName()).avatar(projectRequest.getAvatar()).status(true).setting(newSetting).build();
+        var newProject = Project.builder()
+                .id(UUID.randomUUID())
+                .name(projectRequest.getName())
+                .avatar(projectRequest.getAvatar())
+                .status(true)
+                .setting(newSetting)
+                .workspaceAccess(projectRequest.getWorkspaceAccess())
+                .build();
+
+        if (projectRequest.getMembers() != null) {
+            for (var member : projectRequest.getMembers()) {
+                if (member.equals(userID)) {
+                    newProject.addMember(ProjectMember.builder().memberID(member).project(newProject).role(ProjectRole.OWNER).build());
+                } else {
+                    newProject.addMember(ProjectMember.builder().memberID(member).project(newProject).role(ProjectRole.MEMBER).build());
+                }
+            }
+        }
+
         workspace.getProjects().add(newProject);
-        var updatedWorkspace = this.workspaceRepository.saveAndFlush(workspace);
+        var updatedWorkspace = this.workspaceRepository.save(workspace);
+        if (projectRequest.getCreateChannel()) {
+            var createChannelRequest = CreateChannelRequest.builder().name(projectRequest.getName()).newMembers(projectRequest.getMembers()).userID(userID).build();
+            createChannel(createChannelRequest, token);
+        }
         return convertToWorkspaceDTO(updatedWorkspace, token);
+    }
+
+    private void createChannel(CreateChannelRequest createChannelRequest, String token) {
+        webClientBuilder.build().post().uri("http://message-service/api/channels").body(Mono.just(createChannelRequest), CreateChannelRequest.class).header("Authorization", token).accept(MediaType.APPLICATION_JSON).retrieve().bodyToMono(ChannelDTO.class).block();
     }
 
     @Override
@@ -151,7 +179,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var space = Space.builder().name(addSpaceRequest.getName()).status(true).setting(addSpaceRequest.getSetting()).build();
         project.getSpaces().add(space);
         var updatedProject = this.projectRepository.save(project);
-        return this.workspaceMapper.mapToProjectDTO(updatedProject);
+        var projectDTO = this.workspaceMapper.mapToProjectDTO(updatedProject);
+        projectDTO.getMembers().forEach(member -> {
+            member.setUser(findUserByID(member.getUser().getId(), token));
+        });
+        return projectDTO;
     }
 
     @Override
@@ -163,7 +195,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         space.getTasks().add(task);
         this.spaceRepository.save(space);
         var project = this.projectRepository.findById(UUID.fromString(projectID)).get();
-        return this.workspaceMapper.mapToProjectDTO(project);
+        var projectDTO = this.workspaceMapper.mapToProjectDTO(project);
+        projectDTO.getMembers().forEach(member -> {
+            member.setUser(findUserByID(member.getUser().getId(), token));
+        });
+        return projectDTO;
     }
 
     @Override
@@ -172,7 +208,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var updatedTask = this.taskRepository.save(task);
         var space = this.spaceRepository.findSpaceByTask(updatedTask.getId());
         var project = this.projectRepository.findProjectBySpace(space.getId());
-        return this.workspaceMapper.mapToProjectDTO(project);
+        var projectDTO = this.workspaceMapper.mapToProjectDTO(project);
+        projectDTO.getMembers().forEach(member -> {
+            member.setUser(findUserByID(member.getUser().getId(), token));
+        });
+        return projectDTO;
     }
 
     @Override
@@ -242,6 +282,13 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var members = workspace.getMembers().stream().map(workspaceMember ->
                         convertToWorkspaceMemberDTO(workspaceMember, workspace, token))
                 .collect(Collectors.toSet());
+        workspaceDTO.getProjects().forEach(projectDTO -> {
+            if (projectDTO.getMembers() != null) {
+                projectDTO.getMembers().forEach(member -> {
+                    member.setUser(findUserByID(member.getMemberID(), token));
+                });
+            }
+        });
         workspaceDTO.setMembers(members);
         return workspaceDTO;
     }
@@ -253,12 +300,12 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .updatedDate(workspaceMember.getUpdatedDate())
                 .role(workspaceMapper.mapToWorkspaceRoleDTO(workspace.getWorkspaceRoles().stream().filter(workspaceRole -> workspaceRole.getId().equals(workspaceMember.getWorkspaceRoleID()))
                         .findFirst().orElse(null)))
-                .groups(workspaceMapper.mapListWorkspaceGroupToWorkspaceGroupDTO(workspace.getWorkspaceGroups().stream().filter(workspaceGroup -> {
+                .groups(workspace.getWorkspaceGroups() != null ? workspaceMapper.mapListWorkspaceGroupToWorkspaceGroupDTO(workspace.getWorkspaceGroups().stream().filter(workspaceGroup -> {
                     if (workspaceMember.getGroups() != null) {
                         return workspaceMember.getGroups().contains(workspaceGroup.getId().toString());
                     }
                     return false;
-                }).collect(Collectors.toSet())))
+                }).collect(Collectors.toSet())) : null)
                 .build();
     }
 

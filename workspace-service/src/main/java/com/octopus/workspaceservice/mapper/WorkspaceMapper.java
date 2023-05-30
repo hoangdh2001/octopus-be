@@ -31,6 +31,7 @@ public interface WorkspaceMapper {
     @Mapping(target = "id", expression = "java(convertIdToString(project.getId()))")
     @Mapping(target = "spaces", expression = "java(mapListSpaceToSpaceDTO(project.getSpaces()))")
     @Mapping(target = "setting", expression = "java(mapToSettingDTO(project.getSetting()))")
+    @Mapping(target = "members", expression = "java(mapListProjectMemberToProjectMemberDTO(project.getMembers()))")
     ProjectDTO mapToProjectDTO(Project project);
 
     @InheritConfiguration(name = "mapToProjectDTO")
@@ -86,6 +87,16 @@ public interface WorkspaceMapper {
     @InheritConfiguration(name = "mapToWorkspaceGroupDTO")
     Set<WorkspaceGroupDTO> mapListWorkspaceGroupToWorkspaceGroupDTO(Set<WorkspaceGroup> workspaceGroups);
 
+    ProjectRoleDTO mapToProjectRoleDTO(ProjectRole projectRole);
+
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "role", expression = "java(mapToProjectRoleDTO(projectMember.getRole()))")
+    @Mapping(target = "memberID", expression = "java(convertStringToString(projectMember.getMemberID()))")
+    ProjectMemberDTO mapToProjectMemberDTO(ProjectMember projectMember);
+
+    @InheritConfiguration(name = "mapToProjectMemberDTO")
+    Set<ProjectMemberDTO> mapListProjectMemberToProjectMemberDTO(Set<ProjectMember> projectMembers);
+
     default String convertIdToString(UUID id) {
         if (id == null) {
             return null;
@@ -98,5 +109,9 @@ public interface WorkspaceMapper {
             return null;
         }
         return UUID.fromString(id);
+    }
+
+    default String convertStringToString(String string) {
+        return string;
     }
 }

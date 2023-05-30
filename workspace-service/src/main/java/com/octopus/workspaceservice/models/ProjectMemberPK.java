@@ -15,7 +15,7 @@ import java.util.UUID;
 @Setter
 public class ProjectMemberPK implements Serializable {
     private UUID project;
-    private UUID memberID;
+    private String memberID;
 
     @Override
     public boolean equals(Object o) {

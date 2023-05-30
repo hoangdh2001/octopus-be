@@ -280,8 +280,8 @@ public class WorkspaceController {
     }
 
     @PostMapping("/{id}/projects")
-    public ResponseEntity<WorkspaceDTO> createProject(@RequestBody() ProjectRequest projectRequest, @PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        var workspace = workspaceService.createProject(id, projectRequest, token);
+    public ResponseEntity<WorkspaceDTO> createProject(@RequestBody() ProjectRequest projectRequest, @PathVariable("id") String id, @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestParam("userID") String userID) {
+        var workspace = workspaceService.createProject(id, projectRequest, token, userID);
         return ResponseEntity.ok().body(workspace);
     }
 

@@ -1,6 +1,5 @@
 package com.octopus.workspaceservice.dtos.request;
 
-import com.octopus.workspaceservice.dtos.response.WorkspaceResponse;
 import com.octopus.workspaceservice.models.Workspace;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

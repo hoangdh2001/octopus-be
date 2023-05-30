@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.*;
 
@@ -21,8 +22,6 @@ import java.util.*;
 @ToString
 public class Project implements Serializable {
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @javax.persistence.Column(name = "id",columnDefinition = "BINARY(16)")
     private UUID id;
 
@@ -54,4 +53,17 @@ public class Project implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "setting_id")
     private Setting setting;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private Set<ProjectMember> members = new HashSet<>();
+
+    @javax.persistence.Column(name = "workspace_access")
+    private Boolean workspaceAccess;
+
+    public void addMember(ProjectMember member) {
+        if (this.members == null)
+            this.members = new HashSet<>();
+        this.members.add(member);
+    }
 }
