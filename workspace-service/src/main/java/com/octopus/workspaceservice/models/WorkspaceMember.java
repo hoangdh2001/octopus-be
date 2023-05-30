@@ -47,9 +47,9 @@ public class WorkspaceMember implements Serializable {
     @JoinTable(name = "member_groups", joinColumns = {@JoinColumn(name = "member_id", columnDefinition = "varchar(255)"), @JoinColumn(name = "workspace_id", columnDefinition = "BINARY(16)")})
     @Column(name = "`group`", nullable = false)
     @ToString.Exclude
-    private Set<UUID> groups = new HashSet<>();
+    private Set<String> groups = new HashSet<>();
 
-    public void addGroup(UUID id) {
+    public void addGroup(String id) {
         if (this.groups == null)
             this.groups = new HashSet<>();
         this.groups.add(id);

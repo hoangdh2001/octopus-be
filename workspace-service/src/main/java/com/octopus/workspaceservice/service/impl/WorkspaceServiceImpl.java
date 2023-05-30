@@ -58,7 +58,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var user = createUserTemp(members.getEmail(), token);
         var workspaceMember = WorkspaceMember.builder().memberID(user.getId()).workspace(workspace).workspaceRoleID(UUID.fromString(members.getRole())).build();
         if (members.getGroup() != null) {
-            workspaceMember.addGroup(UUID.fromString(members.getGroup()));
+            workspaceMember.addGroup(members.getGroup());
         }
         var newWorkspaceMember = this.workspaceMemberRepository.save(workspaceMember);
         kafkaProducer.sendEmailAddMemberWorkspace(Code.builder().email(members.getEmail()).name(adder.getFirstName() + " " + adder.getLastName()).workspaceName(workspace.getName()).build());
@@ -92,7 +92,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         if (groupRequest.getMemberID() != null) {
             workspace.getMembers().forEach(member -> {
                 if (groupRequest.getMemberID().contains(member.getMemberID())) {
-                    member.addGroup(groupID);
+                    member.addGroup(groupID.toString());
                 }
             });
         }
@@ -253,7 +253,12 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .updatedDate(workspaceMember.getUpdatedDate())
                 .role(workspaceMapper.mapToWorkspaceRoleDTO(workspace.getWorkspaceRoles().stream().filter(workspaceRole -> workspaceRole.getId().equals(workspaceMember.getWorkspaceRoleID()))
                         .findFirst().orElse(null)))
-                .groups(workspaceMapper.mapListWorkspaceGroupToWorkspaceGroupDTO(workspace.getWorkspaceGroups().stream().filter(workspaceGroup -> workspaceMember.getGroups().contains(workspaceGroup.getId())).collect(Collectors.toSet())))
+                .groups(workspaceMapper.mapListWorkspaceGroupToWorkspaceGroupDTO(workspace.getWorkspaceGroups().stream().filter(workspaceGroup -> {
+                    if (workspaceMember.getGroups() != null) {
+                        return workspaceMember.getGroups().contains(workspaceGroup.getId().toString());
+                    }
+                    return false;
+                }).collect(Collectors.toSet())))
                 .build();
     }
 
