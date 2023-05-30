@@ -1677,14 +1677,6 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    await this.notificationPushToDevice({
-      channelID,
-      token,
-      userID,
-      type: 'message',
-      message: messageDTO,
-    });
-
     this.eventsGateway.sendMessage({
       type: 'member.removed',
       channelID: channelID,
