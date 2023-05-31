@@ -1336,7 +1336,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
 
     if (devices.length != 0) {
       var channelName = '';
-      if (channelDTO.channel.name.length) {
+      if (channelDTO.channel.name) {
         channelName = channelDTO.channel.name;
       } else {
         if (otherMembers.length != 0) {
