@@ -1289,6 +1289,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
     @Param('channelID') channelID: string,
     @Param('callType') callType: string,
     @Query('hasVideo') hasVideo: boolean,
+    @Query('isGroup') isGroup: boolean,
     @Query('userID') userID?: string,
     @Headers('Authorization') token?: string,
   ) {
@@ -1361,7 +1362,7 @@ export class ChannelController implements OnModuleInit, OnModuleDestroy {
           uuid: channelID,
           callerName: channelName,
           has_video: hasVideo ? 'true' : 'false',
-          is_group: channel.members.length > 2 ? 'true' : 'false',
+          is_group: isGroup ? 'true' : 'false',
         },
       });
       console.log(messageResponse);
