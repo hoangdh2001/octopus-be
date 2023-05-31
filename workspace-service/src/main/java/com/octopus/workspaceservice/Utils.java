@@ -36,7 +36,7 @@ public class Utils {
         return WorkspaceRole.builder()
                 .id(UUID.randomUUID())
                 .name("Member")
-                .ownCapabilities(Set.of(WorkspaceOwnCapability.CREATE_PROJECT, WorkspaceOwnCapability.ADD_MEMBER))
+                .ownCapabilities(Set.of(WorkspaceOwnCapability.CREATE_PROJECT, WorkspaceOwnCapability.CREATE_LIST, WorkspaceOwnCapability.ADD_MEMBER))
                 .build();
     }
 }
