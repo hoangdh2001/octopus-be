@@ -282,13 +282,15 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         var members = workspace.getMembers().stream().map(workspaceMember ->
                         convertToWorkspaceMemberDTO(workspaceMember, workspace, token))
                 .collect(Collectors.toSet());
-        workspaceDTO.getProjects().forEach(projectDTO -> {
-            if (projectDTO.getMembers() != null) {
-                projectDTO.getMembers().forEach(member -> {
-                    member.setUser(findUserByID(member.getMemberID(), token));
-                });
-            }
-        });
+        if (workspaceDTO.getProjects() != null) {
+            workspaceDTO.getProjects().forEach(projectDTO -> {
+                if (projectDTO.getMembers() != null) {
+                    projectDTO.getMembers().forEach(member -> {
+                        member.setUser(findUserByID(member.getMemberID(), token));
+                    });
+                }
+            });
+        }
         workspaceDTO.setMembers(members);
         return workspaceDTO;
     }
