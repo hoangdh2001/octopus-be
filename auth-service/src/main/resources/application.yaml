@@ -2,7 +2,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:mysql://db-mysql-sgp1-75475-do-user-14118614-0.b.db.ondigitalocean.com:25060/userdb?ssl-mode=REQUIRED
+    url: jdbc:mysql://db-mysql-sgp1-70744-do-user-14118614-0.b.db.ondigitalocean.com:25060/userdb?ssl-mode=REQUIRED
     username: ${MYSQL_USER}
     password: ${MYSQL_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -25,7 +25,7 @@ spring:
     redis:
       time-to-live: 600000
   redis:
-    url: ${REDIS_API:rediss://${REDIS_USER}:${REDIS_PASS}@db-redis-sgp1-18565-do-user-14118614-0.b.db.ondigitalocean.com:${REDIS_PORT:25061}}
+    url: ${REDIS_API:rediss://${REDIS_USER}:${REDIS_PASS}@db-redis-sgp1-91825-do-user-14118614-0.b.db.ondigitalocean.com:${REDIS_PORT:25061}}
   cloud:
     discovery:
       enabled: true
