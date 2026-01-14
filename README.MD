@@ -61,7 +61,7 @@ The project is divided into several specialized microservices to ensure isolatio
 
 3.  **Spin up the infrastructure (Databases, Kafka, Redis):**
     ```bash
-    docker-compose up -d
+    docker-compose -f docker-compose.demo.yml up -d
     ```
 
 4.  **Access the dashboards:**
